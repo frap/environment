@@ -5,6 +5,8 @@
 
 [user]
 	useconfigonly = true
+	email = frap@tuatara.red
+	name = FRAP
 
 [commit]
 	gpgsign = false
