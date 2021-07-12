@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 #
 ################################################################################
 #
@@ -14,12 +14,27 @@
 
 set -e
 
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+	cat <<HELP
+
+Usage: $(basename "$0")
+
+Used to install my setup on new VM from scratch.
+https://github.com/frap/environment
+
+Copyright (c) 2020 "Gas" Andrés Gasson
+Licensed under the MIT license.xs
+
+HELP
+	exit
+fi
+
 function silence {
-  local output=
-  if ! output=$(eval "$@" 2>&1); then
-    echo "$output"
-    exit 1
-  fi
+	local output=
+	if ! output=$(eval "$@" 2>&1); then
+		echo "$output"
+		exit 1
+	fi
 }
 
 #
@@ -28,49 +43,31 @@ function silence {
 
 export XDG_CONFIG_HOME=$HOME/.config
 
-env_https=https://github.com/d12frosted/environment
-env_ssh=git@github.com:d12frosted/environment.git
+env_https=https://github.com/frap/environment
+env_ssh=git@github.com:frap/environment.git
 
 if [ -d "$XDG_CONFIG_HOME" ] && [ ! -d "$XDG_CONFIG_HOME/.git" ]; then
-  cd "$XDG_CONFIG_HOME" && {
-    git init
-    # clone via HTTPS, as most likely SSH is not yet available or configured
-    git remote add origin $env_https
-    git fetch
-    git reset --hard origin/master
-  }
+	cd "$XDG_CONFIG_HOME" && {
+		git init
+		# clone via HTTPS, as most likely SSH is not yet available or configured
+		git remote add origin $env_https
+		git fetch
+		git reset --hard origin/master
+	}
 fi
 
 if [ ! -d "$XDG_CONFIG_HOME/.git" ]; then
-  # clone via HTTPS, as most likely SSH is not yet available or configured
-  git clone $env_https "$XDG_CONFIG_HOME"
+	# clone via HTTPS, as most likely SSH is not yet available or configured
+	git clone $env_https "$XDG_CONFIG_HOME"
 fi
 
 cd "$XDG_CONFIG_HOME" && {
-  git remote set-url origin $env_ssh
+	git remote set-url origin $env_ssh
 }
-
-#
-# Haskell is the language of Eru.
-#
-
-if command -v stack >/dev/null 2>&1; then
-  silence stack upgrade
-else
-  curl -sSL https://get.haskellstack.org/ | sh
-fi
 
 #
 # Now start the Great Music
 #
-
-cd "$XDG_CONFIG_HOME/melkor" && {
-  silence stack setup --allow-different-user
-  silence stack build --allow-different-user
-
-  if [ "$1" = test ]; then
-    stack test
-  else
-    stack exec --allow-different-user -- melkor "$@"
-  fi
+cd "$XDG_CONFIG_HOME" && {
+	./eru.sh install
 }

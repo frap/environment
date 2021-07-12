@@ -1,0 +1,92 @@
+#From bash manual:
+# An interactive shell is one started without non-option arguments, unless -s is 
+# specified, without specifying the -c option, and whose input and error output
+# are both connected to terminals (as determined by isatty(3)), or one started
+# with the -i option.
+
+# An interactive shell generally reads from and writes to a user’s terminal.
+
+#To determine within a startup script whether or not Bash is running interactively,
+# test the value of the ‘-’ special parameter. It contains i when the shell is
+# interactive. For example:
+
+case "$-" in
+*i*)	echo This shell is interactive ;;
+*)	echo This shell is not interactive ;;
+esac
+
+# put your aliases here
+
+ssource $XDG_CONFIG_HOME/shell/aliases
+ssource $XDG_CONFIG_HOME/shell/git
+
+# if in a terminal
+if [ -t 0 ]; then
+	# other users shouldn't be able to message by default
+	mesg n
+
+	#load up the bash_prompt - do it here as emacs tramp gets fucked up with
+	# non > prompts
+	case "$TERM" in
+	xterm* | rxvt* | eterm* | screen*)
+		if command_exists starship; then
+			eval "$(starship init bash)"
+		else
+			PS1="➜ "
+		fi
+		;;
+	*)
+		PS1="> "
+		;;
+	esac
+
+	if command_exists rg; then
+		alias grep='rg'
+	else
+		alias grep='grep --color=auto'
+		alias fgrep='fgrep --color=auto'
+		alias egrep='egrep --color=auto'
+	fi
+
+	# EDITOR emacs
+	if command_exists emacsclient; then
+		function ec() {
+			if [ -z "$DISPLAY" ]; then
+				emacsclient -nw -a "" "$@"
+			else
+				emacsclient -n -e "(> (length (frame-list)) 1)" | grep t
+				if [ "$?" = "1" ]; then
+					emacsclient -c -n -a "" "$@"
+				else
+					emacsclient -n -a "" "$@"
+				fi
+			fi
+		}
+		export -f ec
+		em() {
+			CFLAG=""
+			[[ -z "$@" ]] && CFLAG="--create-frame"
+			emacsclient $CFLAG --alternate-editor=emacs --no-wait "$@"
+		}
+		alias e=ec
+		export EDITOR=ec
+		export VISUAL="${EDITOR}"
+		export ALTERNATE_EDITOR=""
+	fi
+	alias vi=vim
+
+	if command_exists kitty; then
+		source <(kitty + complete setup bash)
+	fi
+
+	# enable colours
+	if [ $(tput colors) -ge 8 ]; then
+
+		# Load up ANSI colours for terminal and logging
+		ssource $XDG_CONFIG_HOME/shell/ansi_colours
+
+	fi
+
+	# source shell functions if exists
+	ssource $XDG_CONFIG_HOME/shell/functions
+fi

@@ -1,0 +1,11 @@
+# -*- mode: sh; -*-
+
+[[ -z ${XDG_CONFIG_HOME:-} ]] && export XDG_CONFIG_HOME="$HOME/.config"
+
+# source sh environment
+. ${XDG_CONFIG_HOME}/sh/env
+
+# zsh
+# History file
+export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
+export HISTFILE="$ZDOTDIR/zhistory"    # History filepath

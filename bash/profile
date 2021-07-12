@@ -1,37 +1,17 @@
-#!/usr/bin/env bash
-# This file is loaded by many shells, including graphical ones.
+# ~/.profile: executed by the command interpreter for login shells.
+# This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login
+# exists.
+# see /usr/share/doc/bash/examples/startup-files for examples.
+# the files are located in the bash-doc package.
 
-# OS detection
-function is_osx() {
-    [[ "$OSTYPE" =~ ^darwin ]] 2>/dev/null || return 1
-}
-function is_ubuntu() {
-    [[ "$(cat /etc/issue 2>/dev/null)" =~ Ubuntu ]] || return 1
-}
-function is_redhat() {
-    [[ "$(cat /etc/redhat-release 2>/dev/null)" =~ "Red Hat" ]] || return 1
-}
-function is_oraclelinux() {
-    [[ "$(cat /etc/oracle-release 2>/dev/null)" =~ "Oracle Linux" ]] || return 1
-}
+# the default umask is set in /etc/profile; for setting the umask
+# for ssh logins, install and configure the libpam-umask package.
+#umask 022
 
-
-#NVM settings
-if is_dir "/atea/home/atearoot"; then
-  export NVM_DIR="/atea/home/atearoot/.nvm"
-else
-  export NVM_DIR="$HOME/.nvm"
+# if running bash
+if [ -n "$BASH_VERSION" ]; then
+    # include .bashrc if it exists
+    if [ -f "$HOME/.bashrc" ]; then
+	. "$HOME/.bashrc"
+    fi
 fi
-if is_osx
-then
- [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh" # This loads nvm
- [ -s "/usr/local/opt/nvm/etc/bash_completion" ] && . "/usr/local/opt/nvm/etc/bash_completion"
-else
- [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
-fi
-
-
-is_file "$HOME/.bash_aliases" && source "$HOME/.bash_aliases"
-# add host customisations in .bash_profile.local
-# Don't make edits below this
-is_file "$HOME/.bash_profile.local"  && source "$HOME/.bash_profile.local"

@@ -30,6 +30,7 @@ set skip-completed-text off
 
 # If set to 'on', completed directory names have a slash appended. The default is 'on'.
 set mark-directories on
+# If a tab-completed file is symlink to directory - treat it like a directory NOT a file
 set mark-symlinked-directories on
 
 # If set to 'on', a character denoting a file's type is appended to the

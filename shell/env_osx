@@ -1,0 +1,24 @@
+export GOPATH=$HOME/Dev/go
+export GOROOT=/usr/local/opt/go/libexec
+
+# java
+if command_exists jenv; then
+  export PATH="$HOME/.jenv/bin:$PATH"
+  eval "$(jenv init -)"
+fi
+
+pathappend  $GOPATH/bin
+pathappend  $GOROOT/bin
+pathprepend /usr/local/bin
+
+# OSX specific script (uses AppleScripts) to ask me to take a break every hour
+# Run this function as a background process using &
+# alert &
+alert () {
+        while true ; do
+                        # 3600 seconds is 1 hour
+            sleep 3600
+            osascript -e 'tell app "System Events" to display dialog "Take a break! You have been staring at the screen for far too long "' 1>&/dev/null
+        done
+        exit 0
+}

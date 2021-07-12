@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+alias sc='sudo systemctl'
+alias jc='sudo journalctl'

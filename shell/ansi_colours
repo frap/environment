@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+black="\[\e[0;30m\]"
+red="\[\e[0;31m\]"
+green="\[\e[0;32m\]"
+yellow="\[\e[0;33m\]"
+blue="\[\e[0;34m\]"
+purple="\[\e[0;35m\]"
+cyan="\[\e[0;36m\]"
+white="\[\e[0;37m\]"
+orange="\[\e[0;91m\]"
+
+bblack="\[\e[30;1m\]"
+bred="\[\e[31;1m\]"
+bgreen="\[\e[32;1m\]"
+byellow="\[\e[33;1m\]"
+bblue="\[\e[34;1m\]"
+bpurple="\[\e[35;1m\]"
+bcyan="\[\e[36;1m\]"
+bwhite="\[\e[37;1m\]"
+borange="\[\e[91;1m\]"
+
+ulblack="\[\e[30;4m\]"
+ulred="\[\e[31;4m\]"
+ulgreen="\[\e[32;4m\]"
+ulyellow="\[\e[33;4m\]"
+ulblue="\[\e[34;4m\]"
+ulpurple="\[\e[35;4m\]"
+ulcyan="\[\e[36;4m\]"
+ulwhite="\[\e[37;4m\]"
+ulorange="\[\e[91;4m\]"
+
+bgblack="\[\e[40m\]"
+bgred="\[\e[41m\]"
+bggreen="\[\e[42m\]"
+bgyellow="\[\e[43m\]"
+bgblue="\[\e[44m\]"
+bgpurple="\[\e[45m\]"
+bgcyan="\[\e[46m\]"
+bgwhite="\[\e[47;1m\]"
+bgorange="\[\e[101m\]"
+
+normal="\[\e[0m\]"
+reset="\[\e[39m\]"
+
+# These colours are meant to be used with `echo -e`
+echo_black="\033[0;30m"
+echo_red="\033[0;31m"
+echo_green="\033[0;32m"
+echo_yellow="\033[0;33m"
+echo_blue="\033[0;34m"
+echo_purple="\033[0;35m"
+echo_cyan="\033[0;36m"
+echo_white="\033[0;37;1m"
+echo_orange="\033[0;91m"
+
+echo_bblack="\033[30;1m"
+echo_bred="\033[31;1m"
+echo_bgreen="\033[32;1m"
+echo_byellow="\033[33;1m"
+echo_bblue="\033[34;1m"
+echo_bpurple="\033[35;1m"
+echo_bcyan="\033[36;1m"
+echo_bwhite="\033[37;1m"
+echo_borange="\033[91;1m"
+
+echo_ulblack="\033[30;4m"
+echo_ulred="\033[31;4m"
+echo_ulgreen="\033[32;4m"
+echo_ulyellow="\033[33;4m"
+echo_ulblue="\033[34;4m"
+echo_ulpurple="\033[35;4m"
+echo_ulcyan="\033[36;4m"
+echo_ulwhite="\033[37;4m"
+echo_ulorange="\033[91;4m"
+
+echo_bgblack="\033[40m"
+echo_bgred="\033[41m"
+echo_bggreen="\033[42m"
+echo_bgyellow="\033[43m"
+echo_bgblue="\033[44m"
+echo_bgpurple="\033[45m"
+echo_bgcyan="\033[46m"
+echo_bgwhite="\033[47;1m"
+echo_bgorange="\033[101m"
+
+echo_normal="\033[0m"
+echo_reset="\033[39m"
+
+function e_header() { printf "\n%4b${purple}  %-70s${reset}\n" "\U0001F916" "$@"; }
+function e_install() { printf "%4b${purple}  %-60s${reset}\n" "🏗 " "$@"; }
+export -f e_header
+export -f e_install
+function e_success() { echo -e "${echo_cyan}✔ $@${echo_reset}"; }
+function e_error() { echo -e "${echo_red}✗ $@ ${echo_reset}"; }
+# function e_error() { printf "%b${echo_red} %s${echo_reset}\n" "❌" "$@"; }
+function e_excep() { printf "\n%4b${bred}  %-60s${reset}\n" "🧨" "$@"; }
+export -f e_excep
+function e_arrow() { printf "${echo_yellow}%4b  ${echo_cyan}%-60s${echo_reset}\n" "➜" "$@"; }
+function e_info() { printf "${echo_yellow}%4b  %-60s${echo_reset}\n" "∴" "$@"; }
+function e_data() { printf "${echo_green}%4b  %-60s${echo_reset}\n" "➜" "$@"; }
+function e_line() { printf "${echo_yellow}%4b  %-60s${echo_reset}\n" "\U262F" "$@"; }
+function e_sep() { printf "${echo_cyan}%4b  %-60s${echo_reset}\n" "\U1F4CD" "--------------------------------------------------------"; }
+function e_question() { printf "${echo_purple}%4b  %-60s${echo_reset}\n" "\U00002049" "$@"; }
+
+# Logging
+#
+function error() {
+	echo -e "\033[0;31m❌ $*\033[0m"
+}
+
+export -f error
+# intro -> dark blue
+function intro() {
+	echo -e "\033[0;34m$*\033[0m"
+}
+
+export -f intro
+
+function log() {
+	echo -e "${echo_bgreen}$*${echo_reset}"
+}
+
+export -f log
+
+# success -> cyan
+
+function success() {
+	echo -e "${echo_bcyan} ✔ $*\033[0m"
+}
+
+export -f success

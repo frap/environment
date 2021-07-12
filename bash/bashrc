@@ -1,19 +1,19 @@
-# Add binaries into the path
+# From bash manual:
+# When an interactive shell that is not a login shell is started, Bash
+# reads and executes commands from ~/.bashrc, if that file exists. This
+# may be inhibited by using the --norc option. The --rcfile file option
+# will force Bash to read and execute commands from file instead of 
+# ~/.bashrc.
 
-PATH=.local/bin:$PATH
-export PATH
+# this file gets run in two cases:
+# 1. non-login interactive shell
+# 2. remote shell (over ssh or similar)
 
-#load up the bash_prompt - do it here as emacs tramp gets fucked up with
-# non > prompts
-case "$TERM" in
-          "dumb")
-            export PS1="> "
-            ;;
-          xterm*|rxvt*|eterm*|screen*)
-            #PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
-            eval "$(starship init bash)"
-            ;;
-            *)
-              PS1="> "
-            ;;
-esac
+# #2 happens when you run "ssh user@host bash" explicitly.
+# in this case, /etc/bash.bashrc has not been previous executed (unlike #1).
+# however, we assume that #2 is a recovery mode, so we don't want to do much.
+# (also, my google-fu didn't find a way to distinguish them)
+
+. ~/.config/bash/env
+. ~/.config/bash/interactive
+
