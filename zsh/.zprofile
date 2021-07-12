@@ -1,7 +1,4 @@
 # -*- mode: sh; -*-
-#eval "$(/opt/homebrew/bin/brew shellenv)"
-# load shared shell configuration
-#source "$XDG_CONFIG_HOME/sh/profile"
 
 # Enable completions
 autoload -U compinit && compinit
@@ -43,13 +40,16 @@ git_branch() {
   [ -n "$GIT_BRANCH" ] && echo "($GIT_BRANCH) "
 }
 
-if [ -n "${SSH_CONNECTION}" ]
+if [ $MACOS ] 
 then
-  export PROMPT='%(?.%F{green}√.%B%F{red}?%?)%f %F{blue}%n:%m %(!.#.>) '
+  export PROMPT='%(?.%F{green}√.%F{red}?%?)%f %F{magneta}%n %(!.#.>) '
+elif [ -n "${SSH_CONNECTION}" ]
+then
+  export PROMPT='%(?.%B%F{green}√.%B%F{red}?%?)%f %F{90}%n:%m %(!.#.>) '
 else
-  export PROMPT='%(?.%F{green}√.%B%F{red}?%?)%f %F{226}%n@%m %(!.#.>) '
+  export PROMPT='%(?.%F{green}√.%B%F{red}?%?)%f %F{magenta}%n@%m %(!.#.>) '
 fi
-export RPROMPT='%{$fg_bold[red]%}$(git_branch)%b[%B%F{226}%1~%b%f]'
+export RPROMPT='%{$fg_bold[red]%}$(git_branch)%b[%F{226}%~%b%f]'
 
 # more macOS/Bash-like word jumps
 export WORDCHARS=""

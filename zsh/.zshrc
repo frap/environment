@@ -38,9 +38,6 @@ setopt APPEND_HISTORY            # adds commands as they are typed, not at shell
 #setopt INC_APPEND_HISTORY   
 #setopt HIST_REDUCE_BLANKS       # Remove unnecessary blanks from history
 
-# always source zprofile regardless of whether this is/isn't a login shell
-#source "$XDG_CONFIG_HOME/zsh/zprofile"
-
 # +---------+
 # | ALIASES |
 # +---------+
@@ -51,7 +48,7 @@ setopt APPEND_HISTORY            # adds commands as they are typed, not at shell
 # | SCRIPTS |
 # +---------+
 
-. "$XDG_CONFIG_HOME"/zsh/scripts.zsh # Scripts
+#. "$XDG_CONFIG_HOME"/zsh/scripts.zsh # Scripts
 
 # Don't hang up background jobs
 setopt no_hup

@@ -1,4 +1,3 @@
-#!/bin/sh
 # POSIX sh uses /etc/profile for login shells
 # and ~/.profile for login shells. On termination
 # any command orscript from {trap "command" 0}
@@ -24,7 +23,7 @@ grep -q "Microsoft" /proc/version 2>/dev/null && export UBUNTU_ON_WINDOWS=1
 # Count CPUs for Make jobs
 if [ $MACOS ]
 then
-  export CPUCOUNT="$(sysctl -n hw.ncpu)"
+  export CPUCOUNT="$(/usr/sbin/sysctl -n hw.ncpu)"
 elif [ $LINUX ]
 then
   export CPUCOUNT="$(getconf _NPROCESSORS_ONLN)"
@@ -55,6 +54,5 @@ fi
 [ -f "$HOME/.secrets" ] && source "$HOME/.secrets"
 
 # Some post-secret aliases
-export HOMEBREW_GITHUB_API_TOKEN="$GITHUB_TOKEN"
-export HUBOT_GITHUB_TOKEN="$GITHUB_TOKEN"
-export OCTOKIT_ACCESS_TOKEN="$GITHUB_TOKEN"
+#export HOMEBREW_GITHUB_API_TOKEN="$GITHUB_TOKEN"
+#export HUBOT_GITHUB_TOKEN="$GITHUB_TOKEN"

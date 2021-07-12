@@ -30,9 +30,8 @@ export ENV=${HOME}/.config/sh/env
 [[ -z ${XDG_CACHE_HOME:-} ]] && export XDG_CACHE_HOME="$XDG_CONFIG_HOME/cache"
 [[ -z ${XDG_DATA_HOME:-} ]] && export XDG_DATA_HOME="$XDG_CONFIG_HOME/local/share"
 
-# own HISTORY setup
-export HISTSIZE=10000                   # Maximum events for internal history
-export SAVEHIST=10000                   # Maximum events in history file
+# source MACOS HISTFILE secrets etc
+. "${XDG_CONFIG_HOME}/sh/profile"
 
 # Colourful manpages
 export LESS_TERMCAP_mb=$'\E[01;31m'
@@ -127,11 +126,11 @@ export CLICOLOR=1
 # editor
 export EDITOR="emacs"
 export VISUAL="emacs"
-export TERM='rxvt-256color'
+export TERM='xterm-256color'
 
 #setup some apps for XDG_CONFIG
 # gnupg
-export GNUPGHOME=${XDG_CONFIG_HOME}/gnupg
+export GNUPGHOME="${XDG_CONFIG_HOME}/gnupg"
 
 #  less
 export LESSHISTFILE="${XDG_CONFIG_HOME}/less/history"
