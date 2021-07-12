@@ -64,7 +64,7 @@ zstyle ':completion:*' cache-path "$XDG_CACHE_HOME/zsh/.zcompcache"
 zstyle ':completion:*' complete true
 
 zle -C alias-expension complete-word _generic
-bindkey '^A' alias-expension
+bindkey '^X' alias-expension
 zstyle ':completion:alias-expension:*' completer _expand_alias
 
 # Use cache for commands which use it
@@ -81,7 +81,7 @@ zstyle ':completion:*' file-sort modification
 zstyle ':completion:*:*:*:*:corrections' format '%F{yellow}!- %d (errors: %e) -!%f'
 zstyle ':completion:*:*:*:*:descriptions' format '%F{blue}-- %D %d --%f'
 zstyle ':completion:*:*:*:*:messages' format ' %F{purple} -- %d --%f'
-zstyle ':completion:*:*:*:*:warnings' format ' %F{red}-- no matches found --%f'
+zstyle ':completion:*:*:*:*:warnings' format ' %F{red}-- Désolé, aucune correspondance pour: --%f'
 # zstyle ':completion:*:default' list-prompt '%S%M matches%s'
 # Colors for files and directory
 zstyle ':completion:*:*:*:*:default' list-colors ${(s.:.)LS_COLORS}

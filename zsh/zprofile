@@ -42,14 +42,14 @@ git_branch() {
 
 if [ $MACOS ] 
 then
-  export PROMPT='%(?.%F{green}√.%F{red}?%?)%f %F{magneta}%n %(!.#.>) '
+  export PROMPT='%(?.%F{green}√.%F{red}?%?)%f %F{130}%n %(!.#.>) '
 elif [ -n "${SSH_CONNECTION}" ]
 then
   export PROMPT='%(?.%B%F{green}√.%B%F{red}?%?)%f %F{90}%n:%m %(!.#.>) '
 else
   export PROMPT='%(?.%F{green}√.%B%F{red}?%?)%f %F{magenta}%n@%m %(!.#.>) '
 fi
-export RPROMPT='%{$fg_bold[red]%}$(git_branch)%b[%F{226}%~%b%f]'
+export RPROMPT='%{$fg_bold[red]%}$(git_branch)%b[%F{226}%1~%b%f]'
 
 # more macOS/Bash-like word jumps
 export WORDCHARS=""

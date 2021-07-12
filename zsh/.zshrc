@@ -48,7 +48,7 @@ setopt APPEND_HISTORY            # adds commands as they are typed, not at shell
 # | SCRIPTS |
 # +---------+
 
-#. "$XDG_CONFIG_HOME"/zsh/scripts.zsh # Scripts
+. "$XDG_CONFIG_HOME"/zsh/scripts.zsh # Scripts
 
 # Don't hang up background jobs
 setopt no_hup
@@ -85,6 +85,25 @@ source $XDG_CONFIG_HOME/zsh/completion.zsh
 
 # enable direnv (if installed)
 quiet_which direnv && eval "$(direnv hook zsh)"
+
+git_branch() {
+  GIT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null) || return
+  [ -n "$GIT_BRANCH" ] && echo "($GIT_BRANCH) "
+}
+
+if [ $MACOS ]
+then
+  export PROMPT='%(?.%F{green}√.%F{red}?%?)%f %F{130}%n %(!.#.>) '
+elif [ -n "${SSH_CONNECTION}" ]
+then
+  export PROMPT='%(?.%B%F{green}√.%B%F{red}?%?)%f %F{90}%n:%m %(!.#.>) '
+else
+  export PROMPT='%(?.%F{green}√.%B%F{red}?%?)%f %F{magenta}%n@%m %(!.#.>) '
+fi
+export RPROMPT='%{$fg_bold[red]%}$(git_branch)%b[%F{226}%1~%b%f]'
+
+# more macOS/Bash-like word jumps
+export WORDCHARS=""
 
 # to avoid non-zero exit code
 true
