@@ -43,16 +43,13 @@ git_branch() {
   [ -n "$GIT_BRANCH" ] && echo "($GIT_BRANCH) "
 }
 
-if [ "$USER" = "root" ]
+if [ -n "${SSH_CONNECTION}" ]
 then
-  export PROMPT='%{$fg_bold[magenta]%}%m %{$fg_bold[blue]%}# %b%f'
-elif [ -n "${SSH_CONNECTION}" ]
-then
-  export PROMPT='%{$fg_bold[cyan]%}%m %{$fg_bold[blue]%}%n %b%f'
+  export PROMPT='%(?.%F{green}√.%B%F{red}?%?)%f %F{blue}%n:%m %(!.#.>) '
 else
-  export PROMPT='%F{208}%n:%{$fg_bold[blue]%}%m %b%f'
+  export PROMPT='%(?.%F{green}√.%B%F{red}?%?)%f %F{226}%n@%m %(!.#.>) '
 fi
-export RPROMPT='%{$fg_bold[red]%}$(git_branch)%b[%F{226}%~%b%f]'
+export RPROMPT='%{$fg_bold[red]%}$(git_branch)%b[%B%F{226}%1~%b%f]'
 
 # more macOS/Bash-like word jumps
 export WORDCHARS=""
