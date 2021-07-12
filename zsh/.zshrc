@@ -45,13 +45,13 @@ setopt APPEND_HISTORY            # adds commands as they are typed, not at shell
 # | ALIASES |
 # +---------+
 
-source $XDG_CONFIG_HOME/aliases/aliases
+. "$XDG_CONFIG_HOME"/aliases/aliases
 
 # +---------+
 # | SCRIPTS |
 # +---------+
 
-source $XDG_CONFIG_HOME/zsh/scripts.zsh # Scripts
+. "$XDG_CONFIG_HOME"/zsh/scripts.zsh # Scripts
 
 # Don't hang up background jobs
 setopt no_hup
@@ -62,7 +62,6 @@ setopt correctall
 
 # use emacs bindings even with vim as EDITOR
 bindkey -e
-
 
 # fix backspace on Debian
 [ -n "$LINUX" ] && bindkey "^?" backward-delete-char

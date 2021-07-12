@@ -5,3 +5,5 @@ emacs/lisp/init-autoloads.el
 emacs/tramp
 emacs/eshell/*
 .eldev/
+zsh/.zsh_history
+zsh/.zsh_sessions
