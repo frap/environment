@@ -1,0 +1,19 @@
+# Add binaries into the path
+
+PATH=.local/bin:$PATH
+export PATH
+
+#load up the bash_prompt - do it here as emacs tramp gets fucked up with
+# non > prompts
+case "$TERM" in
+          "dumb")
+            export PS1="> "
+            ;;
+          xterm*|rxvt*|eterm*|screen*)
+            #PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
+            eval "$(starship init bash)"
+            ;;
+            *)
+              PS1="> "
+            ;;
+esac

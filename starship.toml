@@ -1,0 +1,139 @@
+format = """\
+  $username\
+  $hostname\
+  $directory\
+  $git_branch\
+  $git_commit\
+  $git_state\
+  $git_status\
+  $cmd_duration\
+  $custom\
+  $erlang\
+  $java\
+  $nodejs\
+  $rust\
+  $terraform\
+  $kubernetes\
+  $line_break\
+  $jobs\
+  $battery\
+  $time\
+  $character\
+  """
+
+[aws]
+symbol = " "
+disabled = true
+
+[battery]
+full_symbol = ""
+charging_symbol = ""
+discharging_symbol = ""
+
+[conda]
+symbol = " "
+
+[dart]
+symbol = " "
+
+[docker]
+symbol = " "
+
+[elixir]
+symbol = " "
+
+[elm]
+symbol = " "
+
+[git_branch]
+symbol = " "
+
+[golang]
+symbol = " "
+
+[haskell]
+symbol = " "
+
+[hg_branch]
+symbol = " "
+
+[java]
+symbol = " "
+disabled=false
+
+[julia]
+symbol = " "
+
+[memory_usage]
+symbol = " "
+
+[nim]
+symbol = " "
+
+[nix_shell]
+symbol = " "
+
+[nodejs]
+symbol = " "
+disabled=false
+format = "🔧[$symbol$version]($style) "
+
+[package]
+symbol = " "
+
+[perl]
+symbol = " "
+
+[php]
+symbol = " "
+
+[python]
+symbol = " "
+
+[ruby]
+symbol = " "
+
+[rust]
+symbol = " "
+disabled=false
+
+[swift]
+symbol = "ﯣ "
+
+[directory]
+truncation_length =2
+
+[hostname]
+ssh_only = true
+
+[custom.clj]
+disabled = false
+command = "rg org.clojure/clojure deps.edn | cut -d '{' -f3 "
+files = ["deps.edn"]
+symbol = "λ "
+format = "$symbol $command($blue)"
+
+[time]
+disabled = true
+time_format = "%T"
+utc_time_offset = "12"
+
+[username]
+show_always = true
+format = "[$user]($style)@"
+
+[kubernetes]
+format = '▶️[🕸️ $context \($namespace\)](dimmed cyan) '
+disabled = true
+[kubernetes.context_aliases]
+"dev.local.cluster.k8s" = "dev"
+
+[character]
+error_symbol = "[✖](bold red)"
+success_symbol = "[➜](bold green)"
+
+[cmd_duration]
+# $duration – The command duration (e.g. "15s")
+# $style    – The default style of the module (e.g. "bold yellow")
+#format = "took [$duration]($yellow) "
+disabled = true

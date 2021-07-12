@@ -1,0 +1,75 @@
+# I like this!
+set editing-mode emacs
+
+# Don't strip characters to 7 bits when reading.
+set input-meta on
+
+# Allow iso-latin1 characters to be inserted rather than converted to
+# prefix-meta sequences.
+set convert-meta off
+
+# Display characters with the eighth bit set directly rather than as
+# meta-prefixed characters.
+set output-meta on
+
+# Ignore hidden files.
+set match-hidden-files off
+
+# Ignore case (on/off).
+set completion-ignore-case on
+
+set completion-query-items 100
+
+# First tab suggests ambiguous variants.
+set show-all-if-ambiguous on
+
+# Replace common prefix with ...
+set completion-prefix-display-length 1
+
+set skip-completed-text off
+
+# If set to 'on', completed directory names have a slash appended. The default is 'on'.
+set mark-directories on
+set mark-symlinked-directories on
+
+# If set to 'on', a character denoting a file's type is appended to the
+# filename when listing possible completions. The default is 'off'.
+set visible-stats on
+
+set horizontal-scroll-mode off
+
+$if Bash
+"\C-x\C-e": edit-and-execute-command
+$endif
+
+# Define my favorite Emacs key bindings.
+"\C-@": set-mark
+"\C-w": kill-region
+"\M-w": copy-region-as-kill
+"\M-/": dabbrev-expand
+
+# Ctrl+Left/Right to move by whole words.
+"\e[1;5C": forward-word
+"\e[1;5D": backward-word
+# Same with Shift pressed.
+"\e[1;6C": forward-word
+"\e[1;6D": backward-word
+
+# Ctrl+Backspace/Delete to delete whole words.
+"\e[3;5~": kill-word
+"\C-_": backward-kill-word
+
+# UP/DOWN filter history by typed string as prefix.
+"\e[A": history-search-backward
+"\C-p": history-search-backward
+"\eOA": history-search-backward
+"\e[B": history-search-forward
+"\C-n": history-search-forward
+"\eOB": history-search-forward
+
+# Bind 'Shift+TAB' to complete as in Python TAB was need for another purpose.
+"\e[Z": complete
+# Cycling possible completion forward and backward in place.
+"\e[1;3C": menu-complete                    # M-Right
+"\e[1;3D": menu-complete-backward           # M-Left
+"\e[1;5I": menu-complete                    # C-TAB

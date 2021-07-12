@@ -1,0 +1,99 @@
+[core]
+	editor = emacs
+	autocrlf = input
+	ignorecase = false
+
+[user]
+	useconfigonly = true
+
+[commit]
+	gpgsign = false
+
+[alias]
+	c = commit
+  cm = commit -m
+  ca = commit --amend
+
+  cleanup-branches = !git fetch -a -p origin master && git branch --merged master | grep -v 'master$' | xargs git branch -d || true
+  recent="!f(){ git branch --sort=-committerdate | head -n ${1:-5}; };f"
+  co = checkout
+  g = !git --no-pager grep --color -n
+  l = log
+  lo = log --graph --oneline --abbrev-commit
+  lg = log --graph --pretty=format:'%Cred%h%Creset %C(bold blue)<%an> -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset'
+  ll = log --graph --pretty='format:%h | %an | %s'
+llog = log --pretty=format:'%C(yellow)%h %Cred%ad %Cblue%an%Cgreen%d %Creset%s' --date=iso
+  pr = pull --rebase
+  pl = !git pull -r -u origin $(git cb)
+
+  pfff = !git push --force origin $(git cb)
+
+  re-continue = rebase --continue
+  re-skip = rebase --skip
+  pull-all = pull --recurse-submodules -r
+  ss = status
+  s = status -sb
+  m = merge --no-ff
+  zip-current-branch = !git archive --format zip --output ./$(pwd | rev | cut -d/ -f1 | rev).zip $(git cb)
+  last = rev-parse HEAD
+  root = rev-parse --show-toplevel
+
+  d = diff
+  dc = diff --cached
+  wd = diff --color-words
+  wdc = diff --color-words --cached
+
+  serve = daemon --reuseaddr --verbose  --port=4000 --base-path=. --export-all ./.git
+
+  cb = !git rev-parse --abbrev-ref HEAD 2>/dev/null
+  edit-modified = !vim -p $(git ls-files -m )
+  push-and-track= !git push -u origin $(git cb)
+  safe-pull = !git stash && git pull -r origin $(git cb) && git stash pop
+  pushall = "!for r in $(git remote); do git push $r $(git symbolic-ref --short HEAD); done && for r in $(git remote); do git push $r --tags; done"
+  update = !git fetch -a -p && git pull -r && git remove-merged-branches
+
+  changelog = log --pretty=format:'%Cgreen%d %Creset%s' --date=iso
+  cl =!git clone git@github.com:$1.git
+
+[push]
+	default = simple
+
+[pull]
+        rebase = false
+[init]
+        defaultBranch = main
+
+[filter "lfs"]
+	required = true
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+
+[color]
+	branch = auto
+	diff = auto
+	interactive = auto
+	status = auto
+
+[gpg]
+	program = gpg2
+
+[diff]
+	compactionHeuristic = true
+
+[github]
+	user = frap
+
+[gitlab]
+	user = agasson
+
+[magithub]
+	online = true
+
+[magithub "status"]
+	includeStatusHeader = true
+	includePullRequestsSection = false
+	includeIssuesSection = false
+
+[include]
+	path = local.config

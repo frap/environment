@@ -1,0 +1,25 @@
+
+fzf_kill() {
+    local pid_col
+    if [[ $(uname) = Linux ]]; then
+        pid_col=2
+    elif [[ $(uname) = Darwin ]]; then
+        pid_col=3;
+    else
+        error "Erreur: Système d'exploitation inconnu."
+        return
+    fi
+    local pids=$(
+      ps -f -u $USER | sed 1d | fzf --multi | tr -s [:blank:] | cut -d' ' -f"$pid_col")
+    if [[ -n $pids ]]; then
+        echo "$pids" | xargs kill -9 "$@"
+    fi
+}
+
+# check if being sourced then alias fkill -> fzf_kill
+if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+    export -f fzf_kill
+    export fkill=fzf_kill
+else
+   fzf_kill "$1"
+fi

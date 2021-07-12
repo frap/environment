@@ -1,0 +1,21 @@
+fzf_git_log() {
+    local selections=$(
+      git ll --color=always "$@" |
+        fzf --ansi --no-sort --no-height \
+            --preview "echo {} | grep -o '[a-f0-9]\{7\}' | head -1 |
+                       xargs -I@ sh -c 'git show --color=always @'"
+      )
+    if [[ -n $selections ]]; then
+        local commits=$(echo "$selections" | sed 's/^[* |]*//' | cut -d' ' -f1 | tr '\n' ' ')
+        git show $commits
+    fi
+}
+
+# check if being sourced then alias gll -> fzf_git_log
+if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+    success "exporting gll"
+    export -f fzf_git_log
+    export gll=fzf_git_log
+else
+   fzf_git_log
+fi

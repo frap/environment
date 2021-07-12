@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+
+################################################################################
+
+APPLICATION=notify
+MESSAGE=
+URGENCY=normal
+
+ACTION=$1
+shift
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+  key="$1"
+  case $key in
+    -m|--message)
+      MESSAGE="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    -t|--title)
+      TITLE="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    -a|--application)
+      APPLICATION="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    -u|--urgency)
+      URGENCY="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    *)    # unknown option
+      POSITIONAL+=("$1") # save it in an array for later
+      shift # past argument
+      ;;
+  esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+function print_usage() {
+  echo "Usage:
+  notify ACTION
+
+Actions:
+  help                  Show help options
+  send                  Send a notification
+  status                Get status of the notification system (enabled, disabled)
+  enable                Enable notification system
+  disable               Disable notification system
+  toggle                Toggle the status of notification system
+
+Send Options:
+  -a|--application TEXT Specify the application sending notification
+  -t|--title TEXT       Specify the title of the notification (required)
+  -m|--message TEXT     Specify the message of the notification
+  -u|--urgency LEVEL    Specify the urgency level (low, normal or critical)
+"
+}
+
+################################################################################
+
+function check() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+################################################################################
+
+status_file="$XDG_DATA_HOME/notify/status"
+mkdir -p "$XDG_DATA_HOME/notify"
+
+function exec() {
+  case $1 in
+    help)
+      print_usage
+      ;;
+    send)
+      if [[ -z $TITLE ]]; then
+        echo "Missing title!"
+        echo
+        print_usage
+        exit 1
+      fi
+
+      check notify-send && {
+        notify-send -a "$APPLICATION" "$TITLE" "$MESSAGE" -u "$URGENCY"
+      }
+      check terminal-notifier && {
+        terminal-notifier -title "$APPLICATION" -subtitle "$TITLE" -message "$MESSAGE"
+      }
+      ;;
+    status)
+      if check defaults; then
+        status=$(defaults read ~/Library/Preferences/ByHost/com.apple.notificationcenterui.plist doNotDisturb)
+        status=$(( ( status + 1 ) % 2))
+      else
+        status=$(cat "$status_file" 2>/dev/null)
+      fi
+      if [[ "$status" = "1" ]]; then
+        echo "enabled"
+      else
+        echo "disabled"
+      fi
+      ;;
+    enable)
+      echo "1" > "$XDG_DATA_HOME/notify/status"
+      check notify-send && {
+        notify send -t "DUNST_COMMAND_RESUME"
+      }
+      ;;
+    disable)
+      echo "0" > "$XDG_DATA_HOME/notify/status"
+      check notify-send && {
+        notify send -t "DUNST_COMMAND_PAUSE"
+      }
+      ;;
+    toggle)
+      status=$(cat "$status_file" 2>/dev/null)
+      if [[ "$status" = "1" ]]; then
+        exec disable
+      else
+        exec enable
+      fi
+      ;;
+    *)
+      print_usage
+      exit 1
+      ;;
+  esac
+}
+
+exec "$ACTION"
+
+################################################################################

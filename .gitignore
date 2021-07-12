@@ -1,0 +1,7 @@
+*.elc
+auto-save-list/
+eln-cache/
+emacs/lisp/init-autoloads.el
+emacs/tramp
+emacs/eshell/*
+.eldev/

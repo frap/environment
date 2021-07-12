@@ -1,0 +1,62 @@
+#
+# Logging
+#
+
+function error() {
+  echo -e "\033[0;31m❌ $*\033[0m"
+}
+
+export -f error
+
+function intro() {
+  echo -e "\033[0;34m$*\033[0m"
+}
+
+export -f intro
+
+function log() {
+  echo -e "$*"
+}
+
+export -f log
+
+function success() {
+  echo -e "\033[1;36m ✔ $*\033[0m"
+}
+
+export -f success
+
+#
+# dir/file tests
+
+function is_file() {
+    local file=$1
+
+    [[ -f $file ]]
+}
+
+export -f is_file
+
+function exists() {
+    local file=$1
+
+    test -e $1
+}
+
+export -f exists
+
+function is_dir() {
+    local dir=$1
+
+    [[ -d $dir ]]
+}
+
+export -f is_dir
+
+#
+# import .profile for local aliases
+#
+is_file  ~/.profile  && source ~/.profile
+
+# source .bashrc
+case $- in *i*) . ~/.bashrc ;; esac
