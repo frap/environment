@@ -93,12 +93,12 @@ git_branch() {
 
 if [ $MACOS ]
 then
-  export PROMPT='%(?.%F{green}√.%F{red}?%?)%f %F{130}%n %(!.#.>) '
+  export PROMPT='%(?.%F{green}√.%F{red}?%?)%f %F{130}%n %(!.#.>)%f '
 elif [ -n "${SSH_CONNECTION}" ]
 then
-  export PROMPT='%(?.%B%F{green}√.%B%F{red}?%?)%f %F{90}%n:%m %(!.#.>) '
+  export PROMPT='%(?.%B%F{green}√.%B%F{red}?%?)%f %F{90}%n:%m %(!.#.>)%f '
 else
-  export PROMPT='%(?.%F{green}√.%B%F{red}?%?)%f %F{magenta}%n@%m %(!.#.>) '
+  export PROMPT='%(?.%F{green}√.%B%F{red}?%?)%f %F{magenta}%n@%m %(!.#.>)%f '
 fi
 export RPROMPT='%{%B%F{196}%}$(git_branch)%f%b[%F{226}%1~%b%f]'
 
