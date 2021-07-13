@@ -100,7 +100,7 @@ then
 else
   export PROMPT='%(?.%F{green}√.%B%F{red}?%?)%f %F{magenta}%n@%m %(!.#.>) '
 fi
-export RPROMPT='%{%B%F{red}%}$(git_branch)%f%b[%F{226}%1~%b%f]'
+export RPROMPT='%{%B%F{196}%}$(git_branch)%f%b[%F{226}%1~%b%f]'
 
 # more macOS/Bash-like word jumps
 export WORDCHARS=""
