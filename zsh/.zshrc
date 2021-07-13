@@ -86,10 +86,8 @@ source $XDG_CONFIG_HOME/zsh/completion.zsh
 # enable direnv (if installed)
 quiet_which direnv && eval "$(direnv hook zsh)"
 
-git_branch() {
-  GIT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null) || return
-  [ -n "$GIT_BRANCH" ] && echo "($GIT_BRANCH) "
-}
+# Enable substitution in the prompt
+setopt prompt_subst
 
 if [ $MACOS ]
 then
@@ -100,7 +98,7 @@ then
 else
   export PROMPT='%(?.%F{green}√.%B%F{red}?%?)%f %F{magenta}%n@%m %(!.#.>)%f '
 fi
-export RPROMPT='%{%B%F{196}%}$(git_branch)%f%b[%F{226}%1~%b%f]'
+export RPROMPT='%{%B%F{196}%} $(git_branch)%f%b[%F{226}%1~%b%f]'
 
 # more macOS/Bash-like word jumps
 export WORDCHARS=""

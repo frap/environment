@@ -72,6 +72,14 @@ force_add_to_path_start() {
   export PATH="$1:$PATH"
 }
 
+if [ $MACOS ]
+then
+  add_to_path_start "/usr/local/sbin"
+  add_to_path_start "/usr/local/bin"
+  add_to_path_start "/opt/homebrew/bin"
+fi
+add_to_path_start "${XDG_CONFIG_HOME}/local/bin"
+
 quiet_which() {
   command -v "$1" >/dev/null
 }
@@ -159,6 +167,10 @@ export CARGO_HOME="$XDG_DATA_HOME"/cargo
 
 # git
 export GIT_REVIEW_BASE=main # See gitconfig
+git_branch() {
+  GIT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null) || return
+  [ -n "$GIT_BRANCH" ] && echo "($GIT_BRANCH) "
+}
 
 # Save directory changes
 cd() {
@@ -178,11 +190,7 @@ then
   }
 fi
 
-add_to_path_start "/usr/local/sbin"
-add_to_path_start "/usr/local/bin"
-add_to_path_start "/opt/homebrew/bin"
-add_to_path_start "{XDG_CONFIG_HOME}/local/bin"
-#add_to_path_start "${GOCACHE}"
+add_to_path_start "${GOCACHE}"
 add_to_path_start "${GOBIN}"
-#add_to_path_start "${GOPATH}"
+add_to_path_start "${GOPATH}"
 
