@@ -111,6 +111,7 @@ if quiet_which bat
 then
   export BAT_THEME="Dracula"
   alias cat="bat"
+  alias batp='bat --paging=always --pager="less -RFX" --style=plain'
 fi
 
 if quiet_which prettyping
@@ -128,6 +129,18 @@ then
   alias du="ncdu --color dark -rr"
 fi
 
+if quiet_which rg
+then
+   rgf() {
+      if [ -z "$2" ]
+      then
+        rg --files | rg "$1"
+      else
+        rg --files "$2" | rg "$1"
+      fi
+   }
+fi
+
 # Configure environment
 export CLICOLOR=1
 
@@ -141,10 +154,13 @@ export TERM='xterm-256color'
 export GNUPGHOME="${XDG_CONFIG_HOME}/gnupg"
 
 #  less
-export LESSHISTFILE="${XDG_CONFIG_HOME}/less/history"
-export LESSKEY="${XDG_CONFIG_HOME}/less/keys"
-export LESS='-R'
+#if ! quiet_which bat
+#then
+  export LESSHISTFILE="${XDG_CONFIG_HOME}/less/history"
+  export LESSKEY="${XDG_CONFIG_HOME}/less/keys"
+  export LESS='-R'
 #export LESSOPEN='|${XDG_CONFIG_HOME}/less/lessfilter'
+#fi
 
 # vim
 export VIMINIT='let $MYVIMRC="$XDG_CONFIG_HOME/vim/vimrc" | source $MYVIMRC'

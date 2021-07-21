@@ -1,21 +1,21 @@
 # taps
 tap "homebrew/cask-fonts"
-tap "koekeishiya/formulae"
+#tap "koekeishiya/formulae"
 tap "d12frosted/emacs-plus"
 tap "scalacenter/bloop"
 
 # important
-brew "ack"
-brew "ag"
+brew "asciinema"
 brew "aspell"
 brew "bash"
 brew "bat"
+brew "eth-p/software/bat-extras"
 brew "certbot"
 brew "coreutils"
-brew "emacs-plus@28", args: ["without-spacemacs-icon", "with-jansson", "with-modern-doom3-icon", "HEAD"]
+brew "emacs-plus@27", args: ["without-spacemacs-icon", "with-jansson", "with-modern-doom3-icon", "HEAD"]
 brew "fd"
 brew "ffmpeg"
-brew "fish"
+#brew "fish"
 brew "git"
 brew "git-lfs"
 brew "gnu-getopt"
@@ -24,7 +24,6 @@ brew "gnu-tar"
 brew "gopass"
 brew "graphviz"
 brew "grep"
-brew "hledger"
 brew "jq"
 brew "ncdu"
 brew "node"
@@ -36,20 +35,20 @@ brew "proselint"
 brew "pygments"
 brew "rg"
 brew "shellcheck"
-brew "skhd", args: ["with-logging", "HEAD"], restart_service: :changed
+#brew "skhd", args: ["with-logging", "HEAD"], restart_service: :changed
 brew "terminal-notifier", link: true
 brew "tree"
 brew "wget"
-brew "yabai", restart_service: :changed
+#brew "yabai", restart_service: :changed
+brew "zsh"
 
 # clojure
 brew "maven"
 brew "clojure"
-brew "bb"
-brew "jet"
+brew "borkdude/brew/babashka"
+brew "borkdude/brew/jet"
 brew "clojure-lsp"
 brew "clojurescript"
-cask "java"
 
 # applications
 #cask "alfred"
@@ -58,24 +57,28 @@ cask "java"
 #cask "cyberduck"
 #cask "docker"
 cask "firefox"
-cask "font-awesome-terminal-fonts"
-cask "font-fontawesome"
 #cask "gopass-ui"
 #cask "gpg-suite"
 cask "kitty"
 #cask "mactex"
 cask "platypus"
 #cask "slack"
-#cask "telegram"
-#cask "tor-browser"
-#cask "vlc"
+cask "telegram"
+cask "tor-browser"
+cask "vlc"
 #cask "vox"
 #cask "vox-preferences-pane"
 #cask "xquartz"
 
-# other
-#brew "gifsicle"
 
 # fonts
+cask "font-iosevka-nerd-font"
 cask "font-source-code-pro"
-cask "hack-mono"
+cask "font-inconsolata-nerd-font"
+cask "font-robotomono-nerd-font"
+cask "font-fira-code-nerd-font"
+cask "font-fira-mono-nerd-font"
+cask "font-hack-nerd-font"
+cask "font-noto-nerd-font"
+cask "font-awesome-terminal-fonts"
+cask "font-fontawesome"

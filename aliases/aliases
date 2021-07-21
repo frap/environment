@@ -1,4 +1,4 @@
-#!/bin/bash
+# -*- mode: sh; -*-
 
 # +--------+
 # | System |
@@ -10,12 +10,26 @@ alias suspend='sudo pm-suspend'
 
 alias bigf= 'find / -xdev -type f -size +500M'  # display "big" files > 500M
 
-alias df="df -H"
-alias du="du -sh"
+# handy short cuts #
+alias h='history'
+alias j='jobs -l'
+alias path='echo -e ${PATH//:/\\n}'
+
+# counting files in directory tree
+alias count='find . -type f | wc -l'
+alias df='df -H'
+alias du='du -ch'
 
 alias make="nice make"
 alias less="less --ignore-case --raw-control-chars"
 alias rsync="rsync --partial --progress --human-readable --compress"
+# Copying with progress
+alias cpv='rsync -ah --info=progress2'
+
+# show top cpu consuming processes
+alias topc="ps -e -o pcpu,pid,user,tty,args | sort -n -k 1 -r | head"
+# show top memory consuming processes
+alias topm="ps -e -o pmem,pid,user,tty,args | sort -n -k 1 -r | head"
 
 if quiet_which rg
 then
@@ -38,25 +52,32 @@ alias zmv="noglob zmv -vW"
 
 if quiet_which exa
 then
-  alias ls="exa --classify --group --git"
-  alias ll="exa -l --classify --group --git"
-elif [ "$MACOS" ]
+  alias ls="exa --icons --classify --group --git"
+  alias ll="exa -l --icons --classify --group --git"
+  alias la="exa --icons --long -aag --sort modified --reverse"
+  alias ld="exa --only-dirs --tree --level 3"
+  #alias ll='exa --icons --long -ag --sort accessed --reverse'
+  alias ll2="exa --tree --level 2"
+  alias ll3="exa --tree --level 3"
+  alias l="exa --icons --sort modified --reverse"
+  #alias ls="exa --icons -g --long --sort size --reverse"
+elif [ "$MACOS" ] && quiet_which gls
 then
-    alias ls="ls -F"
-    alias lsl='ls -l'
-    alias ll='ls -lahF'
-    alias lls='ls -lahFtr'
-    alias la='ls -A'
-    alias l='ls -CF'
+  alias ls="gls --color  -sAF"
+  alias la="gls --color -Atr"
+  alias ll="gls --color -AlhFtr"
+  alias  l="gls --color -AlhF"
 else
+  test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
   alias ls='ls -F --color=auto'
-  alias lsl='ls -l'
-  alias ll='ls -lahF'
-  alias lls='ls -lahFtr'
+  alias l='ls -lahF'
+  alias ll='ls -lahFtr'
   alias la='ls -A'
   alias l='ls -CF'
 fi
 
+# sort by file size
+alias lt='du -sh * | sort -h'
 
 # +----+
 # | cp |
@@ -101,8 +122,10 @@ alias gia="go install ./..."    # go install all
 # +-----+
 
 alias gs='git status'
-alias ga='git add'
+ga() { git add "${@:-.}"; } # Add all files by default
+#alias ga='git add'
 alias gp='git push'
+alias gpa='gp --all'
 alias gpo='git push origin'
 alias gpt='git push --tag'
 alias gtd='git tag --delete'
@@ -110,14 +133,22 @@ alias gtdr='git tag --delete origin'
 alias gr='git branch -r'                                                                           # display remote branch
 alias gplo='git pull origin'
 alias gb='git branch '
+# Current branch or SHA if detached.
+alias gbs='git branch | perl -ne '"'"'/^\* (?:\(detached from (.*)\)|(.*))/ && print "$1$2"'"'"''
+
+alias gcd='git rev-parse 2>/dev/null && cd "./$(git rev-parse --show-cdup)"'
 alias gc='git commit'
+alias gm='git commit -m'
+alias gma='git commit -am'
 alias gd='git diff'
 alias gco='git checkout '
 alias gl='git log'
 alias gr='git remote'
+alias grv='gr -v'
 alias grs='git remote show'
+alias gs='git status'
 alias glo='git log --pretty="oneline"'
-alias glol='git log --graph --oneline --decorate'
+alias glol='git log --graph --oneline --decorate --date-order --all'
 alias gclean="git branch --merged | grep  -v '\\*\\|master\\|develop' | xargs -n 1 git branch -d" # Delete local branch merged with master
 alias gblog="git for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'"                                                             # git log for each branches
 alias gsub="git submodule update --remote"                                                        # pull submodules
@@ -164,3 +195,17 @@ alias dot="$XDG_CONFIG_HOME/dotfiles"
 # +---------+
 
 alias port="netstat -tulpn | grep"
+
+# +---------+
+# | network |
+# +---------+
+alias wanip="dig +short myip.opendns.com @resolver1.opendns.com"
+alias myip="curl icanhazip.com" # Your public IP address
+#alias ping='ping -c 5 -R -i.2 -W.3'
+
+
+# +---------+
+# |  time   |
+# +---------+
+alias now='date +"%T"'
+alias curdate='date +"%d-%m-%Y"'

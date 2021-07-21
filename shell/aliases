@@ -1,3 +1,4 @@
+# -*- mode: sh; -*-
 # Always use colour output for `ls`
 if command_exists exa; then
     alias la="exa --icons --long -ag --sort modified --reverse"

@@ -99,3 +99,5 @@ llog = log --pretty=format:'%C(yellow)%h %Cred%ad %Cblue%an%Cgreen%d %Creset%s' 
 
 [include]
 	path = local.config
+[hub]
+	protocol = https
