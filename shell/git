@@ -1,3 +1,4 @@
+# -*- mode: sh; -*-
 # grep history
 alias gh='history|grep'
 
