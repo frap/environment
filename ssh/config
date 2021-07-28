@@ -11,5 +11,7 @@ Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.
 
 Host *
     ForwardAgent no
+    AddKeysToAgent yes
+
 Host *.tuatara.red
     ProxyJump bastion.tuatara.red
