@@ -141,6 +141,13 @@ then
    }
 fi
 
+if quiet_which nvm
+then
+export NVM_DIR="$HOME/.nvm"
+  [ -s "$HOMEBREW_PREFIX/opt/nvm/nvm.sh" ] && . "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
+  [ -s "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm" ] && . "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+fi
+
 # Configure environment
 export CLICOLOR=1
 
@@ -188,6 +195,8 @@ git_branch() {
   [ -n "$GIT_BRANCH" ] && echo "($GIT_BRANCH) "
 }
 
+# ssh-agent
+[ -z "$SSH_AUTH_SOCK" ] && eval "$(ssh-agent -s)"
 # Save directory changes
 cd() {
   builtin cd "$@" || return
