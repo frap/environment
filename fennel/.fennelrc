@@ -21,5 +21,5 @@
 
 (match package.loaded.readline
   (where rl (table? rl))
-  (do (rl.set_options {:histfile  "~/.fennel_history"
+  (do (rl.set_options {:histfile  "~/.config/fennel/fennel_history"
                        :keeplines 1000})))

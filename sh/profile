@@ -1,3 +1,4 @@
+# -*- mode: sh; -*-
 # POSIX sh uses /etc/profile for login shells
 # and ~/.profile for login shells. On termination
 # any command orscript from {trap "command" 0}
@@ -7,9 +8,11 @@
 # 077 would be more secure, but 022 is more useful.
 umask 022
 
-# Save more history
-export HISTSIZE="100000"
-export SAVEHIST="100000"
+# History
+export HISTFILESIZE=
+export HISTSIZE=-1
+export HISTTIMEFORMAT="[%F %T] "
+export HISTIGNORE='ls:ll:cd:pwd:bg:fg:history'
 
 # OS variables
 [ "$(uname -s)" = "Darwin" ] && export MACOS=1 && export UNIX=1

@@ -7,12 +7,12 @@
 # If bash is invoked with the name sh, as an interactive login shell, or as
 # a non-interactive shell with the --login option, it first attempts to read
 # and execute commands from /etc/profile and ~/.profile, in that order. When
-# invoked as an interactive shell with the name sh, Bash looks for the 
+# invoked as an interactive shell with the name sh, Bash looks for the
 # variable ENV, expands its value if it is defined, and uses the expanded
 # value as the name of a file to read and execute. Since a shell invoked as
 # sh does not attempt to read and execute commands from any other startup
 # files, the --rcfile option has no effect. A non-interactive shell invoked
-# with the name sh does not attempt to read any other startup files. 
+# with the name sh does not attempt to read any other startup files.
 # Therefore we need to set $ENV so that if you use shell X as your login shell,
 # and then start "sh" as a non-login interactive shell the startup scripts will
 # correctly run.
@@ -89,13 +89,12 @@ if quiet_which brew
 then
   eval $(brew shellenv)
 
-#  export HOMEBREW_AUTO_UPDATE_SECS=3600
-#  export HOMEBREW_DEVELOPER=1
-#  export HOMEBREW_UPDATE_REPORT_ONLY_INSTALLED=1
-#  export HOMEBREW_GIT_FILTER_TREE_ZERO=1
+  export HOMEBREW_AUTO_UPDATE_SECS=3600
+  export HOMEBREW_DEVELOPER=1
+  export HOMEBREW_UPDATE_REPORT_ONLY_INSTALLED=1
+  export HOMEBREW_GIT_FILTER_TREE_ZERO=1
 #  export HOMEBREW_BOOTSNAP=1
 
-#  alias hbc='cd $HOMEBREW_REPOSITORY/Library/Taps/homebrew/homebrew-core'
 fi
 
 if quiet_which diff-so-fancy
@@ -215,6 +214,19 @@ then
   }
 fi
 
+
+# Lua related stuff
+if quiet_which luarocks
+then
+   eval "$(luarocks path)"
+
+    for path in "$HOME"/.local/share/lua/*; do
+        LUA_PATH="$path/?.lua;$LUA_PATH"
+     done
+
+   export LUA_PATH
+fi
+
 # conda setup
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
@@ -234,4 +246,3 @@ unset __conda_setup
 add_to_path_start "${GOCACHE}"
 add_to_path_start "${GOBIN}"
 add_to_path_start "${GOPATH}"
-
