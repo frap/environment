@@ -220,11 +220,11 @@ if quiet_which luarocks
 then
    eval "$(luarocks path)"
 
-    for path in "$HOME"/.local/share/lua/*; do
-        LUA_PATH="$path/?.lua;$LUA_PATH"
-     done
+  #  for path in "$XDG_DATA_HOME"/lua/*; do
+  #      LUA_PATH="$path/?.lua;$LUA_PATH"
+  #   done
 
-   export LUA_PATH
+  # export LUA_PATH
 fi
 
 # conda setup
