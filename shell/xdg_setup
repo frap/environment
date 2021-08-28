@@ -1,0 +1,14 @@
+# -*- mode: sh; -*-
+# Setup some apps for XDG_CONFIG
+# gnupg
+export GNUPGHOME=${XDG_CONFIG_HOME}/gnupg
+
+#  less
+export LESSHISTFILE="${XDG_CONFIG_HOME}/less/history"
+export LESSKEY="${XDG_CONFIG_HOME}/less/keys"
+export LESS='-R'
+export LESSOPEN='|${XDG_CONFIG_HOME}/less/lessfilter'
+
+# vim
+export VIMINIT='let $MYVIMRC="$XDG_CONFIG_HOME/vim/vimrc" | source $MYVIMRC'
+export VIMDOTDIR="$XDG_CONFIG_HOME/vim"

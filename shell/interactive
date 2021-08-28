@@ -1,5 +1,6 @@
-#From bash manual:
-# An interactive shell is one started without non-option arguments, unless -s is 
+# -*- mode: sh; -*-
+# From bash manual:
+# An interactive shell is one started without non-option arguments, unless -s is
 # specified, without specifying the -c option, and whose input and error output
 # are both connected to terminals (as determined by isatty(3)), or one started
 # with the -i option.
@@ -9,16 +10,45 @@
 #To determine within a startup script whether or not Bash is running interactively,
 # test the value of the ‘-’ special parameter. It contains i when the shell is
 # interactive. For example:
+#case "$-" in
+#*i*)	echo This shell is interactive ;;
+#*)	echo This shell is not interactive ;;
+#esac
 
-case "$-" in
-*i*)	echo This shell is interactive ;;
-*)	echo This shell is not interactive ;;
-esac
+# OS variables
+[ "$(uname -s)" = "Darwin" ] && export MACOS=1 && export UNIX=1
+[ "$(uname -s)" = "Linux" ] && export LINUX=1 && export UNIX=1
+uname -s | grep -q "_NT-" && export WINDOWS=1
+grep -q "Microsoft" /proc/version 2>/dev/null && export UBUNTU_ON_WINDOWS=1
+exists /etc/bastion && export BASTION=1
+
+# Fix systems missing $USER
+[ -z "$USER" ] && export USER="$(whoami)"
+
+# XDG Setup for some apps
+ssource ${XDG_CONFIG_HOME}/shell/xdg_setup
 
 # put your aliases here
+ssource $XDG_CONFIG_HOME/aliases/aliases
 
-ssource $XDG_CONFIG_HOME/shell/aliases
-ssource $XDG_CONFIG_HOME/shell/git
+
+if [ $MACOS ]
+then
+    if command_exists brew
+    then
+        eval $(brew shellenv)
+
+        export HOMEBREW_AUTO_UPDATE_SECS=3600
+        export HOMEBREW_DEVELOPER=1
+        export HOMEBREW_UPDATE_REPORT_ONLY_INSTALLED=1
+        export HOMEBREW_GIT_FILTER_TREE_ZERO=1
+        #  export HOMEBREW_BOOTSNAP=1
+        prepend_to_path "/opt/homebrew/bin"
+
+    fi
+fi
+
+prepend_to_path "${HOME}/.local/bin"
 
 # if in a terminal
 if [ -t 0 ]; then

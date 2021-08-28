@@ -5,3 +5,4 @@ if [ "$SHLVL" = 1 ]; then
     fi
 fi
 
+pwd > ${XDG_STATE_HOME}/lastpwd

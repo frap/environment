@@ -1,1 +1,1 @@
-. ~/.config/shell/login
+. ${XDG_CONFIG_DIR}/shell/login

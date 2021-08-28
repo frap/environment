@@ -1,9 +1,10 @@
+# -*- mode: sh; -*-
 # From the bash manual:
-# When Bash is invoked as an interactive login shell, or as a non-interactive 
+# When Bash is invoked as an interactive login shell, or as a non-interactive
 # shell with the --login option, it first reads and executes commands from the
 # file /etc/profile, if that file exists. After reading that file, it looks for
 # ~/.bash_profile, ~/.bash_login, and ~/.profile, in that order, and reads and
-# executes commands from the FIRST one that exists and is readable. The 
+# executes commands from the FIRST one that exists and is readable. The
 # --noprofile option may be used when the shell is started to inhibit this
 # behaviour.
 
@@ -32,20 +33,3 @@ BASH_ENV=
 if [ "$PS1" ]; then
     . ~/.config/bash/interactive
 fi
-
-
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/opt/homebrew/Caskroom/miniforge/base/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/opt/homebrew/Caskroom/miniforge/base/etc/profile.d/conda.sh" ]; then
-        . "/opt/homebrew/Caskroom/miniforge/base/etc/profile.d/conda.sh"
-    else
-        export PATH="/opt/homebrew/Caskroom/miniforge/base/bin:$PATH"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<
-
