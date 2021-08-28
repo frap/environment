@@ -88,13 +88,11 @@ echo_reset="\033[39m"
 
 function e_header() { printf "\n%4b${purple}  %-70s${reset}\n" "\U0001F916" "$@"; }
 function e_install() { printf "%4b${purple}  %-60s${reset}\n" "🏗 " "$@"; }
-export -f e_header
-export -f e_install
 function e_success() { echo -e "${echo_cyan}✔ $@${echo_reset}"; }
 function e_error() { echo -e "${echo_red}✗ $@ ${echo_reset}"; }
 # function e_error() { printf "%b${echo_red} %s${echo_reset}\n" "❌" "$@"; }
 function e_excep() { printf "\n%4b${bred}  %-60s${reset}\n" "🧨" "$@"; }
-export -f e_excep
+
 function e_arrow() { printf "${echo_yellow}%4b  ${echo_cyan}%-60s${echo_reset}\n" "➜" "$@"; }
 function e_info() { printf "${echo_yellow}%4b  %-60s${echo_reset}\n" "∴" "$@"; }
 function e_data() { printf "${echo_green}%4b  %-60s${echo_reset}\n" "➜" "$@"; }
@@ -108,24 +106,16 @@ function error() {
 	echo -e "\033[0;31m❌ $*\033[0m"
 }
 
-export -f error
 # intro -> dark blue
 function intro() {
 	echo -e "\033[0;34m$*\033[0m"
 }
 
-export -f intro
-
 function log() {
 	echo -e "${echo_bgreen}$*${echo_reset}"
 }
 
-export -f log
-
 # success -> cyan
-
 function success() {
 	echo -e "${echo_bcyan} ✔ $*\033[0m"
 }
-
-export -f success

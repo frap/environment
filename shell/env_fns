@@ -1,0 +1,63 @@
+# -*- mode: sh; -*-
+
+# Setup paths
+remove_from_path() {
+  [ -d "$1" ] || return
+  PATHSUB=":$PATH:"
+  PATHSUB=${PATHSUB//:$1:/:}
+  PATHSUB=${PATHSUB#:}
+  PATHSUB=${PATHSUB%:}
+  export PATH="$PATHSUB"
+}
+
+append_to_path() {
+  [ -d "$1" ] || return
+  remove_from_path "$1"
+  export PATH="$1:$PATH"
+}
+
+prepend_to_path() {
+  [ -d "$1" ] || return
+  remove_from_path "$1"
+  export PATH="$PATH:$1"
+}
+
+force_append_to_path() {
+  remove_from_path "$1"
+  export PATH="$1:$PATH"
+}
+
+# Usage: indirect_expand PATH -> $PATH
+function indirect_expand() {
+	env | sed -n "s/^$1=//p"
+}
+
+#
+# dir/file Tests
+
+function file_exists() {
+	local file=$1
+	[[ -f $file ]]
+}
+
+function exists() {
+	local file=$1
+	test -e $1
+}
+
+function dir_exists() {
+	local dir=$1
+	[[ -d $dir ]]
+}
+
+# Usage: ssource filename
+function ssource() {
+	if [ -r "$1" ]; then
+		. "$1"
+	fi
+}
+
+# Usage: command_exists starship
+function command_exists() {
+	hash $1 &>/dev/null
+}

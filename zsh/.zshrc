@@ -74,7 +74,7 @@ source $XDG_CONFIG_HOME/zsh/completion.zsh
 #[ -f "$ZSH_AUTOSUGGESTIONS" ] && source "$ZSH_AUTOSUGGESTIONS"
 
 # enable direnv (if installed)
-quiet_which direnv && eval "$(direnv hook zsh)"
+command_exists direnv && eval "$(direnv hook zsh)"
 
 # load up interactive
 ssource "${XDG_CONFIG_HOME}/shell/interactive"

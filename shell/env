@@ -1,3 +1,4 @@
+# -*- mode: sh; -*-
 # From bash manual:
 # If bash is invoked with the name sh, as an interactive login shell, or as
 # a non-interactive shell with the --login option, it first attempts to read
@@ -37,7 +38,7 @@ export ENV=~/.config/sh/interactive
 [[ -z ${XDG_DATA_HOME:-} ]]  && export XDG_DATA_HOME=$HOME/.local/share
 [[ -z ${XDG_STATE_HOME:-} ]] && export XDG_STATE_HOME=$HOME/.local/state
 
-. ${XDG_CONFIG_HOME}/shell/env_functions
+. ${XDG_CONFIG_HOME}/shell/env_fns
 
 # 077 would be more secure, but 022 is more useful.
 #umask 0077

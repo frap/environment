@@ -80,7 +80,7 @@ then
   alias ll3="exa --tree --level 3"
   alias l="exa --icons --sort modified --reverse"
   #alias ls="exa --icons -g --long --sort size --reverse"
-elif [ "$MACOS" ] && command_exists gls
+elif [ $MACOS ] && command_exists gls
 then
   alias ls="gls --color  -sAF"
   alias la="gls --color -Atr"
