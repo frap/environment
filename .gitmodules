@@ -1,3 +1,6 @@
 [submodule "doom"]
 	path = doom
 	url = git@github.com:frap/.doom.git
+[submodule "emacs"]
+	path = emacs
+	url = git@gitlab.com:agasson/emacs.git
