@@ -28,12 +28,10 @@ exists /etc/bastion && export BASTION=1
 # XDG Setup for some apps
 ssource ${XDG_CONFIG_HOME}/shell/xdg_setup
 
-# put your aliases here
-ssource $XDG_CONFIG_HOME/aliases/aliases
-
-
 if [ $MACOS ]
 then
+    # If Apple with M1 add below path
+    append_to_path "/opt/homebrew/bin"
     if command_exists brew
     then
         eval $(brew shellenv)
@@ -43,57 +41,59 @@ then
         export HOMEBREW_UPDATE_REPORT_ONLY_INSTALLED=1
         export HOMEBREW_GIT_FILTER_TREE_ZERO=1
         #  export HOMEBREW_BOOTSNAP=1
-        prepend_to_path "/opt/homebrew/bin"
         ssource "${XDG_CONFIG_HOME}/shell/osx_interactive"
     fi
 fi
 
-prepend_to_path "${HOME}/.local/bin"
-append_to_path  "${GOCACHE}"
-append_to_path  "${GOBIN}"
-append_to_path  "${GOPATH}"
+append_to_path "${HOME}/.local/bin"
+prepend_to_path  "${GOCACHE}"
+prepend_to_path  "${GOBIN}"
+prepend_to_path  "${GOPATH}"
+
+# put your aliases here
+ssource $XDG_CONFIG_HOME/shell/aliases
 
 # if in a terminal
 if [ -t 0 ]; then
-	# other users shouldn't be able to message by default
-	mesg n
+    # other users shouldn't be able to message by default
+    mesg n
 
-	#load up the bash_prompt - do it here as emacs tramp gets fucked up with
-	# non > prompts
-	case "$TERM" in
+    #load up the bash_prompt - do it here as emacs tramp gets fucked up with
+    # non > prompts
+    case "$TERM" in
 	xterm* | rxvt* | eterm* | screen*)
-		if command_exists starship; then
-			eval "$(starship init bash)"
-		else
-			PS1="➜ "
-		fi
-		;;
+	    if command_exists starship; then
+		eval "$(starship init bash)"
+	    else
+		PS1="➜ "
+	    fi
+	    ;;
 	*)
-		PS1="> "
-		;;
-	esac
+	    PS1="> "
+	    ;;
+    esac
 
-	# enable colours
-	if [ $(tput colors) -ge 8 ]; then
+    # enable colours
+    if [ $(tput colors) -ge 8 ]; then
 
-		# Load up ANSI colours for terminal and logging
-		ssource $XDG_CONFIG_HOME/shell/ansi_colours
+	# Load up ANSI colours for terminal and logging
+	ssource $XDG_CONFIG_HOME/shell/ansi_colours
 
-	fi
+    fi
 
-	# source shell functions if exists
-	ssource $XDG_CONFIG_HOME/shell/interactive_fns
+    # source shell functions if exists
+    ssource $XDG_CONFIG_HOME/shell/interactive_fns
 
 
-        [ -s ${XDG_STATE_HOME}/lastpwd ] && [ "$PWD" = "$HOME" ] && \
-            builtin cd "$(cat ~/.local/state/lastpwd)" 2>/dev/null
-        [ $TERMINALAPP ] && set_terminal_app_pwd
+    [ -s ${XDG_STATE_HOME}/lastpwd ] && [ "$PWD" = "$HOME" ] && \
+        builtin cd "$(cat ~/.local/state/lastpwd)" 2>/dev/null
+    [ $TERMINALAPP ] && set_terminal_app_pwd
 
-        # ssh-agent
-        [ -z "$SSH_AUTH_SOCK" ] && eval "$(ssh-agent -s)"
+    # ssh-agent
+    [ -z "$SSH_AUTH_SOCK" ] && eval "$(ssh-agent -s)"
 
-        ssource "$HOME/.secrets"
-        # Some post-secret aliases
-        #export HOMEBREW_GITHUB_API_TOKEN="$GITHUB_TOKEN"
-        #export HUBOT_GITHUB_TOKEN="$GITHUB_TOKEN"
+    ssource "$HOME/.secrets"
+    # Some post-secret aliases
+    #export HOMEBREW_GITHUB_API_TOKEN="$GITHUB_TOKEN"
+    #export HUBOT_GITHUB_TOKEN="$GITHUB_TOKEN"
 fi

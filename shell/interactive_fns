@@ -41,7 +41,6 @@ if command_exists emacsclient; then
 	    fi
 	fi
     }
-    export -f ec
     em() {
 	CFLAG=""
 	[[ -z "$@" ]] && CFLAG="--create-frame"

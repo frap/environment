@@ -2,7 +2,7 @@
 
 # java
 if command_exists jenv; then
-  export PATH="$HOME/.jenv/bin:$PATH"
+  append_to_path "$HOME/.jenv/bin"
   eval "$(jenv init -)"
 fi
 
@@ -35,7 +35,7 @@ else
     if [ -f "$HOMEBREW_PREFIX/Caskroom/miniforge/base/etc/profile.d/conda.sh" ]; then
         . "$HOMEBREW_PREFIX/Caskroom/miniforge/base/etc/profile.d/conda.sh"
     else
-        export PATH="$HOMEBREW_PREFIX/Caskroom/miniforge/base/bin:$PATH"
+        append_to_path "$HOMEBREW_PREFIX/Caskroom/miniforge/base/bin"
     fi
 fi
 unset __conda_setup
