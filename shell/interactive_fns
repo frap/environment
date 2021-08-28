@@ -1,4 +1,32 @@
 # -*- mode: sh; -*-
+
+# Count CPUs for Make jobs
+if [ $MACOS ]
+then
+  export CPUCOUNT="$(/usr/sbin/sysctl -n hw.ncpu)"
+elif [ $LINUX ]
+then
+  export CPUCOUNT="$(getconf _NPROCESSORS_ONLN)"
+else
+  export CPUCOUNT=1
+fi
+
+if [ "$CPUCOUNT" -gt 1 ]
+then
+  export MAKEFLAGS="-j$CPUCOUNT"
+  export BUNDLE_JOBS="$CPUCOUNT"
+fi
+
+# Enable Terminal.app folder icons
+[ "$TERM_PROGRAM" = "Apple_Terminal" ] && export TERMINALAPP=1
+if [ $TERMINALAPP ]
+then
+  set_terminal_app_pwd() {
+    # Tell Terminal.app about each directory change.
+    printf '\e]7;%s\a' "$(echo "file://$HOST$PWD" | sed -e 's/ /%20/g')"
+  }
+fi
+
 # EDITOR emacs
 if command_exists emacsclient; then
     function ec() {
@@ -87,6 +115,7 @@ then
 
   # export LUA_PATH
 fi
+
 
 
 function cl() {
