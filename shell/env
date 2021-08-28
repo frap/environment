@@ -2,49 +2,45 @@
 # If bash is invoked with the name sh, as an interactive login shell, or as
 # a non-interactive shell with the --login option, it first attempts to read
 # and execute commands from /etc/profile and ~/.profile, in that order. When
-# invoked as an interactive shell with the name sh, Bash looks for the 
+# invoked as an interactive shell with the name sh, Bash looks for the
 # variable ENV, expands its value if it is defined, and uses the expanded
 # value as the name of a file to read and execute. Since a shell invoked as
 # sh does not attempt to read and execute commands from any other startup
 # files, the --rcfile option has no effect. A non-interactive shell invoked
-# with the name sh does not attempt to read any other startup files. 
+# with the name sh does not attempt to read any other startup files.
+# -*- mode: sh; -*-
+# From bash manual:
+# If bash is invoked with the name sh, as an interactive login shell, or as
+# a non-interactive shell with the --login option, it first attempts to read
+# and execute commands from /etc/profile and ~/.profile, in that order. When
+# invoked as an interactive shell with the name sh, Bash looks for the
+# variable ENV, expands its value if it is defined, and uses the expanded
+# value as the name of a file to read and execute. Since a shell invoked as
+# sh does not attempt to read and execute commands from any other startup
+# files, the --rcfile option has no effect. A non-interactive shell invoked
+# with the name sh does not attempt to read any other startup files.
 # Therefore we need to set $ENV so that if you use shell X as your login shell,
 # and then start "sh" as a non-login interactive shell the startup scripts will
 # correctly run.
 export ENV=~/.config/sh/interactive
 
-# export XDG_CONFIG to be like linux
-export XDG_CONFIG_HOME=$HOME/.config
-export XDG_CONFIG_CACHE=$HOME/.cache
+# The XDG_ variables definitions:
+# https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html#variables
 
-#setup some apps for XDG_CONFIG
-# gnupg
-export GNUPGHOME=${XDG_CONFIG_HOME}/gnupg
+###############################
+# EXPORT ENVIRONMENT VARIABLE #
+###############################
 
-#  less
-export LESSHISTFILE="${XDG_CONFIG_HOME}/less/history"
-export LESSKEY="${XDG_CONFIG_HOME}/less/keys"
-export LESS='-R'
-export LESSOPEN='|${XDG_CONFIG_HOME}/less/lessfilter'
+## XDG
+[[ -z ${XDG_CONFIG_HOME:-} ]] && export XDG_CONFIG_HOME="$HOME/.config"
+[[ -z ${XDG_CACHE_HOME:-} ]]  && export XDG_CONFIG_CACHE=$HOME/.cache
+[[ -z ${XDG_DATA_HOME:-} ]]  && export XDG_DATA_HOME=$HOME/.local/share
+[[ -z ${XDG_STATE_HOME:-} ]] && export XDG_STATE_HOME=$HOME/.local/state
 
-# vim
-export VIMINIT='let $MYVIMRC="$XDG_CONFIG_HOME/vim/vimrc" | source $MYVIMRC'
-export VIMDOTDIR="$XDG_CONFIG_HOME/vim"
+. ${XDG_CONFIG_HOME}/shell/env_functions
 
-# From Bash manual:
-# When Bash is started non-interactively, to run a shell script, for example, it
-# looks for the variable BASH_ENV in the environment, expands its value if it 
-# appears there, and uses the expanded value as the name of a file to read and
-# execute. Bash behaves as if the following command were executed:
-#if [ -n "$BASH_ENV" ]; then . "$BASH_ENV"; fi
-#but the value of the PATH variable is not used to search for the filename.
-
-# Therefore ee also need to set BASH_ENV, which is run for *non-interactive* shells.
-# (unlike $ENV, which is for interactive shells)
-export BASH_ENV=~/.config/bash/env
-
-. ~/.config/shell/env_functions
-
-umask 0077
+# 077 would be more secure, but 022 is more useful.
+#umask 0077
+umask 022
 
 ssource ~/.config/shell/env_local

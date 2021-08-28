@@ -1,8 +1,4 @@
 # -*- mode: sh; -*-
-
-# load shared shell configuration
-source "$XDG_CONFIG_HOME/sh/env"
-
 fpath=($XDG_CONFIG_HOME/zsh/plugins $fpath)
 
 # +------------+
@@ -39,16 +35,10 @@ setopt INC_APPEND_HISTORY
 setopt HIST_REDUCE_BLANKS       # Remove unnecessary blanks from history
 
 # +---------+
-# | ALIASES |
-# +---------+
-
-. "$XDG_CONFIG_HOME"/aliases/aliases
-
-# +---------+
 # | SCRIPTS |
 # +---------+
 
-. "$XDG_CONFIG_HOME"/zsh/scripts.zsh # Scripts
+#. "$XDG_CONFIG_HOME"/zsh/scripts.zsh # Scripts
 
 # Don't hang up background jobs
 setopt no_hup
@@ -85,6 +75,9 @@ source $XDG_CONFIG_HOME/zsh/completion.zsh
 
 # enable direnv (if installed)
 quiet_which direnv && eval "$(direnv hook zsh)"
+
+# load up interactive
+ssource "${XDG_CONFIG_HOME}/shell/interactive"
 
 # Enable substitution in the prompt
 setopt prompt_subst

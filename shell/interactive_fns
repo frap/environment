@@ -1,3 +1,94 @@
+# -*- mode: sh; -*-
+# EDITOR emacs
+if command_exists emacsclient; then
+    function ec() {
+	if [ -z "$DISPLAY" ]; then
+	    emacsclient -nw -a "" "$@"
+	else
+	    emacsclient -n -e "(> (length (frame-list)) 1)" | grep t
+	    if [ "$?" = "1" ]; then
+		emacsclient -c -n -a "" "$@"
+	    else
+		emacsclient -n -a "" "$@"
+	    fi
+	fi
+    }
+    export -f ec
+    em() {
+	CFLAG=""
+	[[ -z "$@" ]] && CFLAG="--create-frame"
+	emacsclient $CFLAG --alternate-editor=emacs --no-wait "$@"
+    }
+    alias e=ec
+    export EDITOR=ec
+    export VISUAL="${EDITOR}"
+    export ALTERNATE_EDITOR=""
+else
+   export EDITOR="vim"
+fi
+
+if command_exists kitty; then
+    source <(kitty + complete setup bash)
+fi
+
+# git
+export GIT_REVIEW_BASE=main # See gitconfig
+git_branch() {
+  GIT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null) || return
+  [ -n "$GIT_BRANCH" ] && echo "($GIT_BRANCH) "
+}
+
+
+if command_exists diff-so-fancy
+then
+  # shellcheck disable=SC2016
+  export GIT_PAGER='diff-so-fancy | less -+$LESS -RX'
+else
+  # shellcheck disable=SC2016
+  export GIT_PAGER='less -+$LESS -RX'
+fi
+
+if command_exists rg
+then
+   rgf() {
+      if [ -z "$2" ]
+      then
+        rg --files | rg "$1"
+      else
+        rg --files "$2" | rg "$1"
+      fi
+   }
+fi
+
+# fzf
+if command_exists fzf
+then
+  export FZF_DEFAULT_COMMAND="rg --files --hidden --glob '!.git'"
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+fi
+
+# Pretty-print JSON files
+if command_exists jq
+then
+  json() {
+    [ -n "$1" ] || return
+    cat "$1" | jq .
+  }
+fi
+
+# Lua related stuff
+if command_exists luarocks
+then
+   eval "$(luarocks path)"
+
+  #  for path in "$XDG_DATA_HOME"/lua/*; do
+  #      LUA_PATH="$path/?.lua;$LUA_PATH"
+  #   done
+
+  # export LUA_PATH
+fi
+
+
 function cl() {
     DIR="$*";
         # if no DIR given, go home
@@ -14,3 +105,11 @@ function md() {
   mkdir -p "$@" && cd "$@"
 }
 
+# Save directory changes
+cd() {
+  builtin cd "$@" || return
+  [ "$TERMINALAPP" ] && command -v set_terminal_app_pwd >/dev/null \
+    && set_terminal_app_pwd
+  pwd > "${XDG_STATE_HOME}/.lastpwd"
+  ls
+}

@@ -1,5 +1,4 @@
-export GOPATH=$HOME/Dev/go
-export GOROOT=/usr/local/opt/go/libexec
+# -*- mode: sh; -*-
 
 # java
 if command_exists jenv; then
@@ -7,9 +6,12 @@ if command_exists jenv; then
   eval "$(jenv init -)"
 fi
 
-pathappend  $GOPATH/bin
-pathappend  $GOROOT/bin
-pathprepend /usr/local/bin
+if command_exists nvm
+then
+export NVM_DIR="$HOME/.nvm"
+  [ -s "$HOMEBREW_PREFIX/opt/nvm/nvm.sh" ] && . "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
+  [ -s "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm" ] && . "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+fi
 
 # OSX specific script (uses AppleScripts) to ask me to take a break every hour
 # Run this function as a background process using &
@@ -22,3 +24,19 @@ alert () {
         done
         exit 0
 }
+
+# conda setup
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('$HOMEBREW_PREFIX/Caskroom/miniforge/base/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "$HOMEBREW_PREFIX/Caskroom/miniforge/base/etc/profile.d/conda.sh" ]; then
+        . "$HOMEBREW_PREFIX/Caskroom/miniforge/base/etc/profile.d/conda.sh"
+    else
+        export PATH="$HOMEBREW_PREFIX/Caskroom/miniforge/base/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
