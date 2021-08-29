@@ -1,9 +1,10 @@
+# -*- mode: sh; -*-
 # From the bash manual:
-# When Bash is invoked as an interactive login shell, or as a non-interactive 
+# When Bash is invoked as an interactive login shell, or as a non-interactive
 # shell with the --login option, it first reads and executes commands from the
 # file /etc/profile, if that file exists. After reading that file, it looks for
 # ~/.bash_profile, ~/.bash_login, and ~/.profile, in that order, and reads and
-# executes commands from the FIRST one that exists and is readable. The 
+# executes commands from the FIRST one that exists and is readable. The
 # --noprofile option may be used when the shell is started to inhibit this
 # behaviour.
 
@@ -14,28 +15,17 @@ export NAME='Andrés Gasson'
 export EMAIL='gas@tuatara.red'
 
 # Preferred programs
-export PAGER=less
-export EDITOR=ec
-export VISUAL=$EDITOR
-
-# Language
-export LANG='en_NZ.UTF-8'
-#export LC_ALL=$LANG
-#export LC_COLLATE=$LANG
-#export LC_CTYPE=$LANG
-#export LC_MESSAGES=$LANG
-#export LC_MONETARY=$LANG
-#export LC_NUMERIC=$LANG
-#export LC_TIME=$LANG
+#export PAGER=less
+#export EDITOR=ec
+#export VISUAL=$EDITOR
 
 # Path settings
-pathprepend ~/.local/bin PATH
+#prepend_to_path ~/.local/bin PATH
 ## Brew
 #pathprepend ~/usr/local/sbin PATH
 #pathprepend ~/lib LD_LIBRARY_PATH
 #pathprepend ~/include CPATH
 
 # The current directory should never be in $PATH
-pathremove . PATH
-pathremove "" PATH
-
+remove_from_path . PATH
+remove_from_path "" PATH

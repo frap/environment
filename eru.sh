@@ -15,7 +15,7 @@
 # Run this script to install all dependencies and configurations. If you wish to
 # perform only specific task or tasks pass them as arguments, space-separated.
 #
-#   ./eru.sh [theme] [theme] ...
+#   ./eru.sh [command] [theme] ...
 #
 # For example,
 #
@@ -93,9 +93,9 @@ if [[ -d "$GITHUB_WORKSPACE" ]]; then
 fi
 
 export XDG_CONFIG_HOME=$target
-export XDG_CONFIG_CACHE="$HOME/.cache"
-export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_CACHE_HOME="$HOME/.cache"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_STATE_HOME="$HOME/.local/state"
 
 export DEVELOPER=$HOME/Dev
 
@@ -131,7 +131,7 @@ function error() {
 }
 
 function intro() {
-	echo -e "${echo_blue}$*${echo_reset}"
+	echo -e "${echo_bblue}$*${echo_reset}"
 }
 
 function log() {
@@ -173,19 +173,23 @@ log
 # Helpers
 #
 
-theme "Supporting" "Defining helpers"
+theme "Setp Eru" "Defining helpers"
 
+# ${@:2} is all paraeters starting at $2
+# ${!parameter} returns what is in parameter
+# theme guard was called theme_guard $REPO rep whee $REPO=true whether you wan to run the repo code
 function theme_guard() {
 	key=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 	local guard_ref="guard_$key"
 	local ignore_guard_ref="guard_ignore_$key"
+        # guard is VARIABLE denoting whether theme is true or false
 	guard="${!guard_ref}"
 	ignore_guard="${!ignore_guard_ref}"
 	if [[ ("$ALL" = "true" || "$guard" = "true") && "$ignore_guard" = "" ]]; then
-		optional_theme "$1" "${@:2}"
+		optional_theme "$1" "${@:2}"   # logging
 		return 0
 	else
-		inactive_theme "$1" "${@:2}"
+		inactive_theme "$1" "${@:2}"    # logging
 		return 1
 	fi
 }
@@ -202,11 +206,6 @@ function upgrade_guard() {
 
 function test_guard() {
 	[[ "$ACTION" == "test" ]]
-	return
-}
-
-function arch_guard() {
-	[[ "$OS_NAME" == "arch" ]]
 	return
 }
 
@@ -358,7 +357,8 @@ function safe_link() {
 	d=$(dirname "$t")
 
 	if [[ -d "$d" ]]; then
-		owner=$(stat -c '%U' "$d")
+	    #owner=$(stat -c '%U' "$d") # linux stat
+            owner=$(stat -f "%Su" "$d")
 		if [[ "$owner" != "root" && "$owner" != "$USER" ]]; then
 			error "ne peut pas lier '$s' à '$t'"
 			error "propriétaire de  '$d' est $owner"
@@ -417,7 +417,7 @@ function download_bin() {
 # Setup variables
 #
 
-theme "Supporting" "Defining variables"
+theme "Setup ERU" "Defining variables"
 
 ALL="true"
 ACTION=
@@ -438,10 +438,20 @@ install | upgrade | test)
 	;;
 esac
 
+# $# is the number of arguments
+# $* is the postitonal pramaters, starting from 1. If not in " each parameter is a separate word
+# Syntax Effective Result
+# $*	  $1 $2 $3 … ${N}
+# $@	  $1 $2 $3 … ${N}
+# "$*"	  "$1c$2c$3c…c${N}"
+# "$@"	  "$1" "$2" "$3" … "${N}"
+# ${parameter#word} If the pattern matches the beginning of the expanded value of parameter, then
+# the result of the expansion is the expanded value of parameter with the shortest matching pattern
+# set -- the positional parameters are set to the arguments, even if some of them begin with a ‘-’.
 POSITIONAL=()
 while [[ $# -gt 0 ]]; do
 	if [[ "$1" != "" ]]; then
-		if [[ "$1" = -* ]]; then
+		if [[ "$1" = -* ]]; then # add a - to disable a theme
 			key=$(echo "${1#-}" | tr '[:upper:]' '[:lower:]')
 			declare -r "guard_ignore_$key=true"
 		else
@@ -486,9 +496,10 @@ trap unlock INT TERM EXIT
 
 theme "Guardian" "Assurez-vous que tous les répertoires existent"
 ensure_dir "$HOME/.local/bin"
+ensure_dir "$XDG_STATE_HOME"
 ensure_dir "$DEVELOPER"
 
-# TODO: make it working on Linux from command line
+# TODO: make it work on Linux from command line
 macos_guard && theme_guard "SSH" "Vérification des clés SSH" && {
 	if [[ "$INTERACTIVE" = "true" ]]; then
 		ssh_key_add_url="https://github.com/settings/ssh/new"
@@ -560,129 +571,6 @@ ubuntu_guard && {
 	}
 }
 
-arch_guard && {
-	theme_guard "packages" "Bootstrap Arch Linux" && {
-		section "Installer des dépendances cruciales"
-		# sudo pacman -Syu --noconfirm
-		sudo pacman -S --noconfirm --needed base-devel git pacman-contrib
-
-		section "Rank mirrors for pacman"
-		mirrorlist="/etc/pacman.d/mirrorlist"
-		mirrorlist_bak="${mirrorlist}.bak"
-		if [[ -f "$mirrorlist_bak" ]]; then
-			log "Not updating mirrors list, because '$mirrorlist_bak' exists"
-			log "Delete in order to re-rank mirrors"
-		else
-			mirrorlist_tmp=$(mktemp)
-			curl -s 'https://www.archlinux.org/mirrorlist/?country=all&protocol=https&ip_version=4' |
-				sed -e 's/^#Server/Server/' -e '/^#/d' >"$mirrorlist_tmp"
-			sudo cp "$mirrorlist_tmp" "$mirrorlist_bak"
-			# shellcheck disable=SC2024
-			sudo sh -c "rankmirrors -n 6 '$mirrorlist_bak' > '$mirrorlist'"
-		fi
-
-		section "Install aura for simpler AUR access"
-		check aura || {
-			sudo mkdir -p /var/cache/pacman/pkg
-			aura_dir=$(mktemp -d)
-			git clone https://aur.archlinux.org/aura-bin.git "$aura_dir"
-			cd "$aura_dir" && {
-				makepkg -si --noconfirm
-			}
-		}
-
-		section "Install yay for simpler AUR access"
-		check yay || {
-			yay_dir=$(mktemp -d)
-			git clone https://aur.archlinux.org/yay.git "$yay_dir"
-			cd "$yay_dir" && {
-				makepkg -si --noconfirm
-			}
-		}
-	}
-
-	install_guard && {
-		theme_guard "packages" "Install all dependencies" && {
-			log "Import known GPG keys"
-			# spotify
-			curl -sS https://download.spotify.com/debian/pubkey.gpg | gpg --import
-
-			function combine_files {
-				local output
-				output=$(mktemp)
-				for f in "$@"; do
-					if [[ -f $f ]]; then
-						cat "$f" >>"$output"
-					fi
-				done
-				echo "$output"
-			}
-
-			log "Install packages"
-
-			pacman_file=$(combine_files "$target/arch/Pacmanfile" "$target/arch/Pacmanfile_$USER")
-			pacman_ignore=$(combine_files "$target/arch/Pacmanignore" "$target/arch/Pacmanignore_$USER")
-			# shellcheck disable=SC2046
-			sudo aura -S --noconfirm --needed $(comm -23 "$pacman_file" "$pacman_ignore")
-
-			aur_file=$(combine_files "$target/arch/Aurfile" "$target/arch/Aurfile_$USER")
-			aur_ignore=$(combine_files "$target/arch/Aurignore" "$target/arch/Aurignore_$USER")
-			# shellcheck disable=SC2046
-			sudo aura -A --noconfirm --needed $(comm -23 "$aur_file" "$aur_ignore")
-		}
-	}
-
-	upgrade_guard && {
-		theme_guard "packages" "Upgrade Arch Linux" && {
-			sudo aura -Syu --noconfirm
-			sudo aura -Aux --noconfirm
-		}
-	}
-
-	theme_guard "hardware" "Setup keyboard" && {
-		if [[ ! -f /usr/share/X11/xkb/symbols/ua.bak ]]; then
-			sudo mv /usr/share/X11/xkb/symbols/ua /usr/share/X11/xkb/symbols/ua.bak
-		fi
-		sudo cp "$XDG_CONFIG_HOME/xorg/xkb/symbols/ua" "/usr/share/X11/xkb/symbols/ua"
-
-		# Make sure that Caps doesn't miss it's purpose.
-		setxkbmap -option caps:ctrl_modifier
-	}
-
-	theme_guard "hardware" "Setup touchpad" && {
-		sudo cp "$XDG_CONFIG_HOME/xorg/30-touchpad.conf" "/etc/X11/xorg.conf.d/30-touchpad.conf"
-	}
-
-	theme_guard "hardware" "Setup autolock" && {
-		sudo cp "$XDG_CONFIG_HOME/arch/lock@.service" /etc/systemd/system/lock@.service
-		systemctl enable "lock@${USER}.service" || error "systemd is not working"
-	}
-
-	theme_guard "hardware" "Setup backlight rules" && {
-		tmp_rule=$(mktemp)
-		for backlight in /sys/class/backlight/*; do
-			name=$(basename "$backlight")
-			echo "ACTION==\"add\", SUBSYSTEM==\"backlight\", KERNEL==\"$name\", RUN+=\"/bin/chgrp video /sys/class/backlight/%k/brightness\"" >>"$tmp_rule"
-			echo "ACTION==\"add\", SUBSYSTEM==\"backlight\", KERNEL==\"$name\", RUN+=\"/bin/chmod g+w /sys/class/backlight/%k/brightness\"" >>"$tmp_rule"
-		done
-		sudo cp "$tmp_rule" /etc/udev/rules.d/backlight.rules
-		if id -nG "$USER" | grep -qw "video"; then
-			echo "You are already able to adjust brightness level"
-		else
-			echo "Adding you to 'video' user group"
-			sudo gpasswd -a "$USER" video
-		fi
-	}
-
-	theme_guard "gnupg" "Fix permissions" && {
-		# make sure that I am the owner
-		chown -R "$(whoami)" ~/.gnupg/
-		# correct permissions
-		find ~/.gnupg -type f -exec chmod 600 {} \;
-		find ~/.gnupg -type d -exec chmod 700 {} \;
-	}
-}
-
 macos_guard && {
 	theme_guard "packages" "Ensure brew exists" && {
 		check brew || {
@@ -696,6 +584,13 @@ macos_guard && {
 		theme_guard "packages" "Install all dependencies" && {
 			cd "$target/macos" && brew bundle
 		}
+                theme_guard "gnupg" "Fix permissions" && {
+		    # make sure that I am the owner
+		    chown -R "$(whoami)" ~$XDG_CONFIG_HOME/gnupg/
+		    # correct permissions
+		    find $XDG_CONFIG_HOME/gnupg -type f -exec chmod 600 {} \;
+		    find $XDG_CONFIG_HOME/gnupg -type d -exec chmod 700 {} \;
+	        }
 	}
 
 	upgrade_guard && {
@@ -704,6 +599,8 @@ macos_guard && {
 			brew upgrade
 		}
 	}
+
+
 }
 
 theme "Git" "Create a local git config file"

@@ -13,8 +13,8 @@
 # :completion:<function>:<completer>:<command>:<argument>:<tag>
 
 # Load more completions
-fpath=($DOTFILES/zsh/plugins/zsh-completions/src $fpath)
-
+#fpath=($DOTFILES/zsh/plugins/zsh-completions/src $fpath)
+fpath=($HOMEBREW_PREFIX/share/zsh-completions/src $fpath)
 # Should be called before compinit
 zmodload zsh/complist
 

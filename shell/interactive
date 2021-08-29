@@ -63,7 +63,7 @@ if [ -t 0 ]; then
     case "$TERM" in
 	xterm* | rxvt* | eterm* | screen*)
 	    if command_exists starship; then
-		eval "$(starship init bash)"
+		eval "$(starship init zsh)"
 	    else
 		PS1="➜ "
 	    fi
@@ -91,6 +91,16 @@ if [ -t 0 ]; then
 
     # ssh-agent
     [ -z "$SSH_AUTH_SOCK" ] && eval "$(ssh-agent -s)"
+
+    # Language
+    export LANG='en_NZ.UTF-8'
+    #export LC_ALL=$LANG
+    #export LC_COLLATE=$LANG
+    #export LC_CTYPE=$LANG
+    #export LC_MESSAGES=$LANG
+    #export LC_MONETARY=$LANG
+    #export LC_NUMERIC=$LANG
+    #export LC_TIME=$LANG
 
     ssource "$HOME/.secrets"
     # Some post-secret aliases
