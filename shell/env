@@ -34,9 +34,9 @@ export ENV=~/.config/sh/interactive
 
 ## XDG
 [[ -z ${XDG_CONFIG_HOME:-} ]] && export XDG_CONFIG_HOME="$HOME/.config"
-[[ -z ${XDG_CACHE_HOME:-} ]]  && export XDG_CONFIG_CACHE=$HOME/.cache
-[[ -z ${XDG_DATA_HOME:-} ]]  && export XDG_DATA_HOME=$HOME/.local/share
-[[ -z ${XDG_STATE_HOME:-} ]] && export XDG_STATE_HOME=$HOME/.local/state
+[[ -z ${XDG_CACHE_HOME:-} ]]  && export XDG_CONFIG_CACHE="$HOME/.local/cache"
+[[ -z ${XDG_DATA_HOME:-} ]]  && export XDG_DATA_HOME="$HOME/.local/share"
+[[ -z ${XDG_STATE_HOME:-} ]] && export XDG_STATE_HOME="$HOME/.local/state"
 
 . ${XDG_CONFIG_HOME}/shell/env_fns
 
