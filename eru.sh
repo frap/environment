@@ -21,6 +21,7 @@
 #
 #   ./eru.sh linking repositories packages
 #
+# or ./eru.sh upgrade -SSH -Linking -Repositories -Emacs -git
 
 #
 # Hi, my name is
@@ -93,7 +94,7 @@ if [[ -d "$GITHUB_WORKSPACE" ]]; then
 fi
 
 export XDG_CONFIG_HOME=$target
-export XDG_CACHE_HOME="$HOME/.cache"
+export XDG_CACHE_HOME="$HOME/.local/cache"
 export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_STATE_HOME="$HOME/.local/state"
 
@@ -496,11 +497,13 @@ trap unlock INT TERM EXIT
 
 theme "Guardian" "Assurez-vous que tous les répertoires existent"
 ensure_dir "$HOME/.local/bin"
+ensure_dir "$XDG_CACHE_HOME"
+ensure_dir "$XDG_DATA_HOME"
 ensure_dir "$XDG_STATE_HOME"
 ensure_dir "$DEVELOPER"
 
 # TODO: make it work on Linux from command line
-macos_guard && theme_guard "SSH" "Vérification des clés SSH" && {
+install_guard && macos_guard && theme_guard "SSH" "Vérification des clés SSH" && {
 	if [[ "$INTERACTIVE" = "true" ]]; then
 		ssh_key_add_url="https://github.com/settings/ssh/new"
 		ssh_key_path="$HOME/.ssh/id_rsa"
@@ -606,7 +609,7 @@ macos_guard && {
 theme "Git" "Create a local git config file"
 touch "$target/git/local.config"
 
-macos_guard && {
+test_guard && macos_guard && {
 	theme_guard "OS" "Write all defaults" && {
 		cd "$target/macos" && sudo ./defaults.sh
 	}
@@ -628,13 +631,6 @@ macos_guard && {
 		sudo yabai --load-sa
 	}
 }
-
-#theme "Fish" "Setup fish variables"
-#check fish && {
-#  fish -c "set -U XDG_CONFIG_HOME $target"
-#  fish -c "set -U XDG_CACHE_HOME $HOME/.cache"
-#  fish -c "set -U XDG_DATA_HOME $HOME/.local/share"
-#}
 
 theme_guard "Emacs" "Setup Eldev" && {
 	eldev_bin=$HOME/.local/bin/eldev
