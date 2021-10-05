@@ -14,8 +14,8 @@ brew "eth-p/software/bat-extras"
 brew "certbot"
 brew "colordiff"
 brew "coreutils"
-#brew "emacs-plus@28", args: ["with-native-comp", "with-modern-doom3-icon"]
-brew "emacs-plus@27", args: ["without-spacemacs-icon", "with-jansson", "with-modern-doom3-icon", "HEAD"]
+brew "emacs-plus@28", args: ["with-native-comp", "with-modern-doom3-icon"]
+#brew "emacs-plus@27", args: ["without-spacemacs-icon", "with-jansson", "with-modern-doom3-icon", "HEAD"]
 brew "fd"
 brew "ffmpeg"
 brew "git"
@@ -64,14 +64,13 @@ cask "firefox"
 #cask "gpg-suite"
 cask "kitty"
 cask "platypus"
-#cask "slack"
+cask "discord"
 cask "telegram"
 cask "tor-browser"
 cask "vlc"
 
 
 # other
-#brew "gifsicle"
 
 # fonts
 cask "font-source-code-pro"
@@ -84,3 +83,4 @@ cask "font-roboto-mono-nerd-font"
 cask "font-fira-code-nerd-font"
 cask "font-fira-mono-nerd-font"
 cask "font-material-design-icons-webfont"
+cask "font-jetbrains-mono"

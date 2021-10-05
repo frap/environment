@@ -1,8 +1,9 @@
 # -*- mode: sh; -*-
 
 # java
-if command_exists jenv; then
-  append_to_path "$HOME/.jenv/bin"
+if command_exists jenv
+then
+  force_append_to_path "$HOME/.jenv/bin"
   eval "$(jenv init -)"
 fi
 
