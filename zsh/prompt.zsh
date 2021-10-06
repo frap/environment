@@ -2,7 +2,6 @@
 
 # zsh-git-prompt
 ssource "/usr/local/opt/zsh-git-prompt/zshrc.sh"
-
 # Misc prompts
 ZCALCPROMPT='%F{48}%1v>%f '
 SPROMPT='zsh: corriger '%F{166}%R%f' pour '%F{76}%r%f' [nyae]? '
@@ -48,8 +47,9 @@ function _prompt_precmd() {
 	vcs_info
 
 	# Set the actual prompts
-	typeset -g PS1="%F{15}[$user_color%n%F{15}@$host_color%m%F{15}:%F{11}%~%F{15}$vcs_info_msg_0_%F{15}]%F{14}$endsign%f "
-	typeset -g PS2='%F{14}%_%F{15}>%f '
+	#typeset -g PS1="%F{15}[$user_color%n%F{15}@$host_color%m%F{15}:%F{11}%~%F{15}$vcs_info_msg_0_%F{15}]%F{14}$endsign%f "
+	typeset -g PS1="%F{15}[$user_color%n%F{15}@$host_color%m%F{15}]%F{14}$endsign%f "
+    typeset -g PS2='%F{14}%_%F{15}>%f '
 }
 
 # VCS information
@@ -106,16 +106,16 @@ function +vi-git-space() {
 	fi
 }
 
-# if [ $MACOS ]
-# then
-#   export PROMPT='%(?.%F{green}√.%F{red}?%?)%f %F{130}%n %(!.#.>)%f '
-# elif [ -n "${SSH_CONNECTION}" ]
-# then
-#   export PROMPT='%(?.%B%F{green}√.%B%F{red}?%?)%f %F{90}%n:%m %(!.#.>)%f '
-# else
-#   export PROMPT='%(?.%F{green}√.%B%F{red}?%?)%f %F{magenta}%n@%m %(!.#.>)%f '
-# fi
-# export RPROMPT='%{%B%F{196}%} $(git_branch)%f%b[%F{226}%1~%b%f]'
+if [ $MACOS ]
+then
+  export PS1='%(?.%F{green}√.%F{red}?%?)%f %F{130}%n %(!.#.>)%f '
+elif [ -n "${SSH_CONNECTION}" ]
+then
+  export PROMPT='%(?.%B%F{green}√.%B%F{red}?%?)%f %F{90}%n:%m %(!.#.>)%f '
+else
+  export PROMPT='%(?.%F{green}√.%B%F{red}?%?)%f %F{magenta}%n@%m %(!.#.>)%f '
+fi
+export RPROMPT='%{%B%F{196}%} $(git_branch)%f%b[%F{226}%1~%b%f]'
 # adam2 prompt looks pretty but lacks stuff like vcs prompts
 # autoload -Uz promptinit
 # promptinit
