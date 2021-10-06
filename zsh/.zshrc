@@ -47,51 +47,37 @@ setopt no_hup
 setopt correct
 setopt correctall
 
-# use emacs bindings even with vim as EDITOR
-bindkey -e
+# +-------------+
+# | KEYBINDINGS |
+# +-------------+
+ssource $XDG_CONFIG_HOME/zsh/keybinds.zsh
 
-# fix backspace on Debian
-[ -n "$LINUX" ] && bindkey "^?" backward-delete-char
+# enable direnv (if installed)
+command_exists direnv && eval "$(direnv hook zsh)"
 
-# fix delete key on macOS
-[ -n "$MACOS" ] && bindkey '\e[3~' delete-char
+# +-------------+
+# | INTERACTIVE |
+# +-------------+
 
-# emacs
-bindkey "^A" beginning-of-line
-bindkey "^E" end-of-line
-# alternate mappings for Ctrl-U/V to search the history
-bindkey "^u" history-beginning-search-backward
-bindkey "^v" history-beginning-search-forward
+ssource "${XDG_CONFIG_HOME}/shell/interactive"
 
 # +------------+
 # | COMPLETION |
 # +------------+
 
-source $XDG_CONFIG_HOME/zsh/completion.zsh
+ssource $XDG_CONFIG_HOME/zsh/completion.zsh
 
 # enable autosuggestions
-#ZSH_AUTOSUGGESTIONS="$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
-#[ -f "$ZSH_AUTOSUGGESTIONS" ] && source "$ZSH_AUTOSUGGESTIONS"
+ZSH_AUTOSUGGESTIONS="$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+ssource "$ZSH_AUTOSUGGESTIONS"
 
-# enable direnv (if installed)
-command_exists direnv && eval "$(direnv hook zsh)"
-
-# load up interactive
-ssource "${XDG_CONFIG_HOME}/shell/interactive"
-
+# +------------+
+# | PROMPT   |
+# +------------+
 # Enable substitution in the prompt
-setopt prompt_subst
+#setopt prompt_subst
+ssource "${XDG_CONFIG_HOME}/zsh/prompt.zsh"
 
-if [ $MACOS ]
-then
-  export PROMPT='%(?.%F{green}√.%F{red}?%?)%f %F{130}%n %(!.#.>)%f '
-elif [ -n "${SSH_CONNECTION}" ]
-then
-  export PROMPT='%(?.%B%F{green}√.%B%F{red}?%?)%f %F{90}%n:%m %(!.#.>)%f '
-else
-  export PROMPT='%(?.%F{green}√.%B%F{red}?%?)%f %F{magenta}%n@%m %(!.#.>)%f '
-fi
-export RPROMPT='%{%B%F{196}%} $(git_branch)%f%b[%F{226}%1~%b%f]'
 
 # more macOS/Bash-like word jumps
 export WORDCHARS=""
