@@ -1,7 +1,7 @@
 # vim: ts=4 sw=4
 
 # zsh-git-prompt
-ssource "/usr/local/opt/zsh-git-prompt/zshrc.sh"
+ssource "$HOMEBREW_PREFIX/opt/zsh-git-prompt/zshrc.sh"
 # Misc prompts
 ZCALCPROMPT='%F{48}%1v>%f '
 SPROMPT='zsh: corriger '%F{166}%R%f' pour '%F{76}%r%f' [nyae]? '
