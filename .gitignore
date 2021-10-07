@@ -9,3 +9,4 @@ zsh/.zsh_history
 zsh/.zsh_sessions
 zsh/.zcompdump
 clojure/tools
+clojure/.cpcache

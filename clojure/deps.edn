@@ -63,7 +63,7 @@
                 {:git/url "https://github.com/stuarthalloway/reflector"
                  :sha "93a0c19b4526c1180959e940202928d35e5c3cef"}}}
 
-  ;; pink gotilla
+  ;; pink gorilla
   :notebook {:extra-deps {org.pinkgorilla/notebook-bundel {:mvn/version "RELEASE"}}
              :exec-fn pinkgorilla.notebook-bundel/run
              :exec-args {:config "notebook-config.edn"}}
@@ -91,25 +91,25 @@
    :main-opts  ["-m" "nrepl.cmdline"]}
 
   ;; Run an interactive Clojure REPL with nREPL connection and CIDER libraries
-  ;; clojure -M:repl/nrepl
+  ;; clojure -M:nrepl
   :cider
-  {:extra-deps {nrepl/nrepl                {:mvn/version "0.8.3"}
+  {:extra-deps {nrepl/nrepl                {:mvn/version "RELEASE"}
                 cider/cider-nrepl          {:mvn/version "0.26.0"}}
    :main-opts  ["-m" "nrepl.cmdline"
                 "--middleware" "[cider.nrepl/cider-middleware]"
                 "-i"]}
 
-  :-refactor
-  {:extra-deps {nrepl/nrepl                   {:mvn/version "0.8.3"}
-                cider/cider-nrepl             {:mvn/version "0.26.0"}
-                refactor-nrepl/refactor-nrepl {:mvn/version "3.0.0-pr301"}}
+  :refactor
+  {:extra-deps {nrepl/nrepl                {:mvn/version "RELEASE"}
+                cider/cider-nrepl          {:mvn/version "0.26.0"
+                refactor-nrepl/refactor-nrepl {:mvn/version "3.0.0-alpha13"}}
    :main-opts  ["-m" "nrepl.cmdline"
                 "--middleware" "[refactor-nrepl.middleware/wrap-refactor,cider.nrepl/cider-middleware]"
                 "-i"]}
 
-  ;; clojure -M:repl/cljs-nrepl
+  ;; clojure -M:cljs-nrepl
   :cljs-nrepl
-  {:extra-deps {org.clojure/clojurescript       {:mvn/version "1.10.773"}
+  {:extra-deps {org.clojure/clojurescript       {:mvn/version "RELEASE"}
                 nrepl/nrepl                     {:mvn/version "0.8.3"}
                 cider/cider-nrepl               {:mvn/version "0.26.0"}
                 cider/piggieback                {:mvn/version "0.5.2"}}
@@ -118,11 +118,11 @@
                 "--middleware" "[cider.nrepl/cider-middleware,cider.piggieback/wrap-cljs-repl]"]}
 
   :cljs-figwheel
-  {:extra-deps {org.clojure/clojurescript       {:mvn/version "1.10.773"}
-                com.bhauman/figwheel-main       {:mvn/version "0.2.14"}
-                nrepl/nrepl                     {:mvn/version "0.8.3"}
-                cider/cider-nrepl               {:mvn/version "0.26.0"}
-                cider/piggieback                {:mvn/version "0.5.2"}}
+  {:extra-deps {org.clojure/clojurescript       {:mvn/version "RELEASE"}
+                com.bhauman/figwheel-main       {:mvn/version "RELEASE"}
+                nrepl/nrepl                     {:mvn/version "RELEASE"}
+                cider/cider-nrepl               {:mvn/version "RELEASE"}
+                cider/piggieback                {:mvn/version "RELEASE"}}
    :main-opts  ["-m" "nrepl.cmdline"
                 "-i"
                 "--middleware" "[cider.nrepl/cider-middleware,cider.piggieback/wrap-cljs-repl]"]}
@@ -137,9 +137,9 @@
   ;; Calva: connect to REPL command and select build tool, REPL host and port
 
   ;; clojure -M:repl/rebel-nrepl
-  :rebel-cider
+  :rebel-nrepl
   {:extra-deps {nrepl/nrepl                {:mvn/version "RELEASE"}
-                cider/cider-nrepl          {:mvn/version "RELEASE"}
+                cider/cider-nrepl          {:mvn/version "0.26.0"}
                 com.bhauman/rebel-readline {:mvn/version "RELEASE"}}
    :main-opts  ["-m" "nrepl.cmdline"
                 "--middleware" "[cider.nrepl/cider-middleware]"
@@ -148,10 +148,10 @@
 
   ;;;; Reveal - visualise data in the REPL
   ;; Run a Clojure repl with reveal and nrepl interactively
-  ;; clj -M:repl/reveal-nrepl
+  ;; clj -M:reveal-nrepl
   :reveal-nrepl
   {:extra-deps {vlaaad/reveal {:mvn/version "RELEASE"}
-                nrepl/nrepl   {:mvn/version "0.8.3"}}
+                nrepl/nrepl   {:mvn/version "RELEASE"}}
    :main-opts  ["-m" "nrepl.cmdline"
                 "--middleware" "[vlaaad.reveal.nrepl/middleware]"
                 "-i"]}
@@ -161,7 +161,7 @@
   ;; clj -M:repl/reveal-light-nrepl
   :reveal-light-nrepl
   {:extra-deps {vlaaad/reveal {:mvn/version "RELEASE"}
-                nrepl/nrepl   {:mvn/version "0.8.3"}}
+                nrepl/nrepl   {:mvn/version "RELEASE"}}
    :jvm-opts   ["-Dvlaaad.reveal.prefs={:theme,:light,:font-family,\"https://ff.static.1001fonts.net/u/b/ubuntu.mono.ttf\",:font-size,32}"]
    :main-opts  ["-m" "nrepl.cmdline"
                 "--middleware" "[vlaaad.reveal.nrepl/middleware]"
@@ -169,7 +169,7 @@
 
 
   ;; rebel readline with reveal data visualization
-  ;; clojure -M:repl/rebel-reveal
+  ;; clojure -M:rebel-reveal
   :rebel-reveal
   {:extra-deps
    {vlaaad/reveal              {:mvn/version "RELEASE"}
@@ -177,6 +177,22 @@
    :jvm-opts  ["-Dvlaaad.reveal.prefs={:theme,:light,:font-family,\"https://ff.static.1001fonts.net/u/b/ubuntu.mono.ttf\",:font-size,32}"]
    :main-opts ["-e" "(require,'rebel-readline.core),(require,'rebel-readline.clojure.line-reader),(require,'rebel-readline.clojure.service.local),(require,'rebel-readline.clojure.main),(require,'vlaaad.reveal)(rebel-readline.core/with-line-reader,(rebel-readline.clojure.line-reader/create,(rebel-readline.clojure.service.local/create)),(vlaaad.reveal/repl,:prompt,(fn,[]),:read,(rebel-readline.clojure.main/create-repl-read)))"]}
 
+   :rebel-reveal-nrepl
+  {:extra-deps
+   {vlaaad/reveal              {:mvn/version "RELEASE"}
+    com.bhauman/rebel-readline {:mvn/version "0.1.4"}}
+   :jvm-opts  ["-Dvlaaad.reveal.prefs={:theme,:light,:font-family,\"https://ff.static.1001fonts.net/u/b/ubuntu.mono.ttf\",:font-size,32}"]
+   :main-opts ["-e" "(require,'rebel-readline.core),(require,'rebel-readline.clojure.line-reader),(require,'rebel-readline.clojure.service.local),(require,'rebel-readline.clojure.main),(require,'vlaaad.reveal)(rebel-readline.core/with-line-reader,(rebel-readline.clojure.line-reader/create,(rebel-readline.clojure.service.local/create)),(vlaaad.reveal/repl,:prompt,(fn,[]),:read,(rebel-readline.clojure.main/create-repl-read)))"]}
+ ;; clojure -M:rebel-remote --host hostname --port 12345
+ :rebel-remote
+  {:extra-deps {nrepl/nrepl                {:mvn/version "0.8.3"}
+                cider/cider-nrepl          {:mvn/version "0.26.0"}
+                com.bhauman/rebel-readline {:mvn/version "0.1.4"}}
+   :main-opts  ["-m" "nrepl.cmdline"
+                "--connect"
+                "--middleware" "[cider.nrepl/cider-middleware]"
+                "-i"
+                "-f" "rebel-readline.main/-main"]}
 
   ;; pull in specific versions of Clojure:
   :1.0 {:override-deps {org.clojure/clojure {:mvn/version "1.0.0"}}}
