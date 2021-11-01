@@ -43,7 +43,6 @@ KERNEL_NAME=$(uname -s | tr '[:upper:]' '[:lower:]')
 [[ "$OSTYPE" =~ ^darwin ]] 2>/dev/null && KERNEL_RELEASE="darwin"
 [[ "$(cat /etc/issue 2>/dev/null)" =~ Ubuntu ]] && KERNEL_RELEASE="ubuntu"
 [[ "$(cat /etc/redhat-release 2>/dev/null)" =~ "Red Hat" ]] && KERNEL_RELEASE="redhat"
-[[ "$(cat /etc/oracle-release 2>/dev/null)" =~ "Oracle Linux" ]] && KERNEL_RELEASE="ol"
 
 OS_NAME="unknown"
 OS_VERSION="unknown"
@@ -649,7 +648,7 @@ install_guard && {
 upgrade_guard && {
 	theme_guard "Emacs" "Upgrade Emacs packages" && {
 		cd "$XDG_CONFIG_HOME/emacs" && {
-			make upgrade compile
+			bin/doom sync -u
 		}
 	}
 }
