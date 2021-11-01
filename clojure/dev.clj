@@ -72,7 +72,7 @@
   (future (Thread/sleep 6000)
           (tap> (install-reveal-extras)))
 
-  The six second delay should be enough for Reveal to initialize
+  The six second delay should be enough for Reveal to initialise
   and display its initial view."
   []
   (try
