@@ -61,9 +61,11 @@ alias sha256="shasum -a 256"
 # | Zsh |
 # +-----+
 
-alias d='dirs -v'
-for index ({1..9}) alias "$index"="cd +${index}"; unset index # directory stack
-alias zmv="noglob zmv -vW"
+if [ -n "$ZSH_VERSION" ]; then  # assume Zsh
+  alias d='dirs -v'
+  for index ({1..9}) alias "$index"="cd +${index}"; unset index # directory stack
+  alias zmv="noglob zmv -vW"
+fi
 
 # +----+
 # | ls |
