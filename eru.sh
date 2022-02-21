@@ -41,6 +41,7 @@ set -e
 # OS detection
 KERNEL_NAME=$(uname -s | tr '[:upper:]' '[:lower:]')
 [[ "$OSTYPE" =~ ^darwin ]] 2>/dev/null && KERNEL_RELEASE="darwin"
+[[ "$ANDROID_DATA" =~ data ]] 2>/dev/null && KERNEL_RELEASE="android"
 [[ "$(cat /etc/issue 2>/dev/null)" =~ Ubuntu ]] && KERNEL_RELEASE="ubuntu"
 [[ "$(cat /etc/redhat-release 2>/dev/null)" =~ "Red Hat" ]] && KERNEL_RELEASE="redhat"
 [[ "$(cat /etc/oracle-release 2>/dev/null)" =~ "Oracle Linux" ]] && KERNEL_RELEASE="ol"
@@ -65,6 +66,10 @@ linux)
 	redhat | ol)
 		OS_NAME="redhat"
 		;;
+    android)
+        OS_NAME="android"
+        OS_VERSION=$TERMUX_VERSION
+        ;;
 	esac
 	;;
 *) ;;
@@ -215,8 +220,8 @@ function ubuntu_guard() {
 	return
 }
 
-function desktop_guard() {
-	[[ "$OS_NAME" == "gnome" ]]
+function android_guard() {
+	[[ "$OS_NAME" == "android" ]]
 	return
 }
 
@@ -497,6 +502,7 @@ trap unlock INT TERM EXIT
 
 theme "Guardian" "Assurez-vous que tous les répertoires existent"
 ensure_dir "$HOME/.local/bin"
+ensure_dir "$XDG_CONFIG_HOME/git"
 ensure_dir "$XDG_CACHE_HOME"
 ensure_dir "$XDG_DATA_HOME"
 ensure_dir "$XDG_STATE_HOME"
@@ -572,6 +578,12 @@ ubuntu_guard && {
 			sudo apt upgrade -y
 		}
 	}
+}
+
+android_guard && {
+    theme_guard "packages" "Install Android packages" && {
+        pkg install emacs git make exa ripgrep
+    }
 }
 
 macos_guard && {
