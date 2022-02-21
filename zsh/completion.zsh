@@ -6,15 +6,10 @@
 #  \____\___/|_|  |_|_|   |_____|_____| |_| |___\___/|_| \_|
  #
 
-# Initialise completion
-autoload -Uz compinit
-compinit -d "$XDG_CONFIG_CACHE/zsh/zcompdump"
-zstyle ':completion::complete:*' use-cache 1
-zstyle ':completion::complete:*' cache-path "$XDG_CONFIG_CACHE/zsh"
 
 # Use cache for commands using cache
-#zstyle ':completion:*' use-cache on
-#zstyle ':completion:*' cache-path "$XDG_CACHE_HOME/zsh/zcompcache"
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "$XDG_CACHE_HOME/zsh/zcompcache"
 # +---------+
 # | General |
 # +---------+
@@ -27,6 +22,10 @@ zstyle ':completion::complete:*' cache-path "$XDG_CONFIG_CACHE/zsh"
 # fpath=($HOMEBREW_PREFIX/share/zsh-completions/src $fpath)
 # # Should be called before compinit
 # zmodload zsh/complist
+
+# Initialise completion
+autoload -Uz compinit
+compinit -d "$XDG_CACHE_HOME/zsh/zcompdump"
 
 # # Use hjlk in menu selection (during completion)
 # # Doesn't work well with interactive mode
@@ -52,7 +51,7 @@ zstyle ':completion::complete:*' cache-path "$XDG_CONFIG_CACHE/zsh"
 # # | Options |
 # # +---------+
 
-# # setopt GLOB_COMPLETE      # Show autocompletion menu with globs
+# setopt GLOB_COMPLETE      # Show autocompletion menu with globs
 # setopt MENU_COMPLETE        # Automatically highlight first element of completion menu
 # setopt AUTO_LIST            # Automatically list choices on ambiguous completion.
 # setopt COMPLETE_IN_WORD     # Complete from both ends of a word.

@@ -44,7 +44,6 @@ KERNEL_NAME=$(uname -s | tr '[:upper:]' '[:lower:]')
 [[ "$ANDROID_DATA" =~ data ]] 2>/dev/null && KERNEL_RELEASE="android"
 [[ "$(cat /etc/issue 2>/dev/null)" =~ Ubuntu ]] && KERNEL_RELEASE="ubuntu"
 [[ "$(cat /etc/redhat-release 2>/dev/null)" =~ "Red Hat" ]] && KERNEL_RELEASE="redhat"
-[[ "$(cat /etc/oracle-release 2>/dev/null)" =~ "Oracle Linux" ]] && KERNEL_RELEASE="ol"
 
 OS_NAME="unknown"
 OS_VERSION="unknown"
@@ -99,7 +98,7 @@ if [[ -d "$GITHUB_WORKSPACE" ]]; then
 fi
 
 export XDG_CONFIG_HOME=$target
-export XDG_CACHE_HOME="$HOME/.local/cache"
+export XDG_CACHE_HOME="$HOME/.cache"
 export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_STATE_HOME="$HOME/.local/state"
 
@@ -548,8 +547,8 @@ install_guard && macos_guard && theme_guard "SSH" "Vérification des clés SSH" 
 
 theme_guard "Linking" "Lier tous les fichiers comme défini dans Linkfile" && {
 	linkfile "$target/Linkfile"
-	linkfile "$XDG_CONFIG_CACHE/eru/Linkfile"
-	linkfile "$XDG_CONFIG_CACHE/eru/Linkfile_${KERNEL_NAME}"
+	linkfile "$XDG_CACHE_HOME/eru/Linkfile"
+	linkfile "$XDG_CACHE_HOME/eru/Linkfile_${KERNEL_NAME}"
 	for f in "$target"/**/Linkfile; do
 		linkfile "$f"
 	done
@@ -560,7 +559,7 @@ theme_guard "Linking" "Lier tous les fichiers comme défini dans Linkfile" && {
 
 theme_guard "Repositories" "Synchroniser les référentiels à partir de Repofiles" && {
 	map_lines sync_repo "$target/Repofile" || true
-	map_lines sync_repo "$XDG_CONFIG_CACHE/eru/Repofile" || true
+	map_lines sync_repo "$XDG_CACHE_HOME/eru/Repofile" || true
 }
 
 ubuntu_guard && {
@@ -661,7 +660,7 @@ install_guard && {
 upgrade_guard && {
 	theme_guard "Emacs" "Upgrade Emacs packages" && {
 		cd "$XDG_CONFIG_HOME/emacs" && {
-			make upgrade compile
+			bin/doom sync -u
 		}
 	}
 }

@@ -8,7 +8,7 @@ alias shutdown='sudo shutdown now'
 alias restart='sudo reboot'
 alias vi=vim
 
-alias bigf= 'find / -xdev -type f -size +500M'  # display "big" files > 500M
+#alias bigf= 'find / -xdev -type f -size +500M'  # display "big" files > 500M
 
 # handy short cuts #
 alias h='history'
@@ -61,9 +61,11 @@ alias sha256="shasum -a 256"
 # | Zsh |
 # +-----+
 
-alias d='dirs -v'
-for index ({1..9}) alias "$index"="cd +${index}"; unset index # directory stack
-alias zmv="noglob zmv -vW"
+if [[ $SHELL =~ "zsh" ]]; then  # assume Zsh
+  alias d='dirs -v'
+  for index ({1..9}) alias "$index"="cd +${index}"; unset index # directory stack
+  alias zmv="noglob zmv -vW"
+fi
 
 # +----+
 # | ls |

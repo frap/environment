@@ -1,5 +1,4 @@
 bashrc ~/.bashrc
-profile ~/.profile
 bash_profile ~/.bash_profile
 inputrc      ~/.inputrc
 fzf_find_edit  ~/.local/bin/ffe
