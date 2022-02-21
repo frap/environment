@@ -7,12 +7,12 @@ then
   eval "$(jenv init -)"
 fi
 
-if command_exists nvm
-then
-export NVM_DIR="$HOME/.nvm"
+#if command_exists nvm
+#then
+export NVM_DIR="$XDG_CONFIG_HOME/nvm"
   [ -s "$HOMEBREW_PREFIX/opt/nvm/nvm.sh" ] && . "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
   [ -s "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm" ] && . "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
-fi
+#fi
 
 # OSX specific script (uses AppleScripts) to ask me to take a break every hour
 # Run this function as a background process using &
