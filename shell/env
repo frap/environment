@@ -38,10 +38,12 @@ export ENV=~/.config/sh/interactive
 [[ -z ${XDG_DATA_HOME:-} ]]  && export XDG_DATA_HOME="$HOME/.local/share"
 [[ -z ${XDG_STATE_HOME:-} ]] && export XDG_STATE_HOME="$HOME/.local/state"
 
+
+# import local fns like ssource
 . ${XDG_CONFIG_HOME}/shell/env_fns
 
 # 077 would be more secure, but 022 is more useful.
 #umask 0077
 umask 022
 
-ssource ~/.config/shell/env_local
+ssource ~/${XDG_CONFIG_HOME}/shell/env_local

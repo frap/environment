@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+#
+# Extracted from Eru.sh
+#
+# Use at your own risk.
+#
+
+set -e
+
+s="$1"
+t="$2"
+d=$(dirname "$t")
+
+if [[ -d "$d" ]]; then
+   #owner=$(stat -c '%U' "$d") # linux stat
+   owner=$(stat -f "%Su" "$d")
+   if [[ "$owner" != "root" && "$owner" != "$USER" ]]; then
+   	 error "ne peut pas lier '$s' à '$t'"
+	 error "propriétaire de  '$d' est $owner"
+	 error "propriétaires autorisés: root o $USER"
+	 exit 1
+   fi
+fi
+
+if [[ ! -f "$s" && ! -d "$s" ]]; then
+error "ne peut pas lier '$s' comme il n'existe pas"
+exit 1
+fi
+
+if [[ ! -d $d ]]; then
+log "créer $d"
+mkdir -p "$d"
+fi
+
+if [[ -L "$t" ]]; then
+log "relier $s -> $t"
+if [[ "$owner" = "root" ]]; then
+sudo rm "$t"
+else
+rm "$t"
+fi
+else
+log "lier $s -> $t"
+fi
+
+if [[ "$owner" = "root" ]]; then
+sudo ln -s "$s" "$t"
+else
+ln -s "$s" "$t"
+fi

@@ -132,11 +132,11 @@ echo_normal="\033[0m"
 echo_reset="\033[39m"
 
 function error() {
-	echo -e "${echo_bred}❌ $*${echo_reset}"
+	echo -e "${echo_bred}❌ $*${echo_normal}"
 }
 
 function intro() {
-	echo -e "${echo_bblue}$*${echo_reset}"
+	echo -e "${echo_bblue}$*${echo_normal}"
 }
 
 function log() {
@@ -144,7 +144,17 @@ function log() {
 }
 
 function section() {
-	echo -e "${echo_blue}🕉 $*${echo_reset}"
+	echo -e "${echo_blue}🕉 $*${echo_normal}"
+}
+
+function a_theme() {
+  local text=">>> $2 :: ${*:3}"
+  local length="${#text}"
+  echo
+	echo '┌────────────────────────────────────────────────────────────────────────────┐'
+	echo -ne "│ \033[$1m$text\033[0m"
+	printf "%$((75 - length))s│\n"
+	echo '└────────────────────────────────────────────────────────────────────────────┘'
 }
 
 function theme() {
@@ -152,11 +162,11 @@ function theme() {
 }
 
 function optional_theme() {
-	echo -e "\033[1;36m➡ $1 Theme :: ${*:2}${echo_reset}"
+  a_theme "1;32" "$1" "${*:2}"
 }
 
 function inactive_theme() {
-	echo -e "\033[1;37m➡ $1 Theme :: ${*:2}${echo_reset}"
+  a_theme "1;37" "$1" "${*:2}"
 }
 
 #
@@ -178,7 +188,7 @@ log
 # Helpers
 #
 
-theme "Setp Eru" "Defining helpers"
+section "Defining helpers"
 
 # ${@:2} is all paraeters starting at $2
 # ${!parameter} returns what is in parameter
@@ -503,9 +513,14 @@ theme "Guardian" "Assurez-vous que tous les répertoires existent"
 ensure_dir "$HOME/.local/bin"
 ensure_dir "$XDG_CONFIG_HOME/git"
 ensure_dir "$XDG_CACHE_HOME/eldev"
-ensure_dir "$XDG_DATA_HOME"
+ensure_dir "$XDG_DATA_HOME/cargo"
 ensure_dir "$XDG_STATE_HOME"
 ensure_dir "$DEVELOPER"
+
+
+theme_guard "system" "make Eru more approachable" && {
+  "$XDG_CONFIG_HOME/bin/safe_link" "$XDG_CONFIG_HOME/eru.sh" "$HOME/.local/bin/eru"
+}
 
 # TODO: make it work on Linux from command line
 install_guard && macos_guard && theme_guard "SSH" "Vérification des clés SSH" && {
@@ -580,8 +595,10 @@ ubuntu_guard && {
 }
 
 android_guard && {
-    theme_guard "packages" "Install Android packages" && {
-        pkg install emacs git make exa ripgrep
+    install_guard && {
+        theme_guard "packages" "Install Android packages" && {
+            pkg install emacs git make exa ripgrep
+        }
     }
 }
 
@@ -617,8 +634,10 @@ macos_guard && {
 
 }
 
-theme "Git" "Create a local git config file"
-touch "$target/git/local.config"
+install_guard && {
+    theme "Git" "Create a local git config file"
+    touch "$target/git/local.config"
+}
 
 test_guard && macos_guard && {
 	theme_guard "OS" "Write all defaults" && {
@@ -657,7 +676,7 @@ install_guard && {
 	}
 }
 
-upgrade_guard && {
+doom_guard && upgrade_guard && {
 	theme_guard "Emacs" "Upgrade Emacs packages" && {
 		cd "$XDG_CONFIG_HOME/emacs" && {
 			bin/doom sync -u
