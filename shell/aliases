@@ -135,77 +135,81 @@ fi
 # +--------+
 # | Golang |
 # +--------+
-
-alias gob="go build"
-alias gor="go run"
-alias goc="go clean -i"
-alias gta="go test ./..."       # go test all
-alias gia="go install ./..."    # go install all
-
+if command_exists go
+   then
+       alias gob="go build"
+       alias gor="go run"
+       alias goc="go clean -i"
+       alias gta="go test ./..."       # go test all
+       alias gia="go install ./..."    # go install all
+fi
 # +-----+
 # | Git |
 # +-----+
 
-alias gs='git status'
-ga() { git add "${@:-.}"; } # Add all files by default
-                                                                           # display remote branc
-alias gb='git branch '
-# Current branch or SHA if detached.
-alias gbs='git branch | perl -ne '"'"'/^\* (?:\(detached from (.*)\)|(.*))/ && print "$1$2"'"'"''
-alias gbr='git branch -r'
+if command_exists git
+   then
+       alias gs='git status'
+       ga() { git add "${@:-.}"; } # Add all files by default
+       # display remote branc
+       alias gb='git branch '
+       # Current branch or SHA if detached.
+       alias gbs='git branch | perl -ne '"'"'/^\* (?:\(detached from (.*)\)|(.*))/ && print "$1$2"'"'"''
+       alias gbr='git branch -r'
 
-alias gcd='git rev-parse 2>/dev/null && cd "./$(git rev-parse --show-cdup)"'
+       alias gcd='git rev-parse 2>/dev/null && cd "./$(git rev-parse --show-cdup)"'
 
-alias gd='git diff'
+       alias gd='git diff'
 
-alias gco='git checkout '
-function gc() { git checkout "${@:-main}"; } # Checkout main by default
-alias gco='gc'
-alias gcb='gc -b'
-alias gbc='gc -b' # Dyslexia
+       alias gco='git checkout '
+       function gc() { git checkout "${@:-main}"; } # Checkout main by default
+       alias gco='gc'
+       alias gcb='gc -b'
+       alias gbc='gc -b' # Dyslexia
 
-alias gcl='git clone'
+       alias gcl='git clone'
 
-# Delete local branch merged with master
-alias gclean="git branch --merged | grep  -v '\\*\\|master\\|develop' | xargs -n 1 git branch -d"
+       # Delete local branch merged with master
+       alias gclean="git branch --merged | grep  -v '\\*\\|master\\|develop' | xargs -n 1 git branch -d"
 
-alias gl='git log'
-alias glo='git log --pretty="oneline"'
-alias glol='git log --graph --oneline --decorate --date-order --all'
+       alias gl='git log'
+       alias glo='git log --pretty="oneline"'
+       alias glol='git log --graph --oneline --decorate --date-order --all'
 
-alias gm='git commit -m'
-alias gma='git commit -am'
+       alias gm='git commit -m'
+       alias gma='git commit -am'
 
-alias gp='git push'
-alias gpa='gp --all'
-alias gpo='git push origin'
-alias gpt='git push --tag'
+       alias gp='git push'
+       alias gpa='gp --all'
+       alias gpo='git push origin'
+       alias gpt='git push --tag'
 
-alias gr='git remote'
-alias grv='gr -v'
-alias grs='git remote show'
+       alias gr='git remote'
+       alias grv='gr -v'
+       alias grs='git remote show'
 
-alias gs='git status'
+       alias gs='git status'
 
-alias gsub="git submodule update --remote"
+       alias gsub="git submodule update --remote"
 
-alias gtd='git tag --delete'
-alias gtdr='git tag --delete origin'
+       alias gtd='git tag --delete'
+       alias gtdr='git tag --delete origin'
 
-alias gu='git pull origin'
+       alias gu='git pull origin'
 
- # pull submodules
-alias gblog="git for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'"                                                             # git log for each branches
-
+       # pull submodules
+       alias gblog="git for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'"
+       # git log for each branches
+fi
 
 # +------+
 # | tmux |
 # +------+
-
-alias tmuxk='tmux kill-session -t'
-alias tmuxa='tmux attach -t'
-alias tmuxl='tmux list-sessions'
-
+if command_exists tmux
+   alias tmuxk='tmux kill-session -t'
+   alias tmuxa='tmux attach -t'
+   alias tmuxl='tmux list-sessions'
+fi
 # +--------+
 # | docker |
 # +--------+

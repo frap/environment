@@ -45,6 +45,7 @@ export XDG_CONFIG_HOME=$HOME/.config
 
 env_https=https://github.com/frap/environment
 env_ssh=git@github.com:frap/environment.git
+env_emacs=git@github.com:frap/emacs.git
 
 if [ -d "$XDG_CONFIG_HOME" ] && [ ! -d "$XDG_CONFIG_HOME/.git" ]; then
 	cd "$XDG_CONFIG_HOME" && {
@@ -64,6 +65,12 @@ fi
 cd "$XDG_CONFIG_HOME" && {
 	git remote set-url origin $env_ssh
 }
+
+# install emacs
+if [ ! -d "$XDG_CONFIG_HOME/emacs/.git" ]; then
+	# clone via HTTPS, as most likely SSH is not yet available or configured
+	git clone $env_emacs "$XDG_CONFIG_HOME"
+fi
 
 #
 # Now start the Great Music

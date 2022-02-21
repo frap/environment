@@ -503,7 +503,7 @@ theme "Guardian" "Assurez-vous que tous les répertoires existent"
 ensure_dir "$HOME/.local/bin"
 ensure_dir "$XDG_CONFIG_HOME/git"
 ensure_dir "$XDG_CACHE_HOME/eldev"
-ensure_dir "$XDG_DATA_HOME"
+ensure_dir "$XDG_DATA_HOME/cargo"
 ensure_dir "$XDG_STATE_HOME"
 ensure_dir "$DEVELOPER"
 
@@ -657,7 +657,7 @@ install_guard && {
 	}
 }
 
-upgrade_guard && {
+doom_guard && upgrade_guard && {
 	theme_guard "Emacs" "Upgrade Emacs packages" && {
 		cd "$XDG_CONFIG_HOME/emacs" && {
 			bin/doom sync -u

@@ -46,9 +46,6 @@ then
 fi
 
 append_to_path "${HOME}/.local/bin"
-prepend_to_path  "${GOCACHE}"
-prepend_to_path  "${GOBIN}"
-prepend_to_path  "${GOPATH}"
 
 # put your aliases here
 ssource $XDG_CONFIG_HOME/shell/aliases
@@ -102,7 +99,7 @@ if [ -t 0 ]; then
     #export LC_NUMERIC=$LANG
     #export LC_TIME=$LANG
 
-    ssource "$HOME/.secrets"
+    ssource "$XDG_CONFIG_HOME/secrets"
     # Some post-secret aliases
     #export HOMEBREW_GITHUB_API_TOKEN="$GITHUB_TOKEN"
     #export HUBOT_GITHUB_TOKEN="$GITHUB_TOKEN"
