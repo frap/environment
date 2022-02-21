@@ -502,7 +502,7 @@ trap unlock INT TERM EXIT
 theme "Guardian" "Assurez-vous que tous les répertoires existent"
 ensure_dir "$HOME/.local/bin"
 ensure_dir "$XDG_CONFIG_HOME/git"
-ensure_dir "$XDG_CACHE_HOME"
+ensure_dir "$XDG_CACHE_HOME/eldev"
 ensure_dir "$XDG_DATA_HOME"
 ensure_dir "$XDG_STATE_HOME"
 ensure_dir "$DEVELOPER"
