@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 #
 ################################################################################
 #
@@ -53,7 +53,7 @@ if [ -d "$XDG_CONFIG_HOME" ] && [ ! -d "$XDG_CONFIG_HOME/.git" ]; then
 		# clone via HTTPS, as most likely SSH is not yet available or configured
 		git remote add origin $env_https
 		git fetch
-		git reset --hard origin/master
+		git reset --hard origin/main
 	}
 fi
 
