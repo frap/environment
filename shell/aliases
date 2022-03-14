@@ -75,9 +75,9 @@ if command_exists exa
 then
   alias ls="exa --icons --classify --group --git"
   alias ll="exa -l --icons --classify --group --git"
+  #alias ll='exa --icons --long -ag --sort accessed --reverse'
   alias la="exa --icons --long -aag --sort modified --reverse"
   alias ld="exa --only-dirs --tree --level 3"
-  #alias ll='exa --icons --long -ag --sort accessed --reverse'
   alias ll2="exa --tree --level 2"
   alias ll3="exa --tree --level 3"
   alias l="exa --icons --sort modified --reverse"
@@ -116,7 +116,7 @@ alias la='ls -alh'
 
 if command_exists prettyping
 then
-  alias ping="prettyping --nolegend"
+  alias ping="prettyping --nolegend --awkbin gawk"
 fi
 alias pg='ping 8.8.8.8'
 
@@ -206,6 +206,7 @@ fi
 # | tmux |
 # +------+
 if command_exists tmux
+then
    alias tmuxk='tmux kill-session -t'
    alias tmuxa='tmux attach -t'
    alias tmuxl='tmux list-sessions'
@@ -248,7 +249,6 @@ alias dot="$XDG_CONFIG_HOME/dotfiles"
 # +---------+
 alias wanip="dig +short myip.opendns.com @resolver1.opendns.com"
 alias myip="curl icanhazip.com" # Your public IP address
-#alias ping='ping -c 5 -R -i.2 -W.3'
 
 # +---------+
 # |  time   |
