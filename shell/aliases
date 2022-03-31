@@ -149,8 +149,11 @@ fi
 
 if command_exists git
    then
-       alias gs='git status'
+       # git add
        ga() { git add "${@:-.}"; } # Add all files by default
+       alias gap ='git add -p'
+ac = !git add -A && git commit -m
+
        # display remote branc
        alias gb='git branch '
        # Current branch or SHA if detached.
@@ -159,8 +162,13 @@ if command_exists git
 
        alias gcd='git rev-parse 2>/dev/null && cd "./$(git rev-parse --show-cdup)"'
 
+       # git diff
        alias gd='git diff'
-
+       alias gdc='git diff --cached'
+       alias gdh='git diff --histogram'
+       alias gds='git diff --stat'
+       
+     
        alias gco='git checkout '
        function gc() { git checkout "${@:-main}"; } # Checkout main by default
        alias gco='gc'
@@ -172,7 +180,7 @@ if command_exists git
        # Delete local branch merged with master
        alias gclean="git branch --merged | grep  -v '\\*\\|master\\|develop' | xargs -n 1 git branch -d"
 
-       alias gl='git log'
+       alias gl='git  log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%Cgreen\\ [%cn]" --decorate --date=short'
        alias glo='git log --pretty="oneline"'
        alias glol='git log --graph --oneline --decorate --date-order --all'
 
