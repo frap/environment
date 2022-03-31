@@ -89,6 +89,7 @@ ssource "${XDG_CONFIG_HOME}/zsh/prompt.zsh"
 ssource "${XDG_CONFIG_HOME}/zsh/fzf.zsh"
 
 if command_exists kitty
+then
    # Kitty completion
    source <(kitty + complete setup zsh)
 fi
