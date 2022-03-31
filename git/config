@@ -1,103 +1,128 @@
 [core]
-	editor = emacs
-	autocrlf = input
-	ignorecase = false
+editor = emacs
+autocrlf = input
+ignorecase = false
 
 [user]
-	useconfigonly = true
-	email = frap@tuatara.red
-	name = FRAP
+useconfigonly = true
 
 [commit]
-	gpgsign = false
+gpgsign = false
 
 [alias]
-	c = commit
-  cm = commit -m
-  ca = commit --amend
+# git add
+a = add
+ap = add -p
+aa = add .
+ac = !git add -A && git commit -m
 
-  cleanup-branches = !git fetch -a -p origin master && git branch --merged master | grep -v 'master$' | xargs git branch -d || true
-  recent="!f(){ git branch --sort=-committerdate | head -n ${1:-5}; };f"
-  co = checkout
-  g = !git --no-pager grep --color -n
-  l = log
-  lo = log --graph --oneline --abbrev-commit
-  lg = log --graph --pretty=format:'%Cred%h%Creset %C(bold blue)<%an> -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset'
-  ll = log --graph --pretty='format:%h | %an | %s'
+# git branches
+# list branches sorted by last modified
+ b = "!git for-each-ref --sort='-authordate' --format='%(authordate)%09%(objectname:short)%09%(refname)' refs/heads | sed -e 's-refs/heads/--'"
+
+# git commit
+c = commit  --verbose
+ca = commit -a --verbose
+cm = commit -m
+cam = commit -a -m
+m = commit --amend --verbose
+
+changelog = log --pretty=format:'%Cgreen%d %Creset%s' --date=iso
+cl =!git clone git@github.com:$1.git
+cleanup-branches = !git fetch -a -p origin master && git branch --merged master | grep -v 'master$' | xargs git branch -d || true
+
+# git checkout
+co = checkout
+cob = checkout -b
+cb = !git rev-parse --abbrev-ref HEAD 2>/dev/null
+
+#diff
+d = diff
+dc = diff --cached
+ds = diff --stat
+wd = diff --color-words
+wdc = diff --color-words --cached
+
+last = rev-parse HEAD
+
+# logs
+l = log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --date=short
+lg='git log --graph --oneline --decorate --all'
+lo = log --graph --oneline --abbrev-commit
+#lg = log --graph --pretty=format:'%Cred%h%Creset %C(bold blue)<%an> -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset'
+ll = log --graph --pretty='format:%h | %an | %s'
 llog = log --pretty=format:'%C(yellow)%h %Cred%ad %Cblue%an%Cgreen%d %Creset%s' --date=iso
-  pr = pull --rebase
-  pl = !git pull -r -u origin $(git cb)
 
-  pfff = !git push --force origin $(git cb)
+# list aliases
+la = "!git config -l | grep alias | cut -c 7-"
 
-  re-continue = rebase --continue
-  re-skip = rebase --skip
-  pull-all = pull --recurse-submodules -r
-  ss = status
-  s = status -sb
-  m = merge --no-ff
-  zip-current-branch = !git archive --format zip --output ./$(pwd | rev | cut -d/ -f1 | rev).zip $(git cb)
-  last = rev-parse HEAD
-  root = rev-parse --show-toplevel
+meff = merge --no-ff
 
-  d = diff
-  dc = diff --cached
-  wd = diff --color-words
-  wdc = diff --color-words --cached
+# git push/pull
+pr = pull --rebase
+pl = !git pull -r -u origin $(git cb)
 
-  serve = daemon --reuseaddr --verbose  --port=4000 --base-path=. --export-all ./.git
+pfff = !git push --force origin $(git cb)
+pullall = pull --recurse-submodules -r
+pushall = "!for r in $(git remote); do git push $r $(git symbolic-ref --short HEAD); done && for r in $(git remote); do git push $r --tags; done"
+push-and-track= !git push -u origin $(git cb)
+safe-pull = !git stash && git pull -r origin $(git cb) && git stash pop
+update = !git fetch -a -p && git pull -r && git remove-merged-branches
 
-  cb = !git rev-parse --abbrev-ref HEAD 2>/dev/null
-  edit-modified = !vim -p $(git ls-files -m )
-  push-and-track= !git push -u origin $(git cb)
-  safe-pull = !git stash && git pull -r origin $(git cb) && git stash pop
-  pushall = "!for r in $(git remote); do git push $r $(git symbolic-ref --short HEAD); done && for r in $(git remote); do git push $r --tags; done"
-  update = !git fetch -a -p && git pull -r && git remove-merged-branches
+recent= "!f(){ git branch --sort=-committerdate | head -n ${1:-5}; };f"
+re-continue = rebase --continue
+re-skip = rebase --skip
+root = rev-parse --show-toplevel
 
-  changelog = log --pretty=format:'%Cgreen%d %Creset%s' --date=iso
-  cl =!git clone git@github.com:$1.git
+# git status
+ss = status
+s = status -sb
+
+zip-current-branch = !git archive --format zip --output ./$(pwd | rev | cut -d/ -f1 | rev).zip $(git cb)
 
 [push]
-	default = simple
+default = simple
 
 [pull]
-        rebase = false
+rebase = false
+
 [init]
-        defaultBranch = main
+defaultBranch = main
 
 [filter "lfs"]
-	required = true
-	clean = git-lfs clean -- %f
-	smudge = git-lfs smudge -- %f
-	process = git-lfs filter-process
+required = true
+clean = git-lfs clean -- %f
+smudge = git-lfs smudge -- %f
+process = git-lfs filter-process
 
 [color]
-	branch = auto
-	diff = auto
-	interactive = auto
-	status = auto
+branch = auto
+diff = auto
+interactive = auto
+status = auto
 
 [gpg]
-	program = gpg2
+program = gpg2
 
 [diff]
-	compactionHeuristic = true
+compactionHeuristic = true
 
 [github]
-	user = frap
+user = frap
 
 [gitlab]
-	user = agasson
+user = agasson
 
 [magithub]
-	online = true
+online = true
 
 [magithub "status"]
-	includeStatusHeader = true
-	includePullRequestsSection = false
-	includeIssuesSection = false
+includeStatusHeader = true
+includePullRequestsSection = false
+includeIssuesSection = false
 
 [include]
-	path = local.config
+path = local.config
+
 [hub]
-	protocol = https
+protocol = https
