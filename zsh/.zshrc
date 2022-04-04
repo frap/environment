@@ -52,9 +52,6 @@ setopt correctall
 # +-------------+
 ssource $XDG_CONFIG_HOME/zsh/keybinds.zsh
 
-# enable direnv (if installed)
-command_exists direnv && eval "$(direnv hook zsh)"
-
 # +-------------+
 # | INTERACTIVE |
 # +-------------+
@@ -81,6 +78,12 @@ ssource "${XDG_CONFIG_HOME}/zsh/prompt.zsh"
 
 # more macOS/Bash-like word jumps
 export WORDCHARS=""
+
+# +-------------+
+# |   DIRENV    |
+# +-------------+
+# enable direnv (if installed)
+command_exists direnv && eval "$(direnv hook zsh)"
 
 # to avoid non-zero exit code
 true
