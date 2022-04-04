@@ -147,12 +147,12 @@ fi
 # | Git |
 # +-----+
 
-if command_exists git
+if command_exists gitp
    then
        # git add
        ga() { git add "${@:-.}"; } # Add all files by default
-       alias gap ='git add -p'
-ac = !git add -A && git commit -m
+       #alias gap ='git add -p'
+       alias ac = !git add -A && git commit -m
 
        # display remote branc
        alias gb='git branch '
@@ -167,8 +167,8 @@ ac = !git add -A && git commit -m
        alias gdc='git diff --cached'
        alias gdh='git diff --histogram'
        alias gds='git diff --stat'
-       
-     
+
+
        alias gco='git checkout '
        function gc() { git checkout "${@:-main}"; } # Checkout main by default
        alias gco='gc'
