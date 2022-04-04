@@ -150,32 +150,8 @@ fi
 if command_exists git
    then
        # git add
+       alias g = 'git'
        ga() { git add "${@:-.}"; } # Add all files by default
-       alias gap ='git add -p'
-ac = !git add -A && git commit -m
-
-       # display remote branc
-       alias gb='git branch '
-       # Current branch or SHA if detached.
-       alias gbs='git branch | perl -ne '"'"'/^\* (?:\(detached from (.*)\)|(.*))/ && print "$1$2"'"'"''
-       alias gbr='git branch -r'
-
-       alias gcd='git rev-parse 2>/dev/null && cd "./$(git rev-parse --show-cdup)"'
-
-       # git diff
-       alias gd='git diff'
-       alias gdc='git diff --cached'
-       alias gdh='git diff --histogram'
-       alias gds='git diff --stat'
-       
-     
-       alias gco='git checkout '
-       function gc() { git checkout "${@:-main}"; } # Checkout main by default
-       alias gco='gc'
-       alias gcb='gc -b'
-       alias gbc='gc -b' # Dyslexia
-
-       alias gcl='git clone'
 
        # Delete local branch merged with master
        alias gclean="git branch --merged | grep  -v '\\*\\|master\\|develop' | xargs -n 1 git branch -d"
@@ -184,30 +160,9 @@ ac = !git add -A && git commit -m
        alias glo='git log --pretty="oneline"'
        alias glol='git log --graph --oneline --decorate --date-order --all'
 
-       alias gm='git commit -m'
-       alias gma='git commit -am'
-
-       alias gp='git push'
-       alias gpa='gp --all'
-       alias gpo='git push origin'
-       alias gpt='git push --tag'
-
-       alias gr='git remote'
-       alias grv='gr -v'
-       alias grs='git remote show'
-
-       alias gs='git status'
-
-       alias gsub="git submodule update --remote"
-
-       alias gtd='git tag --delete'
-       alias gtdr='git tag --delete origin'
-
-       alias gu='git pull origin'
-
        # pull submodules
        alias gblog="git for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'"
-       # git log for each branches
+  
 fi
 
 # +------+

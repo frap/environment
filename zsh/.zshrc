@@ -69,15 +69,30 @@ ZSH_AUTOSUGGESTIONS="$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggesti
 ssource "$ZSH_AUTOSUGGESTIONS"
 
 # +------------+
-# | PROMPT   |
+# | HIGHLIGHT  |
+# +------------+
+ssource "${XDG_CONFIG_HOME}/zsh/highlight.zsh"
+
+# +------------+
+# | PROMPT     |
 # +------------+
 # Enable substitution in the prompt
 #setopt prompt_subst
 ssource "${XDG_CONFIG_HOME}/zsh/prompt.zsh"
 
+# +------------+
+# | FZF        |
+# +------------+
+ssource "${XDG_CONFIG_HOME}/zsh/fzf.zsh"
 
+if command_exists kitty
+then
+   # Kitty completion
+   source <(kitty + complete setup zsh)
+fi
+   
 # more macOS/Bash-like word jumps
-export WORDCHARS=""
+#export WORDCHARS=""
 
 # +-------------+
 # |   DIRENV    |

@@ -28,8 +28,16 @@ if command_exists go
        prepend_to_path  "${GOBIN}"
        prepend_to_path  "${GOPATH}"
 fi
+
 # rust
 if command_exists cargo
    then
        export CARGO_HOME="$XDG_DATA_HOME"/cargo
 fi
+
+#ripgrep
+if command_exists rg
+then
+    export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/ripgreprc"
+fi
+
