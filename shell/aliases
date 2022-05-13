@@ -152,7 +152,6 @@ if command_exists git
 then
     alias g="git"
     ga() { git add "${@:-.}"; } # Add all files by default
-
 #        # Delete local branch merged with master
 #        alias gclean="git branch --merged | grep  -v '\\*\\|master\\|develop' | xargs -n 1 git branch -d"
 
@@ -162,6 +161,18 @@ then
 
 #        # pull submodules
 #        alias gblog="git for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'"
+
+# git diff
+       alias gd='git diff'
+       alias gdc='git diff --cached'
+       alias gdh='git diff --histogram'
+       alias gds='git diff --stat'
+
+#       alias gco='git checkout '
+#      function gc() { git checkout "${@:-main}"; } # Checkout main by default
+#       alias gco='gc'
+#       alias gcb='gc -b'
+#       alias gbc='gc -b' # Dyslexia
 
 fi
 

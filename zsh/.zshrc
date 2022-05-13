@@ -52,9 +52,6 @@ setopt correctall
 # +-------------+
 ssource $XDG_CONFIG_HOME/zsh/keybinds.zsh
 
-# enable direnv (if installed)
-command_exists direnv && eval "$(direnv hook zsh)"
-
 # +-------------+
 # | INTERACTIVE |
 # +-------------+
@@ -94,14 +91,15 @@ then
     ssource "${XDG_CONFIG_HOME}/zsh/fzf.zsh"
 fi
 
-if command_exists kitty
-then
-   # Kitty completion
-   source <(kitty + complete setup zsh)
-fi
-   
+
 # more macOS/Bash-like word jumps
 #export WORDCHARS=""
+
+# +-------------+
+# |   DIRENV    |
+# +-------------+
+# enable direnv (if installed)
+command_exists direnv && eval "$(direnv hook zsh)"
 
 # to avoid non-zero exit code
 true

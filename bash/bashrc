@@ -2,7 +2,7 @@
 # When an interactive shell that is not a login shell is started, Bash
 # reads and executes commands from ~/.bashrc, if that file exists. This
 # may be inhibited by using the --norc option. The --rcfile file option
-# will force Bash to read and execute commands from file instead of 
+# will force Bash to read and execute commands from file instead of
 # ~/.bashrc.
 
 # this file gets run in two cases:
@@ -17,3 +17,5 @@
 . ~/.config/bash/env
 . ~/.config/bash/interactive
 
+# Hook in direnv
+eval "$(direnv hook bash)"
