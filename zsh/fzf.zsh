@@ -2,7 +2,7 @@
 # |  FZF    |
 # +---------+
 
-ssource '/usr/share/fzf/key-bindings.zsh'
+ssource '/usr/local/opt/fzf/shell/key-bindings.zsh'
 
 # default options
 export FZF_DEFAULT_OPTS='--height 30% --info=inline

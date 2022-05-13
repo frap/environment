@@ -1,132 +1,14 @@
 # -*- mode: sh; -*-
 
-# Count CPUs for Make jobs
-if [ $MACOS ]
-then
-  export CPUCOUNT="$(/usr/sbin/sysctl -n hw.ncpu)"
-elif [ $LINUX ]
-then
-  export CPUCOUNT="$(getconf _NPROCESSORS_ONLN)"
-else
-  export CPUCOUNT=1
-fi
-
-if [ "$CPUCOUNT" -gt 1 ]
-then
-  export MAKEFLAGS="-j$CPUCOUNT"
-  export BUNDLE_JOBS="$CPUCOUNT"
-fi
-
-# Enable Terminal.app folder icons
-[ "$TERM_PROGRAM" = "Apple_Terminal" ] && export TERMINALAPP=1
-if [ $TERMINALAPP ]
-then
-  set_terminal_app_pwd() {
-    # Tell Terminal.app about each directory change.
-    printf '\e]7;%s\a' "$(echo "file://$HOST$PWD" | sed -e 's/ /%20/g')"
-  }
-fi
-
-# EDITOR emacs
-if command_exists emacsclient; then
-    function ec() {
-	if [ -z "$DISPLAY" ]; then
-	    emacsclient -nw -a "" "$@"
-	else
-	    emacsclient -n -e "(> (length (frame-list)) 1)" | grep t
-	    if [ "$?" = "1" ]; then
-		emacsclient -c -n -a "" "$@"
-	    else
-		emacsclient -n -a "" "$@"
-	    fi
-	fi
-    }
-    em() {
-	CFLAG=""
-	[[ -z "$@" ]] && CFLAG="--create-frame"
-	emacsclient $CFLAG --alternate-editor=emacs --no-wait "$@"
-    }
-    alias e=ec
-    export EDITOR=ec
-    export VISUAL="${EDITOR}"
-    export ALTERNATE_EDITOR=""
-else
-   export EDITOR="vim"
-fi
-
-# complete fails on zsh
-#if command_exists kitty; then
-#    source <(kitty + complete setup bash)
-#fi
-
-# git
-export GIT_REVIEW_BASE=main # See gitconfig
-git_branch() {
-  GIT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null) || return
-  [ -n "$GIT_BRANCH" ] && echo "($GIT_BRANCH) "
-}
-
-
-if command_exists diff-so-fancy
-then
-  # shellcheck disable=SC2016
-  export GIT_PAGER='diff-so-fancy | less -+$LESS -RX'
-else
-  # shellcheck disable=SC2016
-  export GIT_PAGER='less -+$LESS -RX'
-fi
-
-if command_exists rg
-then
-   rgf() {
-      if [ -z "$2" ]
-      then
-        rg --files | rg "$1"
-      else
-        rg --files "$2" | rg "$1"
-      fi
-   }
-fi
-
-# fzf
-if command_exists fzf
-then
-  export FZF_DEFAULT_COMMAND="rg --files --hidden --glob '!.git'"
-  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-fi
-
-# Pretty-print JSON files
-if command_exists jq
-then
-  json() {
-    [ -n "$1" ] || return
-    cat "$1" | jq .
-  }
-fi
-
-# Lua related stuff
-if command_exists luarocks
-then
-   eval "$(luarocks path)"
-
-  #  for path in "$XDG_DATA_HOME"/lua/*; do
-  #      LUA_PATH="$path/?.lua;$LUA_PATH"
-  #   done
-
-  # export LUA_PATH
-fi
-
-
-
 function cl() {
     DIR="$*";
         # if no DIR given, go home
         if [ $# -lt 1 ]; then
-                DIR=$HOME;
-    fi;
+            DIR=$HOME;
+        fi;
     builtin cd "${DIR}" && \
     # use your preferred ls command
-        ls
+        ll
 }
 
 # Create a new directory and enter it

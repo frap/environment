@@ -1,7 +1,154 @@
+# -*- mode: sh; -*-
+
+# Setup some apps for XDG_CONFIG
+# gnupg
+if command_exists gpg
+then
+    export GNUPGHOME=${XDG_CONFIG_HOME}/gnupg
+fi
+
+#  less
+if command_exists less
+then
+    export LESSHISTFILE="${XDG_CONFIG_HOME}/less/history"
+#    export LESSKEY="${XDG_CONFIG_HOME}/less/keys"
+    export LESS='-RFX'
+    export LESSOPEN='|${XDG_CONFIG_HOME}/less/lessfilter'
+fi
+
+# EDITOR emacs
+if command_exists emacsclient; then
+    function ec() {
+	if [ -z "$DISPLAY" ]; then
+	    emacsclient -nw -a "" "$@"
+	else
+	    emacsclient -n -e "(> (length (frame-list)) 1)" | grep t
+	    if [ "$?" = "1" ]; then
+		emacsclient -c -n -a "" "$@"
+	    else
+		emacsclient -n -a "" "$@"
+	    fi
+	fi
+    }
+    function em() {
+	CFLAG=""
+	[[ -z "$@" ]] && CFLAG="--create-frame"
+	emacsclient $CFLAG --alternate-editor=emacs --no-wait "$@"
+    }
+    alias e=ec
+    export EDITOR=ec
+    export VISUAL="${EDITOR}"
+    export ALTERNATE_EDITOR="vim"
+else
+   export EDITOR="vim"
+fi
+
+# vim
+if command_exists vim
+   then
+       export VIMINIT='let $MYVIMRC="$XDG_CONFIG_HOME/vim/vimrc" | source $MYVIMRC'
+       export VIMDOTDIR="$XDG_CONFIG_HOME/vim"
+fi
+
+
+# git
+export GIT_REVIEW_BASE=main # See gitconfig
+git_branch() {
+  GIT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null) || return
+  [ -n "$GIT_BRANCH" ] && echo "($GIT_BRANCH) "
+}
+
+# golang
+if command_exists go
+   then
+       export GOPATH="$HOME/Dev/go"
+       export GOBIN="$HOME/Dev/go/bin"
+       export GOCACHE="$XDG_CACHE_HOME/go-build"
+       prepend_to_path  "${GOCACHE}"
+       prepend_to_path  "${GOBIN}"
+       prepend_to_path  "${GOPATH}"
+fi
+
+# rust
+if command_exists cargo
+   then
+       export CARGO_HOME="$XDG_DATA_HOME"/cargo
+fi
+
+# fzf
+if command_exists fzf
+then
+    export FZF_DEFAULT_COMMAND="rg --files --hidden --glob '!.git'"
+    export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+    #Load up auto completion for fzf
+    append_to_path "${HOMEBREW_PREFIX}/opt/fzf/bin"
+fi
+
+# ripgrep
+if command_exists rg
+then
+   rgf() {
+      if [ -z "$2" ]
+      then
+        rg --files | rg "$1"
+      else
+        rg --files "$2" | rg "$1"
+      fi
+   }
+fi
+
+# Pretty-print JSON files
+if command_exists jq
+then
+  json() {
+    [ -n "$1" ] || return
+    cat "$1" | jq .
+  }
+fi
+
 # nvm
-export NVM_DIR="$HOME/.nvm"
-[ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
-[ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ] && . "/usr/local/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+if command_exists nvm
+then
+    export NVM_DIR="${XDG_CONFIG_HOME}/nvm"
+    ssource "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
+    ssource "/usr/local/opt/nvm/etc/bash_completion.d/nvm"
+fi
+
+# java
+if command_exists jenv
+then
+  force_append_to_path "$HOME/.jenv/bin"
+  eval "$(jenv init -)"
+fi
+
+
+# Lua related stuff
+if command_exists luarocks
+then
+   eval "$(luarocks path)"
+
+  #  for path in "$XDG_DATA_HOME"/lua/*; do
+  #      LUA_PATH="$path/?.lua;$LUA_PATH"
+  #   done
+
+  # export LUA_PATH
+fi
+
+# Count CPUs for Make jobs
+if [ "$CPUCOUNT" -gt 1 ]
+then
+  export MAKEFLAGS="-j$CPUCOUNT"
+  export BUNDLE_JOBS="$CPUCOUNT"
+fi
+
+if command_exists diff-so-fancy
+then
+  # shellcheck disable=SC2016
+  export GIT_PAGER='diff-so-fancy | less --tabs=4 -RFX'
+else
+  # shellcheck disable=SC2016
+  export GIT_PAGER='less --tabs=4 $LESS'
+fi
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!

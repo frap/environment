@@ -86,7 +86,13 @@ ssource "${XDG_CONFIG_HOME}/zsh/prompt.zsh"
 # +------------+
 # | FZF        |
 # +------------+
-ssource "${XDG_CONFIG_HOME}/zsh/fzf.zsh"
+if command_exists
+then
+    # Auto completion
+    ssource "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh"
+    # git enhancements to fzf
+    ssource "${XDG_CONFIG_HOME}/zsh/fzf.zsh"
+fi
 
 if command_exists kitty
 then

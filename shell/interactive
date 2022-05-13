@@ -25,33 +25,31 @@ exists /etc/bastion && export BASTION=1
 # Fix systems missing $USER
 [ -z "$USER" ] && export USER="$(whoami)"
 
-# XDG Setup for some apps
-ssource ${XDG_CONFIG_HOME}/shell/xdg_setup
-
-if [ $MACOS ]
-then
-    # If Apple with M1 add below path
-    append_to_path "/opt/homebrew/bin"
-    if command_exists brew
-    then
-        eval $(brew shellenv)
-
-        export HOMEBREW_AUTO_UPDATE_SECS=3600
-        export HOMEBREW_DEVELOPER=1
-        export HOMEBREW_UPDATE_REPORT_ONLY_INSTALLED=1
-        export HOMEBREW_GIT_FILTER_TREE_ZERO=1
-        #  export HOMEBREW_BOOTSNAP=1
-        ssource "${XDG_CONFIG_HOME}/shell/osx_interactive"
-    fi
-fi
-
-append_to_path "${HOME}/.local/bin"
-
-# put your aliases here
-ssource $XDG_CONFIG_HOME/shell/aliases
-
 # if in a terminal
-if [ -t 0 ]; then
+if [ -t 0 ];
+then
+
+    # set up homebrew
+    if [ $MACOS ]
+    then
+        ssource "${XDG_CONFIG_HOME}/shell/osx_interactive"
+        export CPUCOUNT="$(/usr/sbin/sysctl -n hw.ncpu)"
+    elif [ $LINUX ]
+    then
+        export CPUCOUNT="$(getconf _NPROCESSORS_ONLN)"
+    else
+        export CPUCOUNT=1
+    fi
+
+    # add local interactive binaries
+    append_to_path "${HOME}/.local/bin"
+
+    # XDG Setup for some apps
+    ssource ${XDG_CONFIG_HOME}/shell/env_coding
+
+    # put your aliases here
+    ssource $XDG_CONFIG_HOME/shell/aliases
+
     # other users shouldn't be able to message by default
     mesg n
 
@@ -70,23 +68,20 @@ if [ -t 0 ]; then
 	    ;;
     esac
 
-    # enable colours
+    # Load up ANSI colours for terminal and logging
     if [ $(tput colors) -ge 8 ]; then
-
-	# Load up ANSI colours for terminal and logging
 	ssource $XDG_CONFIG_HOME/shell/ansi_colours
-
     fi
 
     # source shell functions if exists
     ssource $XDG_CONFIG_HOME/shell/interactive_fns
 
-
+    # state on last working dir
     [ -s ${XDG_STATE_HOME}/lastpwd ] && [ "$PWD" = "$HOME" ] && \
         builtin cd "$(cat ~/.local/state/lastpwd)" 2>/dev/null
     [ $TERMINALAPP ] && set_terminal_app_pwd
 
-    # ssh-agent
+    # start-up ssh-agent
     [ -z "$SSH_AUTH_SOCK" ] && eval "$(ssh-agent -s)"
 
     # Language
