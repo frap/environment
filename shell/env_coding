@@ -107,9 +107,9 @@ then
 fi
 
 # nvm
-if command_exists nvm
+export NVM_DIR="${XDG_CACHE_HOME}/nvm"
+if [ $MACOS ]
 then
-    export NVM_DIR="${XDG_CONFIG_HOME}/nvm"
     ssource "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
     ssource "/usr/local/opt/nvm/etc/bash_completion.d/nvm"
 fi
