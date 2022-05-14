@@ -311,7 +311,5 @@ zstyle ':completion:*' original false
 
 
 # Initialise completion
-autoload -Uz compinit
-compinit -d "$XDG_CACHE_HOME/zsh/zcompdump"
 autoload -Uz +X bashcompinit
 bashcompinit -D

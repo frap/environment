@@ -50,23 +50,24 @@ setopt correctall
 # +-------------+
 # | KEYBINDINGS |
 # +-------------+
-ssource $XDG_CONFIG_HOME/zsh/keybinds.zsh
+ssource "$XDG_CONFIG_HOME/zsh/keybinds.zsh"
+
+# +------------+
+# | COMPLETION |
+# +------------+
+autoload -Uz compinit
+compinit -d "$XDG_CACHE_HOME/zsh/zcompdump"
+ssource "$XDG_CONFIG_HOME/zsh/completion.zsh"
+
+# enable autosuggestions
+ZSH_AUTOSUGGESTIONS="$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+ssource "$ZSH_AUTOSUGGESTIONS"
 
 # +-------------+
 # | INTERACTIVE |
 # +-------------+
 
 ssource "${XDG_CONFIG_HOME}/shell/interactive"
-
-# +------------+
-# | COMPLETION |
-# +------------+
-
-ssource $XDG_CONFIG_HOME/zsh/completion.zsh
-
-# enable autosuggestions
-ZSH_AUTOSUGGESTIONS="$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
-ssource "$ZSH_AUTOSUGGESTIONS"
 
 # +------------+
 # | HIGHLIGHT  |
