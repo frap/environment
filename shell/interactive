@@ -15,6 +15,13 @@
 #*)	echo This shell is not interactive ;;
 #esac
 
+# dotfiles setup
+export DOTFILES=$HOME/Dev/dotfiles.git
+# setup a git alias which sets
+# the .git directory to $DOTFILES and
+# the working tree to $HOME
+alias gitdf='git --git-dir=$DOTFILES --work-tree=$HOME'
+
 # OS variables
 [ "$(uname -s)" = "Darwin" ] && export MACOS=1 && export UNIX=1
 [ "$(uname -s)" = "Linux" ] && export LINUX=1 && export UNIX=1

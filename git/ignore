@@ -88,3 +88,9 @@ sites/*/files
 # SQL.
 *.sql
 *.sql.*
+
+# ItelliJ Idea
+*.iml
+
+# ZSH sessions
+.zsh-sessions/
