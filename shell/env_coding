@@ -144,10 +144,10 @@ fi
 if command_exists diff-so-fancy
 then
   # shellcheck disable=SC2016
-  export GIT_PAGER='diff-so-fancy | less --tabs=4 -RFX'
+  export GIT_PAGER='diff-so-fancy | less --tabs=4 -+$LESS -RX'
 else
   # shellcheck disable=SC2016
-  export GIT_PAGER='less --tabs=4 $LESS'
+  export GIT_PAGER='less --tabs=4 -+$LESS -R'
 fi
 
 # >>> conda initialize >>>
