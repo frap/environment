@@ -137,9 +137,9 @@ function cp-git {
 #   terminal:
 
 
-function dash {
-  "open dash://$@"
-}
+#function dash {
+#  "open dash://$@"
+#}
 
 # Window Title
 
@@ -184,45 +184,6 @@ function xtab() {
       do script with command "xtitle $TITLE; HISTFILE=$HISTFILE; clear; $*" in window 1
     end tell
 EOF
-}
-
-# Note Files
-
-#   Created [[file:bin/tagging.org::*Tag%20Listing][tag listing]] and other shell scripts to deal with embedded
-#   =org-mode= tags. Each of these take a list of files, so these are
-#   some functions that give the files in the /default locations/.
-
-
-export NOTEPATH="$HOME/Dropbox/Notes"
-for FILE in $HOME/Dropbox/Technical $HOME/Dropbox/Personal
-do
-  if [ -e "$FILE" ]; then
-    NOTEPATH="$FILE:$NOTEPATH"
-  fi
-done
-
-
-
-# Based on the =$NOTEPATH= variable, we can get all possible notes.
-
-
-function all-note-dirs {
-  echo $NOTEPATH | sed 's/:/ /g'
-}
-
-function all-notes {
-  # echo find `all-note-dirs` -name '*.org'
-  find -L `all-note-dirs` -name '*.org'
-}
-
-
-
-# And then we can grep for text in just our notes:
-
-
-function ngrep {
-  egrep -r --max-count=1 --context=3 --include='*.org' --ignore-case \
-          --no-messages --word-regexp $* $(all-note-dirs)
 }
 
 # Beep
@@ -337,13 +298,13 @@ function clip {
 #   highlighted in pretty colors.
 
 
-LESSPIPE=$(which src-hilite-lesspipe.sh | grep -v no)
-if [ -z $LESSPIPE ]
-then
-export LESSOPEN="| ${LESSPIPE} %s"
-export LESS='-R'
-alias less='less -m -N -g -i -J --underline-special --SILENT'
-fi
+#LESSPIPE=$(which src-hilite-lesspipe.sh | grep -v no)
+#if [ -z $LESSPIPE ]
+#then
+#export LESSOPEN="| ${LESSPIPE} %s"
+#export LESS='-R'
+#alias less='less -m -N -g -i -J --underline-special --SILENT'
+#fi
 
 # Tab Completion
 
@@ -421,7 +382,7 @@ unalias l >/dev/null 2>&1
 unalias g >/dev/null 2>&1
 unalias d >/dev/null 2>&1
 
-if [ -e ~/bin/bashmarks.sh ]
-then
-    source ~/bin/bashmarks.sh
-fi
+#if [ -e ~/bin/bashmarks.sh ]
+#then
+#    source ~/bin/bashmarks.sh
+#fi

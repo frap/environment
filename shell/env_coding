@@ -8,16 +8,16 @@ then
 fi
 
 #  less
-if command_exists less
+if command_exists bat
 then
     export LESSHISTFILE="${XDG_CONFIG_HOME}/less/history"
 #    export LESSKEY="${XDG_CONFIG_HOME}/less/keys"
-    export LESS='-RFX'
-    export LESSOPEN='|${XDG_CONFIG_HOME}/less/lessfilter'
+    export LESS='-RFX'  # -R allows colours -F like tail -X leaves on screen
+    export LESSOPEN='| bat %s'
 fi
 
 # EDITOR emacs
-if command_exists emacsclient; then
+if command_exists emacs; then
     function ec() {
 	if [ -z "$DISPLAY" ]; then
 	    emacsclient -nw -a "" "$@"
@@ -110,8 +110,8 @@ fi
 export NVM_DIR="${XDG_CACHE_HOME}/nvm"
 if [ $MACOS ]
 then
-    ssource "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
-    ssource "/usr/local/opt/nvm/etc/bash_completion.d/nvm"
+    ssource "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh"  # This loads nvm
+    ssource "${HOMEBREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"
 fi
 
 # java
