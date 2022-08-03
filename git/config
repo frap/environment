@@ -101,7 +101,7 @@
 	
 [commit]
 	gpgsign = false
-#	status = true
+	status = true
 
 [diff]
 	algorithm = myers
@@ -121,7 +121,6 @@
 [merge]
 	ff = false
 	conflictStyle = merge
-#	tool = vimmerge
 
 [mergetool]
 	prompt = true
@@ -224,8 +223,8 @@
 	rlf =  format:%C(auto)%h%C(reset) %C(bold yellow)(%C(magenta)%gd%C(bold yellow))%C(reset)%C(auto)%d%C(reset)   %C(italic 239)[P: %p] [T: %t]%C(reset)%n%C(white)Author:%C(reset)   %aN %C(241)<%aE>%C(reset)%n          %C(italic blue)%ad%C(reset) %C(italic cyan)(%ar)%C(reset)%n%C(white)Commit:%C(reset)   %cN %C(241)<%cE>%C(reset)   %C(italic 239)[GPG: %G?% GK]%C(reset)%n          %C(italic blue)%cd%C(reset) %C(italic cyan)(%cr)%C(reset)%n%C(white)Reflog:%C(reset)   %gN %C(241)<%gE>%C(reset)%n          %C(italic)%gs%C(reset)%w(0,4,4)%n%n%C(bold)%s%C(reset)%n%n%-b%n%n%-N%n
 
 [alias]
-	ec = "!f() { [ -f \"${XDG_CONFIG_HOME:-$HOME/.config}\"/dotfiles.conf ] && . \"${XDG_CONFIG_HOME:-$HOME/.config}\"/dotfiles.conf; git --git-dir=\"$dotfiles_dir\" config --global --edit; }; f"
-	ecl = config --edit
+;	ec = "!f() { [ -f \"${XDG_CONFIG_HOME:-$HOME/.config}\"/dotfiles.conf ] && . \"${XDG_CONFIG_HOME:-$HOME/.config}\"/dotfiles.conf; git --git-dir=\"$dotfiles_dir\" config --global --edit; }; f"
+;	ecl = config --edit
 
 	# log, current branch
 	l  = log --pretty=lc --graph
@@ -276,7 +275,7 @@
 	dc = diff --cached -c
 	dl = diff --cached -c HEAD~
 	du = diff --cached -c @{u}
-	dr = "!f() { git diff -c ${1:-HEAD}~..${1:-HEAD}; }; f"
+;	dr = "!f() { git diff -c ${1:-HEAD}~..${1:-HEAD}; }; f"
 
 	# status
 	s = status
@@ -493,3 +492,4 @@ user = agasson
 
 [hub]
 protocol = https
+

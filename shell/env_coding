@@ -141,14 +141,14 @@ then
   export BUNDLE_JOBS="$CPUCOUNT"
 fi
 
-if command_exists diff-so-fancy
-then
+#if command_exists diff-so-fancy
+#then
   # shellcheck disable=SC2016
-  export GIT_PAGER='diff-so-fancy | less --tabs=4 -+$LESS -RX'
-else
+#  export GIT_PAGER='diff-so-fancy | less --tabs=4 -+$LESS -RX'
+#else
   # shellcheck disable=SC2016
   export GIT_PAGER='less --tabs=4 -+$LESS -R'
-fi
+#fi
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
