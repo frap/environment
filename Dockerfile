@@ -1,6 +1,8 @@
-FROM archlinux/base
-MAINTAINER Andres Gasson <gas@tuatara.red>
-RUN pacman -Syu --noconfirm --needed base-devel git pacman-contrib
+FROM ubuntu:22.04
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y make nasm && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN useradd -m -g users -G wheel -s /bin/bash agasson
 RUN echo '%wheel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 USER agasson
