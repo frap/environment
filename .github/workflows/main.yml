@@ -1,32 +1,46 @@
-name: CI
+name: run CI
 
-on: [push]
+on:
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+    branches: [ $default-branch ]
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag eru-new:$(date +%s)
+      
+  test:
+    runs-on: ubuntu-latest
 
-    - name: .stack-work cache
-      uses: actions/cache@v1
-      with:
-        path: melkor/.stack-work
-        key: ${{ runner.os }}-stack-work-${{ hashFiles('melkor/stack.yaml.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-stack-work
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: $HOME/.stack cache
-      uses: actions/cache@v1
-      with:
-        path: ~/.stack
-        key: ${{ runner.os }}-stack-${{ hashFiles('melkor/stack.yaml.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-stack
+      - name: .stack-work cache
+        uses: actions/cache@v1
+        with:
+          path: melkor/.stack-work
+          key: ${{ runner.os }}-stack-work-${{ hashFiles('melkor/stack.yaml.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-stack-work
 
-    - name: Melkor tests
-      run: ./eru-new.sh test
+      - name: $HOME/.stack cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.stack
+          key: ${{ runner.os }}-stack-${{ hashFiles('melkor/stack.yaml.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-stack
 
-    - name: Shape the world!
-      run: ./eru-new.sh
+      - name: Run functional Melkor tests
+        run: ./eru-new.sh test
+
+      - name: Shape the world!
+        run: ./eru-new.sh
