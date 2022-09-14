@@ -1,0 +1,29 @@
+name: run CI
+
+on:
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+    branches: [ $default-branch ]
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Checkout code
+
+    - name: Build Docker image
+      uses: docker/build-push-action@v2
+      with:
+        push: false
+        tags: ${{ github.event.repository.name }}:latest, ${{ github.repository }}:latest
+
+    - name: Run functional Melkor tests
+      run: ./eru-new.sh test
+
+    - name: Shape the world!
+      run: ./eru-new.sh
