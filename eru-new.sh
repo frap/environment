@@ -48,9 +48,9 @@ export CONFIG_BACKUP=$HOME/config-backup
 function gitdf {
    git --git-dir=$DOTFILES --work-tree=$HOME $@
 }
-env_https=https://github.com/frap/dotfiles.git
+env_https=git@github.com:frap/dotfiles.git
 env_ssh=git@github.com:frap/dotfiles.git
-env_emacs=git@github.com:frap/emacs.git
+env_emacs=git@github.com:frap/corgi.git
 
 if [ ! -d "$DEV" ]; then
     mkdir -p $DEV
