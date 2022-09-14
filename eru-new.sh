@@ -41,15 +41,15 @@ function silence {
 # Fetching the notes
 #
 export DEV=$HOME/Dev
-export DOTFILES=$DEV/dotfiles.git
+export DOTFILES=$DEV/environment
 export XDG_CONFIG_HOME=$HOME/.config
 export CONFIG_BACKUP=$HOME/config-backup
 
 function gitdf {
    git --git-dir=$DOTFILES --work-tree=$HOME $@
 }
-env_https=git@github.com:frap/dotfiles.git
-env_ssh=git@github.com:frap/dotfiles.git
+env_https=https://github.com/frap/environment.git
+env_ssh=git@github.com:frap/environment.git
 env_emacs=git@github.com:frap/corgi.git
 
 if [ ! -d "$DEV" ]; then
@@ -90,9 +90,9 @@ if [ -d "$DOTFILES/" ]; then
     gitdf config status.showUntrackedFiles no
 fi
 
-#cd "$XDG_CONFIG_HOME" && {
-#	git remote set-url origin $env_ssh
-#}
+cd "$XDG_CONFIG_HOME" && {
+	git remote set-url origin $env_ssh
+}
 
 # # install emacs
 # if [ ! -d "$XDG_CONFIG_HOME/emacs/.git" ]; then
