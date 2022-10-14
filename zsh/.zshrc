@@ -103,4 +103,4 @@ fi
 command_exists direnv && eval "$(direnv hook zsh)"
 
 # to avoid non-zero exit code
-true
+#true
