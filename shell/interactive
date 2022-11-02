@@ -53,7 +53,7 @@ else
 fi
 
 # add local interactive binaries
-preprend_to_path "${HOME}/.local/bin"
+prepend_to_path "${HOME}/.local/bin"
 
 # XDG Setup for some apps
 ssource ${XDG_CONFIG_HOME}/shell/env_coding
