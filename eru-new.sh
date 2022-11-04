@@ -74,7 +74,7 @@ if [ -d "$XDG_CONFIG_HOME" ]; then
 # 	}
 fi
 
-
+ b
 if [ -d "$DOTFILES/" ]; then
     gitdf checkout
     if [ $? = 0 ]; then
