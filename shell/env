@@ -1,14 +1,4 @@
 # -*- mode: sh; -*-
-# From bash manual:
-# If bash is invoked with the name sh, as an interactive login shell, or as
-# a non-interactive shell with the --login option, it first attempts to read
-# and execute commands from /etc/profile and ~/.profile, in that order. When
-# invoked as an interactive shell with the name sh, Bash looks for the
-# variable ENV, expands its value if it is defined, and uses the expanded
-# value as the name of a file to read and execute. Since a shell invoked as
-# sh does not attempt to read and execute commands from any other startup
-# files, the --rcfile option has no effect. A non-interactive shell invoked
-# with the name sh does not attempt to read any other startup files.
 # -*- mode: sh; -*-
 # From bash manual:
 # If bash is invoked with the name sh, as an interactive login shell, or as

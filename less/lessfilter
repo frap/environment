@@ -1,23 +1,18 @@
 #!/bin/sh
-case "$1" in
-*.awk | *.groff | *.java | *.js | *.m4 | *.php | *.pl | *.pm | *.pod | *.sh | \
-	*.ad[asb] | *.asm | *.inc | *.[ch] | *.[ch]pp | *.[ch]xx | *.cc | *.hh | \
-	*.lsp | *.l | *.pas | *.p | *.xml | *.xps | *.xsl | *.axp | *.ppd | *.pov | \
-	*.diff | *.patch | *.py | *.rb | *.sql | *.ebuild | *.eclass | *.clj[s] | *.edn)
-	pygmentize -f 256 "$1"
-	;;
 
-.bashrc | .bash_aliases | .bash_environment | env | env_local | env_functions | bashrc | bash_profile)
-	pygmentize -f 256 -l sh "$1"
-	;;
+if command -v bat >/dev/null 2>&1; then
+        # we don't just do this because then the other lessfilters never have a chance to run
+        # bat --paging never --color always --style plain "$1"
+        # exit 0
+        for ext in $(bat -L | cut -d: -f2 | tr ',' ' '); do
+                trimmed="${1%$ext}"
+                # If the file *has an extension* and that extension matches, or if the *entire* filename matches, highlight it.
+                # This avoids cases where the filename ends with "d", but not with ".d", for instance.
+                if [ "$trimmed" = "${1%.*}." ] || [ "$trimmed" = "" ]; then
+                        bat --paging never --color always --style plain --language "$ext" <"$1"
+                        exit 0
+                fi
+        done
+fi
 
-*)
-	if grep -q "#\!/usr/bin/env bash" "$1" 2>/dev/null; then
-		pygmentize -f 256 -l sh "$1"
-	else
-		exit 1
-	fi
-	;;
-esac
-
-exit 0
+exit 1

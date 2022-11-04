@@ -24,85 +24,89 @@ alias gitdf='git --git-dir=$DOTFILES --work-tree=$HOME'
 
 # OS variables
 [ "$(uname -s)" = "Darwin" ] && export MACOS=1 && export UNIX=1
-[ "$(uname -s)" = "Linux" ] && export LINUX=1 && export UNIX=1
-uname -s | grep -q "_NT-" && export WINDOWS=1
-grep -q "Microsoft" /proc/version 2>/dev/null && export UBUNTU_ON_WINDOWS=1
-exists /etc/bastion && export BASTION=1
+
+if ! [ $MACOS ]
+then
+  [ "$(uname -s)" = "Linux" ] && export LINUX=1 && export UNIX=1
+  uname -s | grep -q "_NT-" && export WINDOWS=1
+  grep -q "Microsoft" /proc/version 2>/dev/null && export WSL2=1
+  exists /etc/bastion && export BASTION=1
+fi
 
 # Fix systems missing $USER
 [ -z "$USER" ] && export USER="$(whoami)"
 
 # if in a terminal
-if [ -t 0 ];
-then
+# if [ -t 0 ];
+#then
 
     # set up homebrew
-    if [ $MACOS ]
-    then
-        ssource "${XDG_CONFIG_HOME}/shell/osx_interactive"
-        export CPUCOUNT="$(/usr/sbin/sysctl -n hw.ncpu)"
-    elif [ $LINUX ]
-    then
-        export CPUCOUNT="$(getconf _NPROCESSORS_ONLN)"
-    else
-        export CPUCOUNT=1
-    fi
-
-    # add local interactive binaries
-    append_to_path "${HOME}/.local/bin"
-
-    # XDG Setup for some apps
-    ssource ${XDG_CONFIG_HOME}/shell/env_coding
-
-    # put your aliases here
-    ssource $XDG_CONFIG_HOME/shell/aliases
-
-    # other users shouldn't be able to message by default
-    mesg n
-
-    #load up the bash_prompt - do it here as emacs tramp gets fucked up with
-    # non > prompts
-    case "$TERM" in
-	xterm* | rxvt* | eterm* | screen*)
-	    if command_exists starship; then
-		eval "$(starship init zsh)"
-	    else
-		PS1="➜ "
-	    fi
-	    ;;
-	*)
-	    PS1="> "
-	    ;;
-    esac
-
-    # Load up ANSI colours for terminal and logging
-    if [ $(tput colors) -ge 8 ]; then
-	ssource $XDG_CONFIG_HOME/shell/ansi_colours
-    fi
-
-    # source shell functions if exists
-    ssource $XDG_CONFIG_HOME/shell/interactive_fns
-
-    # state on last working dir
-    [ -s ${XDG_STATE_HOME}/lastpwd ] && [ "$PWD" = "$HOME" ] && \
-        builtin cd "$(cat ~/.local/state/lastpwd)" 2>/dev/null
-    [ $TERMINALAPP ] && set_terminal_app_pwd
-
-    # start-up ssh-agent
-    [ -z "$SSH_AUTH_SOCK" ] && eval "$(ssh-agent -s)"
-
-    # Language
-    export LANG='en_NZ.UTF-8'
-    #export LC_ALL=$LANG
-    #export LC_COLLATE=$LANG
-    #export LC_CTYPE=$LANG
-    #export LC_MESSAGES=$LANG
-    #export LC_MONETARY=$LANG
-    #export LC_NUMERIC=$LANG
-    #export LC_TIME=$LANG
-
-    ssource "$XDG_CONFIG_HOME/secrets"
-    # Some post-secret aliases
-    #export HOMEBREW_GITHUB_API_TOKEN="$GITHUB_TOKEN"
-    #export HUBOT_GITHUB_TOKEN="$GITHUB_TOKEN"
+if [ $MACOS ]
+then
+    ssource "${XDG_CONFIG_HOME}/shell/osx_interactive"
+    export CPUCOUNT="$(/usr/sbin/sysctl -n hw.ncpu)"
+elif [ $LINUX ]
+then
+    export CPUCOUNT="$(getconf _NPROCESSORS_ONLN)"
+else
+    export CPUCOUNT=1
 fi
+
+# add local interactive binaries
+prepend_to_path "${HOME}/.local/bin"
+
+# XDG Setup for some apps
+ssource ${XDG_CONFIG_HOME}/shell/env_coding
+
+# put your aliases here
+ssource $XDG_CONFIG_HOME/shell/aliases
+
+# other users shouldn't be able to message by default
+mesg n
+
+#load up the bash_prompt - do it here as emacs tramp gets fucked up with
+# non > prompts
+case "$TERM" in
+    xterm* | rxvt* | eterm* | screen*)
+	if command_exists starship; then
+	    eval "$(starship init zsh)"
+	else
+	    PS1="➜ "
+	fi
+	;;
+    *)
+	PS1="> "
+	;;
+esac
+
+# Load up ANSI colours for terminal and logging
+if [ $(tput colors) -ge 8 ]; then
+    ssource $XDG_CONFIG_HOME/shell/ansi_colours
+fi
+
+# source shell functions if exists
+ssource $XDG_CONFIG_HOME/shell/interactive_fns
+
+# state on last working dir
+[ -s ${XDG_STATE_HOME}/lastpwd ] && [ "$PWD" = "$HOME" ] && \
+    builtin cd "$(cat ~/.local/state/lastpwd)" 2>/dev/null
+[ $TERMINALAPP ] && set_terminal_app_pwd
+
+# start-up ssh-agent
+[ -z "$SSH_AUTH_SOCK" ] && eval "$(ssh-agent -s)"
+
+# Language
+export LANG='en_NZ.UTF-8'
+export LC_ALL=$LANG
+#export LC_COLLATE=$LANG
+#export LC_CTYPE=$LANG
+export LC_MESSAGES=$LANG
+export LC_MONETARY=$LANG
+export LC_NUMERIC=$LANG
+export LC_TIME=$LANG
+
+ssource "$XDG_CONFIG_HOME/secrets"
+# Some post-secret aliases
+#export HOMEBREW_GITHUB_API_TOKEN="$GITHUB_TOKEN"
+#export HUBOT_GITHUB_TOKEN="$GITHUB_TOKEN"
+#fi
