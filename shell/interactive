@@ -36,11 +36,22 @@ fi
 # Fix systems missing $USER
 [ -z "$USER" ] && export USER="$(whoami)"
 
-# if in a terminal
-# if [ -t 0 ];
-#then
+#if in a terminal
+if [ -t 0 ];
+then
+    #load up the bash_prompt - do it here as emacs tramp gets fucked up with
+    # non > prompts
+    case "$TERM" in
+	xterm* | rxvt* | eterm* | screen*)
+	    PS1="➜ "
+	    ;;
+	*)
+	    PS1="> "
+	    ;;
+    esac
+fi
 
-    # set up homebrew
+# set up homebrew
 if [ $MACOS ]
 then
     ssource "${XDG_CONFIG_HOME}/shell/osx_interactive"
@@ -63,21 +74,6 @@ ssource $XDG_CONFIG_HOME/shell/aliases
 
 # other users shouldn't be able to message by default
 mesg n
-
-#load up the bash_prompt - do it here as emacs tramp gets fucked up with
-# non > prompts
-case "$TERM" in
-    xterm* | rxvt* | eterm* | screen*)
-	if command_exists starship; then
-	    eval "$(starship init zsh)"
-	else
-	    PS1="➜ "
-	fi
-	;;
-    *)
-	PS1="> "
-	;;
-esac
 
 # Load up ANSI colours for terminal and logging
 if [ $(tput colors) -ge 8 ]; then
@@ -109,4 +105,5 @@ ssource "$XDG_CONFIG_HOME/secrets"
 # Some post-secret aliases
 #export HOMEBREW_GITHUB_API_TOKEN="$GITHUB_TOKEN"
 #export HUBOT_GITHUB_TOKEN="$GITHUB_TOKEN"
-#fi
+
+

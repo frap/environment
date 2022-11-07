@@ -1,4 +1,6 @@
 *.elc
+aws/
+emacs
 auto-save-list/
 eln-cache/
 emacs/lisp/init-autoloads.el

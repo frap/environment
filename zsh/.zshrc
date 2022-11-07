@@ -79,19 +79,25 @@ ssource "${XDG_CONFIG_HOME}/zsh/highlight.zsh"
 # +------------+
 # Enable substitution in the prompt
 #setopt prompt_subst
-ssource "${XDG_CONFIG_HOME}/zsh/prompt.zsh"
+if [ $TERMINALAPP ]
+then
+    if command_exists starship; then
+	eval "$(starship init zsh)"
+    fi
+else
+    ssource "${XDG_CONFIG_HOME}/zsh/prompt.zsh"
+fi
 
 # +------------+
 # | FZF        |
 # +------------+
-if command_exists
+if command_exists fzf
 then
     # Auto completion
     ssource "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh"
     # git enhancements to fzf
     ssource "${XDG_CONFIG_HOME}/zsh/fzf.zsh"
 fi
-
 
 # more macOS/Bash-like word jumps
 #export WORDCHARS=""

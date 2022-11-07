@@ -32,11 +32,11 @@ fi
 # OSX specific script (uses AppleScripts) to ask me to take a break every hour
 # Run this function as a background process using &
 # alert &
-alert () {
+pomodoro () {
         while true ; do
-                        # 3600 seconds is 1 hour
-            sleep 3600
-            osascript -e 'tell app "System Events" to display dialog "Take a break! You have been staring at the screen for far too long "' 1>&/dev/null
+            # 3600 seconds is 1 hour, 1500 is 25 minutes
+            sleep 15 #00
+            osascript -e 'tell app "System Events" to display dialog "Prendre une pause! Tu regardes l\u0xE2 0x80 0x99 écran depuis bien trop longtemps "' 1>&/dev/null
         done
         exit 0
 }
