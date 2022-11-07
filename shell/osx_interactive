@@ -2,6 +2,7 @@
 
 # If Apple with M1 add below path otherwise wont find brew binary
 append_to_path "/opt/homebrew/bin"
+
 if command_exists brew
 then
     eval $(brew shellenv) # exports HBREW PREFIX & PATH
@@ -15,10 +16,11 @@ fi
 [ "$TERM_PROGRAM" = "Apple_Terminal" ] && export TERMINALAPP=1
 if [ $TERMINALAPP ]
 then
-  set_terminal_app_pwd() {
-    # Tell Terminal.app about each directory change.
-    printf '\e]7;%s\a' "$(echo "file://$HOST$PWD" | sed -e 's/ /%20/g')"
-  }
+
+     set_terminal_app_pwd() {
+	 # Tell Terminal.app about each directory change.
+	 printf '\e]7;%s\a' "$(echo "file://$HOST$PWD" | sed -e 's/ /%20/g')"
+     }
 fi
 
 
