@@ -60,6 +60,7 @@ truncation_symbol = "…/"
 "Downloads" = "📥 "
 "Music" = "🎜 "
 "Pictures" = "📷 "
+"Dev" = " \U+1F648"
 # Keep in mind that the order matters. For example:
 # "Important Documents" = "  "
 # will not be replaced, because "Documents" was already substituted before.
