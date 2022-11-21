@@ -38,10 +38,10 @@
 # You can also replace your username with a neat symbol like  to save some space
 [username]
 #symbol = " "
-show_always = true
+show_always = false
 style_user = "bold dimmed blue"
 #style_user = "bold cyan bg:#9A348E"
-style_root = "bg:#9A348E"
+style_root = "bold red bg:#9A348E"
 format = '  ($style)'
 
 [directory]
@@ -77,7 +77,7 @@ charging_symbol = "🔌"
 discharging_symbol = "⚡"
 
 [[battery.display]]
-threshold = 30
+threshold = 70
 style = "bold red"
 
 [c]
@@ -90,14 +90,14 @@ format = '[→](fg:#DA627D bg:#FCA17D)[[ $symbol($version) ](bg:#86BBD8)]($style
 error_symbol = "[✖](bold red)"
 success_symbol = "[➜](bold green)"
 
+[conda]
+symbol = " "
+
 [cmd_duration]
 # $duration – The command duration (e.g. "15s")
 # $style    – The default style of the module (e.g. "bold yellow")
-#format = "took [$duration]($yellow) "
-disabled = true
-
-[conda]
-symbol = " "
+min_time = 4_000  # Show command duration over 4,000 milliseconds (=4 sec)
+format = "tomó [$duration]($style) "
 
 [dart]
 symbol = " "
@@ -145,6 +145,13 @@ symbol = " "
 style = "bg:#86BBD8"
 format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
 
+[hostname]
+ssh_only = true
+format = "<[$hostname]($style)>"
+trim_at = "-"
+style = "bold dimmed white"
+#disabled = true
+
 [java]
 symbol = " "
 disabled=false
@@ -169,7 +176,9 @@ disabled = false
 
 [memory_usage]
 disabled = false
-#format =" $symbol [${ram}( | ${swap})]($style) "
+format = "$symbol[${ram}( | ${swap})]($style) "
+threshold = 70
+style = "bold dimmed white"
 
 [nodejs]
 style = "bg:#86BBD8"
