@@ -54,7 +54,7 @@ else
 fi
 
 # search history
-alias gh='history | grep'
+alias his='history | grep'
 
 alias sha256="shasum -a 256"
 

@@ -7,6 +7,24 @@
 
 set -e
 
+echo_bred="\033[31;1m"
+echo_bgreen="\033[32;1m"
+echo_byellow="\033[33;1m"
+echo_bblue="\033[34;1m"
+echo_bcyan="\033[36;1m"
+echo_borange="\033[91;1m"
+
+echo_normal="\033[0m"
+echo_reset="\033[39m"
+
+function error() {
+        echo -e "${echo_bred}❌ $*${echo_normal}"
+}
+
+function logg() {
+        echo -e "${echo_bgreen}$*${echo_reset}"
+}
+
 s="$1"
 t="$2"
 d=$(dirname "$t")
@@ -28,19 +46,19 @@ exit 1
 fi
 
 if [[ ! -d $d ]]; then
-log "créer $d"
+logg "créer $d"
 mkdir -p "$d"
 fi
 
 if [[ -L "$t" ]]; then
-log "relier $s -> $t"
+logg "relier $s -> $t"
 if [[ "$owner" = "root" ]]; then
 sudo rm "$t"
 else
 rm "$t"
 fi
 else
-log "lier $s -> $t"
+logg "lier $s -> $t"
 fi
 
 if [[ "$owner" = "root" ]]; then
