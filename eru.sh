@@ -239,6 +239,11 @@ function macos_guard() {
     return
 }
 
+function file_exists() {
+	local file=$1
+	[[ -f $file ]]
+}
+
 function qualify_repo_url() {
     if [[ "$1" = "https://"* || "$1" = "git@"* ]]; then
 	echo "$1"
@@ -524,7 +529,7 @@ theme_guard "system" "make Eru more approachable" && {
 }
 
 # TODO: make it work on Linux from command line
-install_guard && macos_guard && theme_guard "SSH" "Vérification des clés SSH" && {
+install_guard && theme_guard "SSH" "Vérification des clés SSH" && {
 	if [[ "$INTERACTIVE" = "true" ]]; then
 	    ssh_key_add_url="https://github.com/settings/ssh/new"
 	    ssh_key_path="$HOME/.ssh/id_rsa"
@@ -538,26 +543,26 @@ install_guard && macos_guard && theme_guard "SSH" "Vérification des clés SSH" 
 		mkdir -p "$(dirname "$ssh_key_path")"
 		ssh-keygen -t rsa -b 4096 -C "$USER" -f "$ssh_key_path"
 		log "SSH key was generated."
+		macos_guard && {
+		    log "Charger automatiquement la clé SSH et utiliser le trousseau"
+		    echo "Host *
+ AddKeysToAgent yes
+ UseKeychain yes
+ IdentityFile $ssh_key_path" >"$ssh_config_path"
+		}
+
+		log "Ajouter une clé SSH à ssh-agent"
+		ssh-add -K ~/.ssh/id_rsa
+
+		log "Assurez-vous d'ajouter la clé SSH à GitHub"
+		pbcopy <"$ssh_key_pub_path"
+		open "$ssh_key_add_url"
+		read -rp "Appuyez sur Entrée pour continuer"
 	    fi
 
 	    log "Démarrage de ssh-agent"
 	    eval "$(ssh-agent -s)"
 
-	    macos_guard && {
-		log "Charger automatiquement la clé SSH et utiliser le trousseau"
-		echo "Host *
- AddKeysToAgent yes
- UseKeychain yes
- IdentityFile $ssh_key_path" >"$ssh_config_path"
-	    }
-
-	    log "Ajouter une clé SSH à ssh-agent"
-	    ssh-add -K ~/.ssh/id_rsa
-
-	    log "Assurez-vous d'ajouter la clé SSH à GitHub"
-	    pbcopy <"$ssh_key_pub_path"
-	    open "$ssh_key_add_url"
-	    read -rp "Appuyez sur Entrée pour continuer"
 	fi
     }
 
@@ -607,7 +612,7 @@ macos_guard && {
     theme_guard "packages" "Ensure brew exists" && {
 	check brew || {
 	    log "Installing brew"
-	    /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+	    /bin/bash -c  "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 	    brew update
 	}
     }
