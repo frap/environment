@@ -67,7 +67,7 @@ then
    git remote add origin $env_https
    git fetch
    git reset --hard origin/main
-  }
+   
 fi
 
 if [ ! -d "$DEV" ]; then
