@@ -48,30 +48,30 @@ KERNEL_NAME=$(uname -s | tr '[:upper:]' '[:lower:]')
 OS_NAME="unknown"
 OS_VERSION="unknown"
 case $KERNEL_NAME in
-darwin)
+    darwin)
 	OS_NAME=macos
 	OS_VERSION=$(sw_vers -productVersion)
 	;;
-linux)
+    linux)
 	case $(echo $KERNEL_RELEASE) in
-	*arch* | *coreos*)
+	    *arch* | *coreos*)
 		OS_NAME="arch"
 		;;
-	ubuntu)
+	    ubuntu)
 		OS_NAME="ubuntu"
 		OS_VERSION="$(sed 's/Ubuntu \([0-9]\+\.[0-9]\+\.[0-9]\+\) .*/\1/' /etc/issue)"
 		alias gstat=stat
 		;;
-	redhat | ol)
+	    redhat | ol)
 		OS_NAME="redhat"
 		;;
-    android)
-        OS_NAME="android"
-        OS_VERSION=$TERMUX_VERSION
-        ;;
+	    android)
+		OS_NAME="android"
+		OS_VERSION=$TERMUX_VERSION
+		;;
 	esac
 	;;
-*) ;;
+    *) ;;
 
 esac
 
@@ -80,7 +80,7 @@ esac
 #
 
 if [ -z "$USER" ]; then
-	USER=$(whoami)
+    USER=$(whoami)
 fi
 
 #
@@ -102,7 +102,7 @@ export XDG_CACHE_HOME="$HOME/.cache"
 export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_STATE_HOME="$HOME/.local/state"
 
-export DEVELOPER=$HOME/Dev
+export DEVELOPER=$HOME/dev/frap
 
 #
 # Logging
@@ -132,29 +132,29 @@ echo_normal="\033[0m"
 echo_reset="\033[39m"
 
 function error() {
-	echo -e "${echo_bred}❌ $*${echo_normal}"
+    echo -e "${echo_bred}❌ $*${echo_normal}"
 }
 
 function intro() {
-	echo -e "${echo_bblue}$*${echo_normal}"
+    echo -e "${echo_bblue}$*${echo_normal}"
 }
 
 function log() {
-	echo -e "${echo_bgreen}$*${echo_reset}"
+    echo -e "${echo_bgreen}$*${echo_reset}"
 }
 
 function section() {
-	echo -e "${echo_blue}🕉 $*${echo_normal}"
+    echo -e "${echo_blue}🕉 $*${echo_normal}"
 }
 
 function a_theme() {
   local text=">>> $2 :: ${*:3}"
   local length="${#text}"
   echo
-	echo '┌────────────────────────────────────────────────────────────────────────────┐'
-	echo -ne "│ \033[$1m$text\033[0m"
-	printf "%$((75 - length))s│\n"
-	echo '└────────────────────────────────────────────────────────────────────────────┘'
+  echo '┌────────────────────────────────────────────────────────────────────────────┐'
+  echo -ne "│ \033[$1m$text\033[0m"
+  printf "%$((75 - length))s│\n"
+  echo '└────────────────────────────────────────────────────────────────────────────┘'
 }
 
 function theme() {
@@ -194,238 +194,238 @@ section "Defining helpers"
 # ${!parameter} returns what is in parameter
 # theme guard was called theme_guard $REPO rep whee $REPO=true whether you wan to run the repo code
 function theme_guard() {
-	key=$(echo "$1" | tr '[:upper:]' '[:lower:]')
-	local guard_ref="guard_$key"
-	local ignore_guard_ref="guard_ignore_$key"
-        # guard is VARIABLE denoting whether theme is true or false
-	guard="${!guard_ref}"
-	ignore_guard="${!ignore_guard_ref}"
-	if [[ ("$ALL" = "true" || "$guard" = "true") && "$ignore_guard" = "" ]]; then
-		optional_theme "$1" "${@:2}"   # logging
-		return 0
-	else
-		inactive_theme "$1" "${@:2}"    # logging
-		return 1
-	fi
+    key=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+    local guard_ref="guard_$key"
+    local ignore_guard_ref="guard_ignore_$key"
+    # guard is VARIABLE denoting whether theme is true or false
+    guard="${!guard_ref}"
+    ignore_guard="${!ignore_guard_ref}"
+    if [[ ("$ALL" = "true" || "$guard" = "true") && "$ignore_guard" = "" ]]; then
+	optional_theme "$1" "${@:2}"   # logging
+	return 0
+    else
+	inactive_theme "$1" "${@:2}"    # logging
+	return 1
+    fi
 }
 
 function install_guard() {
-	[[ "$ACTION" == "install" ]]
-	return
+    [[ "$ACTION" == "install" ]]
+    return
 }
 
 function upgrade_guard() {
-	[[ "$ACTION" == "upgrade" ]]
-	return
+    [[ "$ACTION" == "upgrade" ]]
+    return
 }
 
 function test_guard() {
-	[[ "$ACTION" == "test" ]]
-	return
+    [[ "$ACTION" == "test" ]]
+    return
 }
 
 function ubuntu_guard() {
-	[[ "$OS_NAME" == "ubuntu" ]]
-	return
+    [[ "$OS_NAME" == "ubuntu" ]]
+    return
 }
 
 function android_guard() {
-	[[ "$OS_NAME" == "android" ]]
-	return
+    [[ "$OS_NAME" == "android" ]]
+    return
 }
 
 function macos_guard() {
-	[[ "$OS_NAME" == "macos" ]]
-	return
+    [[ "$OS_NAME" == "macos" ]]
+    return
 }
 
 function qualify_repo_url() {
-	if [[ "$1" = "https://"* || "$1" = "git@"* ]]; then
-		echo "$1"
-	elif [[ "$2" = "github" ]]; then
-		if [[ "$USE_HTTPS" = "true" ]]; then
-			echo "https://github.com/$1.git"
-		else
-			echo "git@github.com:$1.git"
-		fi
-	elif [[ "$2" = "gitlab" ]]; then
-		if [[ "$USE_HTTPS" = "true" ]]; then
-			echo "https://gitlab.com/$1.git"
-		else
-			echo "git@gitlab.com:$1.git"
-		fi
+    if [[ "$1" = "https://"* || "$1" = "git@"* ]]; then
+	echo "$1"
+    elif [[ "$2" = "github" ]]; then
+	if [[ "$USE_HTTPS" = "true" ]]; then
+	    echo "https://github.com/$1.git"
+	else
+	    echo "git@github.com:$1.git"
 	fi
+    elif [[ "$2" = "gitlab" ]]; then
+	if [[ "$USE_HTTPS" = "true" ]]; then
+	    echo "https://gitlab.com/$1.git"
+	else
+	    echo "git@gitlab.com:$1.git"
+	fi
+    fi
 }
 
 function git_lg() {
-	git --no-pager \
-		log \
-		--graph \
-		--pretty=format:'%Cred%h%Creset %C(bold blue)<%an> -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' \
-		"$*"
+    git --no-pager \
+	log \
+	--graph \
+	--pretty=format:'%Cred%h%Creset %C(bold blue)<%an> -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' \
+	"$*"
 }
 
 function sync_repo() {
-	section "sync_repo $*"
+    section "sync_repo $*"
 
-	# working directory usually .config
-	wd=$(eval echo "$1")
-	remote="$2"
-	url=$(qualify_repo_url "$3" "$remote")
-	branch="$4"
-	if [[ $branch = "" ]]; then
-		branch="main"
-	fi
+    # working directory usually .config
+    wd=$(eval echo "$1")
+    remote="$2"
+    url=$(qualify_repo_url "$3" "$remote")
+    branch="$4"
+    if [[ $branch = "" ]]; then
+	branch="main"
+    fi
 
-	if [[ -d "$wd/.git" ]]; then
-		log "$wd existe déjà"
-	else
-		git clone "$url" "$wd" -b "$branch"
-	fi
+    if [[ -d "$wd/.git" ]]; then
+	log "$wd existe déjà"
+    else
+	git clone "$url" "$wd" -b "$branch"
+    fi
 
-	cd "$wd" && {
-		git diff-index --quiet HEAD -- || {
-			error "Votre répertoire de travail n'est pas propre."
-			error "Veuillez valider ou cacher tous les changements avant de continuer."
-			return 1
-		}
-
-		current_branch=$(git symbolic-ref --short HEAD)
-		if [[ $branch != "$current_branch" ]]; then
-			log "Passer de $current_branch à $branch"
-			git checkout "$branch"
-		fi
-
-		if [[ -d .git/refs/remotes/$remote ]]; then
-			current_url=$(git remote get-url $remote)
-			if [[ $current_url != "$url" ]]; then
-				log "Distante '$remote' a une mauvaise URL, donc la mettre à jour"
-				log "  $current_url -> $url"
-				git remote set-url $remote "$url"
-			fi
-		else
-			log "Impossible de trouver distante '$remote', donc en ajoutant"
-			git remote add $remote "$url"
-		fi
-
-		log "fetch $remote"
-		git fetch $remote
-		if [[ $(git rev-parse HEAD) == $(git rev-parse $remote/$branch) ]]; then
-			log "Tout est à jour"
-			return 0
-		fi
-
-		if [ "$(git rev-list HEAD..$remote/$branch --count)" != 0 ]; then
-			log "Modifications récupérées:"
-			git_lg HEAD..$remote/$branch
-			log
-		fi
-
-		log "rebaser sur $remote/$branch"
-		git rebase $remote/$branch
-
-		if [[ "$url" = *"$fellow"* ]]; then
-			if [ "$(git rev-list $remote/$branch..HEAD --count)" != 0 ]; then
-				log "Changements à pousser:"
-				git_lg $remote/$branch..HEAD
-				log
-			fi
-
-			log "pousser les changements"
-			git push $remote $branch
-		fi
+    cd "$wd" && {
+	git diff-index --quiet HEAD -- || {
+	    error "Votre répertoire de travail n'est pas propre."
+	    error "Veuillez valider ou cacher tous les changements avant de continuer."
+	    return 1
 	}
+
+	current_branch=$(git symbolic-ref --short HEAD)
+	if [[ $branch != "$current_branch" ]]; then
+	    log "Passer de $current_branch à $branch"
+	    git checkout "$branch"
+	fi
+
+	if [[ -d .git/refs/remotes/$remote ]]; then
+	    current_url=$(git remote get-url $remote)
+	    if [[ $current_url != "$url" ]]; then
+		log "Distante '$remote' a une mauvaise URL, donc la mettre à jour"
+		log "  $current_url -> $url"
+		git remote set-url $remote "$url"
+	    fi
+	else
+	    log "Impossible de trouver distante '$remote', donc en ajoutant"
+	    git remote add $remote "$url"
+	fi
+
+	log "fetch $remote"
+	git fetch $remote
+	if [[ $(git rev-parse HEAD) == $(git rev-parse $remote/$branch) ]]; then
+	    log "Tout est à jour"
+	    return 0
+	fi
+
+	if [ "$(git rev-list HEAD..$remote/$branch --count)" != 0 ]; then
+	    log "Modifications récupérées:"
+	    git_lg HEAD..$remote/$branch
+	    log
+	fi
+
+	log "rebaser sur $remote/$branch"
+	git rebase $remote/$branch
+
+	if [[ "$url" = *"$fellow"* ]]; then
+	    if [ "$(git rev-list $remote/$branch..HEAD --count)" != 0 ]; then
+		log "Changements à pousser:"
+		git_lg $remote/$branch..HEAD
+		log
+	    fi
+
+	    log "pousser les changements"
+	    git push $remote $branch
+	fi
+    }
 }
 
 function ensure_dir() {
-	if [[ ! -d "$1" ]]; then
-		log "créer le $1"
-		mkdir -p "$1"
-	fi
+    if [[ ! -d "$1" ]]; then
+	log "créer le $1"
+	mkdir -p "$1"
+    fi
 }
 
 function check() {
-	command -v "$1" >/dev/null 2>&1
+    command -v "$1" >/dev/null 2>&1
 }
 
 function linkfile() {
-	local file="$1"
-	if [ -f "$file" ]; then
-		(
-			cd "$(dirname "$file")"
-			map_lines safe_link "$file"
-		)
-	fi
+    local file="$1"
+    if [ -f "$file" ]; then
+	(
+	    cd "$(dirname "$file")"
+	    map_lines safe_link "$file"
+	)
+    fi
 }
 
 function safe_link() {
-	local f
-	local s
-	local t
-	local d
-	local owner
+    local f
+    local s
+    local t
+    local d
+    local owner
 
-	# shellcheck disable=SC2086
-	f=$(eval echo $1)
-	s="$(pwd)/$f"
-	t=$(eval echo "$2")
-	d=$(dirname "$t")
+    # shellcheck disable=SC2086
+    f=$(eval echo $1)
+    s="$(pwd)/$f"
+    t=$(eval echo "$2")
+    d=$(dirname "$t")
 
-	if [[ -d "$d" ]]; then
-	    #owner=$(stat -c '%U' "$d") # linux stat
-            owner=$(stat -f "%Su" "$d")
-		if [[ "$owner" != "root" && "$owner" != "$USER" ]]; then
-			error "ne peut pas lier '$s' à '$t'"
-			error "propriétaire de  '$d' est $owner"
-			error "propriétaires autorisés: root o $USER"
-			exit 1
-		fi
+    if [[ -d "$d" ]]; then
+	#owner=$(stat -c '%U' "$d") # linux stat
+        owner=$(stat -f "%Su" "$d")
+	if [[ "$owner" != "root" && "$owner" != "$USER" ]]; then
+	    error "ne peut pas lier '$s' à '$t'"
+	    error "propriétaire de  '$d' est $owner"
+	    error "propriétaires autorisés: root o $USER"
+	    exit 1
 	fi
+    fi
 
-	if [[ ! -f "$s" && ! -d "$s" ]]; then
-		error "ne peut pas lier '$s' comme il n'existe pas"
-		exit 1
-	fi
+    if [[ ! -f "$s" && ! -d "$s" ]]; then
+	error "ne peut pas lier '$s' comme il n'existe pas"
+	exit 1
+    fi
 
-	if [[ ! -d $d ]]; then
-		log "créer $d"
-		mkdir -p "$d"
-	fi
+    if [[ ! -d $d ]]; then
+	log "créer $d"
+	mkdir -p "$d"
+    fi
 
-	if [[ -L "$t" ]]; then
-		log "relier $s -> $t"
-		if [[ "$owner" = "root" ]]; then
-			sudo rm "$t"
-		else
-			rm "$t"
-		fi
-	else
-		log "lier $s -> $t"
-	fi
-
+    if [[ -L "$t" ]]; then
+	log "relier $s -> $t"
 	if [[ "$owner" = "root" ]]; then
-		sudo ln -s "$s" "$t"
+	    sudo rm "$t"
 	else
-		ln -s "$s" "$t"
+	    rm "$t"
 	fi
+    else
+	log "lier $s -> $t"
+    fi
+
+    if [[ "$owner" = "root" ]]; then
+	sudo ln -s "$s" "$t"
+    else
+	ln -s "$s" "$t"
+    fi
 }
 
 function map_lines() {
-	if [[ -f "$2" ]]; then
-		while IFS='' read -r line || [[ -n "$line" ]]; do
-			if [[ "$line" != "#"* ]]; then
-				# shellcheck disable=SC2086
-				$1 $line
-			fi
-		done <"$2"
-	fi
+    if [[ -f "$2" ]]; then
+	while IFS='' read -r line || [[ -n "$line" ]]; do
+	    if [[ "$line" != "#"* ]]; then
+		# shellcheck disable=SC2086
+		$1 $line
+	    fi
+	done <"$2"
+    fi
 }
 
 function download_bin() {
-	fp="$HOME/.local/bin/$1"
-	curl --silent -o "$fp" "$2"
-	chmod a+x "$HOME/.local/bin/$1"
-	hash -r
+    fp="$HOME/.local/bin/$1"
+    curl --silent -o "$fp" "$2"
+    chmod a+x "$HOME/.local/bin/$1"
+    hash -r
 }
 
 #
@@ -437,18 +437,18 @@ theme "Setup ERU" "Defining variables"
 ALL="true"
 ACTION=
 case $1 in
-install | upgrade | test)
+    install | upgrade | test)
 	ACTION=$1
 	shift
 	;;
-*)
+    *)
 	echo
 	if [ -z "$1" ]; then
-		ACTION=upgrade
+	    ACTION=upgrade
 	else
-		error "l'action '$1' n'est pas prise en charge"
-		log "les actions soutenues sont: install, upgrade, test"
-		exit 1
+	    error "l'action '$1' n'est pas prise en charge"
+	    log "les actions soutenues sont: install, upgrade, test"
+	    exit 1
 	fi
 	;;
 esac
@@ -465,22 +465,22 @@ esac
 # set -- the positional parameters are set to the arguments, even if some of them begin with a ‘-’.
 POSITIONAL=()
 while [[ $# -gt 0 ]]; do
-	if [[ "$1" != "" ]]; then
-		if [[ "$1" = -* ]]; then # add a - to disable a theme
-			key=$(echo "${1#-}" | tr '[:upper:]' '[:lower:]')
-			declare -r "guard_ignore_$key=true"
-		else
-			key=$(echo "$1" | tr '[:upper:]' '[:lower:]')
-			declare -r "guard_$key=true"
-			ALL="false"
-		fi
+    if [[ "$1" != "" ]]; then
+	if [[ "$1" = -* ]]; then # add a - to disable a theme
+	    key=$(echo "${1#-}" | tr '[:upper:]' '[:lower:]')
+	    declare -r "guard_ignore_$key=true"
+	else
+	    key=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+	    declare -r "guard_$key=true"
+	    ALL="false"
 	fi
-	shift
+    fi
+    shift
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
 if [[ "$INTERACTIVE" = "" ]]; then
-	INTERACTIVE=true
+    INTERACTIVE=true
 fi
 
 #
@@ -489,18 +489,18 @@ fi
 
 LOCK_FILE=$XDG_CACHE_HOME/eru/eru.lock
 if [ -f "$LOCK_FILE" ]; then
-	error "
+    error "
 Yet another world is being shaped by Eru
 
 One must either wait patiently or embrace the horrors of the unknown and
 manually delete the $LOCK_FILE"
-	exit 1
+    exit 1
 fi
 mkdir -p "$(dirname "$LOCK_FILE")"
 touch "$LOCK_FILE"
 
 function unlock() {
-	rm -rf "$LOCK_FILE"
+    rm -rf "$LOCK_FILE"
 }
 
 trap unlock INT TERM EXIT
@@ -520,79 +520,79 @@ ensure_dir "$DEVELOPER"
 
 
 theme_guard "system" "make Eru more approachable" && {
-  "$XDG_CONFIG_HOME/bin/safe_link" "$XDG_CONFIG_HOME/eru.sh" "$HOME/.local/bin/eru"
+    "$XDG_CONFIG_HOME/bin/safe_link" "$XDG_CONFIG_HOME/eru.sh" "$HOME/.local/bin/eru"
 }
 
 # TODO: make it work on Linux from command line
 install_guard && macos_guard && theme_guard "SSH" "Vérification des clés SSH" && {
 	if [[ "$INTERACTIVE" = "true" ]]; then
-		ssh_key_add_url="https://github.com/settings/ssh/new"
-		ssh_key_path="$HOME/.ssh/id_rsa"
-		ssh_key_pub_path="${ssh_key_path}.pub"
-		ssh_config_path="$HOME/.ssh/config"
+	    ssh_key_add_url="https://github.com/settings/ssh/new"
+	    ssh_key_path="$HOME/.ssh/id_rsa"
+	    ssh_key_pub_path="${ssh_key_path}.pub"
+	    ssh_config_path="$HOME/.ssh/config"
 
-		if [[ -f "$ssh_key_path" ]]; then
-			log "clé SSH trouvée sur $ssh_key_path."
-		else
-			log "Aucune clé SSH trouvée."
-			mkdir -p "$(dirname "$ssh_key_path")"
-			ssh-keygen -t rsa -b 4096 -C "$USER" -f "$ssh_key_path"
-			log "SSH key was generated."
-		fi
+	    if [[ -f "$ssh_key_path" ]]; then
+		log "clé SSH trouvée sur $ssh_key_path."
+	    else
+		log "Aucune clé SSH trouvée."
+		mkdir -p "$(dirname "$ssh_key_path")"
+		ssh-keygen -t rsa -b 4096 -C "$USER" -f "$ssh_key_path"
+		log "SSH key was generated."
+	    fi
 
-		log "Démarrage de ssh-agent"
-		eval "$(ssh-agent -s)"
+	    log "Démarrage de ssh-agent"
+	    eval "$(ssh-agent -s)"
 
-		macos_guard && {
-			log "Charger automatiquement la clé SSH et utiliser le trousseau"
-			echo "Host *
+	    macos_guard && {
+		log "Charger automatiquement la clé SSH et utiliser le trousseau"
+		echo "Host *
  AddKeysToAgent yes
  UseKeychain yes
  IdentityFile $ssh_key_path" >"$ssh_config_path"
-		}
+	    }
 
-		log "Ajouter une clé SSH à ssh-agent"
-		ssh-add -K ~/.ssh/id_rsa
+	    log "Ajouter une clé SSH à ssh-agent"
+	    ssh-add -K ~/.ssh/id_rsa
 
-		log "Assurez-vous d'ajouter la clé SSH à GitHub"
-		pbcopy <"$ssh_key_pub_path"
-		open "$ssh_key_add_url"
-		read -rp "Appuyez sur Entrée pour continuer"
+	    log "Assurez-vous d'ajouter la clé SSH à GitHub"
+	    pbcopy <"$ssh_key_pub_path"
+	    open "$ssh_key_add_url"
+	    read -rp "Appuyez sur Entrée pour continuer"
 	fi
-}
+    }
 
 theme_guard "Linking" "Lier tous les fichiers comme défini dans Linkfile" && {
-	linkfile "$target/Linkfile"
-	linkfile "$XDG_CACHE_HOME/eru/Linkfile"
-	linkfile "$XDG_CACHE_HOME/eru/Linkfile_${KERNEL_NAME}"
-	for f in "$target"/**/Linkfile; do
-		linkfile "$f"
-	done
-	for f in "$target"/**/Linkfile_"${KERNEL_NAME}"; do
-		linkfile "$f"
-	done
+    linkfile "$target/Linkfile"
+    linkfile "$XDG_CACHE_HOME/eru/Linkfile"
+    linkfile "$XDG_CACHE_HOME/eru/Linkfile_${KERNEL_NAME}"
+    for f in "$target"/**/Linkfile; do
+	linkfile "$f"
+    done
+    for f in "$target"/**/Linkfile_"${KERNEL_NAME}"; do
+	linkfile "$f"
+    done
 }
 
 theme_guard "Repositories" "Synchroniser les référentiels à partir de Repofiles" && {
-	map_lines sync_repo "$target/Repofile" || true
-	map_lines sync_repo "$XDG_CACHE_HOME/eru/Repofile" || true
+    map_lines sync_repo "$target/Repofile" || true
+    map_lines sync_repo "$XDG_CACHE_HOME/eru/Repofile" || true
 }
 
 ubuntu_guard && {
-	theme_guard "packages" "Amorcer Ubuntu Linux" && {
-		section "Installer des dépendances cruciales"
-		sudo add-apt-repository ppa:kelleyk/emacs -y
-		sudo apt update
-		sudo apt install emacs27-nox python3-pygments
-		sudo snap install starship
-	}
+    theme_guard "packages" "Amorcer Ubuntu Linux" && {
+	section "Installer des dépendances cruciales"
+	sudo add-apt-repository ppa:kelleyk/emacs -y
+	sudo apt update
+	sudo apt install emacs27-nox python3-pygments
+	sudo snap install starship
+    }
 
-	upgrade_guard && {
-		theme_guard "packages" "Mettre à niveau Ubuntu" && {
-			sudo apt update
-			sudo apt upgrade -y
-		}
+    upgrade_guard && {
+	theme_guard "packages" "Mettre à niveau Ubuntu" && {
+	    sudo apt update
+	    sudo apt upgrade -y
 	}
+    }
 }
 
 android_guard && {
@@ -604,33 +604,33 @@ android_guard && {
 }
 
 macos_guard && {
-	theme_guard "packages" "Ensure brew exists" && {
-		check brew || {
-			log "Installing brew"
-			/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-			brew update
-		}
+    theme_guard "packages" "Ensure brew exists" && {
+	check brew || {
+	    log "Installing brew"
+	    /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+	    brew update
 	}
+    }
 
-	install_guard && {
-		theme_guard "packages" "Install all dependencies" && {
-			cd "$target/macos" && brew bundle
-		}
-                theme_guard "gnupg" "Fix permissions" && {
-		    # make sure that I am the owner
-		    chown -R "$(whoami)" ~$XDG_CONFIG_HOME/gnupg/
-		    # correct permissions
-		    find $XDG_CONFIG_HOME/gnupg -type f -exec chmod 600 {} \;
-		    find $XDG_CONFIG_HOME/gnupg -type d -exec chmod 700 {} \;
-	        }
+    install_guard && {
+	theme_guard "packages" "Install all dependencies" && {
+	    cd "$target/macos" && brew bundle
 	}
+        theme_guard "gnupg" "Fix permissions" && {
+	    # make sure that I am the owner
+	    chown -R "$(whoami)" ~$XDG_CONFIG_HOME/gnupg/
+	    # correct permissions
+	    find $XDG_CONFIG_HOME/gnupg -type f -exec chmod 600 {} \;
+	    find $XDG_CONFIG_HOME/gnupg -type d -exec chmod 700 {} \;
+	}
+    }
 
-	upgrade_guard && {
-		theme_guard "packages" "Upgrade packages" && {
-			brew update
-			brew upgrade
-		}
+    upgrade_guard && {
+	theme_guard "packages" "Upgrade packages" && {
+	    brew update
+	    brew upgrade
 	}
+    }
 
 
 }
