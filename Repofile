@@ -1,3 +1,3 @@
 $XDG_CONFIG_HOME                   github    frap/environment                   main
-$HOME/Dev/emacs/doom-emacs         github    hlissner/doom-emacs                develop
-$HOME/Dev/emacs/emacs              github    frap/emacs                         main
+$DEVELOPER/emacs/doom-emacs         github    hlissner/doom-emacs               develop
+$DEVELOPER/emacs/emacs              github    frap/emacs                        main
