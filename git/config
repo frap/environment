@@ -1,7 +1,7 @@
 [user]
 	useconfigonly = true
 	name = Gas
-	email = gas@tuatara.red
+	email = 1204361+frap@users.noreply.github.com
 
 [includeIf "gitdir:~/work/"]
 	path = ~/work/.gitconfig
