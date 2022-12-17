@@ -1,5 +1,5 @@
 # Zshenv get calls first
-export ${XDG_CONFIG_HOME:-$HOME/.config}
-export ZDOTDIR=${XDG_CONFIG_HOME}/zsh
+#export ${XDG_CONFIG_HOME:-$HOME/.config}
+export ZDOTDIR=${HOME}/.config/zsh
 
-source ${XDG_CONFIG_HOME}/shell/env
+source ~/.config/shell/env

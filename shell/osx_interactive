@@ -1,17 +1,5 @@
 # -*- mode: sh; -*-
 
-# If Apple with M1 add below path otherwise wont find brew binary
-append_to_path "/opt/homebrew/bin"
-
-if command_exists brew
-then
-    eval $(brew shellenv) # exports HBREW PREFIX & PATH
-
-    export HOMEBREW_AUTO_UPDATE_SECS=3600
-    export HOMEBREW_DEVELOPER=1
-    export HOMEBREW_GIT_FILTER_TREE_ZERO=1
-fi
-
 # Enable Terminal.app folder icons
 [ "$TERM_PROGRAM" = "Apple_Terminal" ] && export TERMINALAPP=1
 if [ $TERMINALAPP ]
@@ -40,3 +28,15 @@ pomodoro () {
         done
         exit 0
 }
+
+# If Apple with M1 add below path otherwise wont find brew binary
+append_to_path "/opt/homebrew/bin"
+
+if command_exists brew
+then
+    eval $(brew shellenv) # exports HBREW PREFIX & PATH
+    export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+    export HOMEBREW_AUTO_UPDATE_SECS=3600
+    export HOMEBREW_DEVELOPER=1
+    export HOMEBREW_GIT_FILTER_TREE_ZERO=1
+fi

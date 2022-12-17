@@ -1,5 +1,4 @@
 # -*- mode: sh; -*-
-# -*- mode: sh; -*-
 # From bash manual:
 # If bash is invoked with the name sh, as an interactive login shell, or as
 # a non-interactive shell with the --login option, it first attempts to read

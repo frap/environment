@@ -17,3 +17,4 @@ op/
 ssh/id*
 ssh/known*
 gh/hosts.yml
+secrets/

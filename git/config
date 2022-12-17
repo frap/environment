@@ -3,8 +3,8 @@
 	name = Gas
 	email = gas@tuatara.red
 
-[includeIf "gitdir:~/work/"]
-	path = ~/work/.gitconfig
+[includeIf "gitdir:~/dev/"]
+	path = ~/dev/.gitconfig
 	
 [core]
 	editor = emacs

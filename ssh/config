@@ -12,8 +12,13 @@ Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.
 #Host ssh://git@github.com/frap/
 
 Host *
-    ForwardAgent no
+    ForwardAgent yes
     AddKeysToAgent yes
+    ControlMaster auto
+    ControlPath ~/.ssh/master-%r@%h:%p
+    ControlPersist yes
+    ServerAliveInterval 10
+    ServerAliveCountMax 10
 
 Host *.tuatara.red
     ProxyJump bastion.tuatara.red

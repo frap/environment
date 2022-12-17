@@ -16,11 +16,11 @@
 #esac
 
 # dotfiles setup
-export DOTFILES=$HOME/Dev/dotfiles.git
+#export DOTFILES=$HOME/Dev/dotfiles.git
 # setup a git alias which sets
 # the .git directory to $DOTFILES and
 # the working tree to $HOME
-alias gitdf='git --git-dir=$DOTFILES --work-tree=$HOME'
+# alias gitdf='git --git-dir=$DOTFILES --work-tree=$HOME'
 
 # OS variables
 [ "$(uname -s)" = "Darwin" ] && export MACOS=1 && export UNIX=1
@@ -76,9 +76,9 @@ ssource $XDG_CONFIG_HOME/shell/aliases
 mesg n
 
 # Load up ANSI colours for terminal and logging
-if [ $(tput colors) -ge 8 ]; then
-    ssource $XDG_CONFIG_HOME/shell/ansi_colours
-fi
+#if [ $(tput colors) -ge 8 ]; then
+#    ssource $XDG_CONFIG_HOME/shell/ansi_colours
+#fi
 
 # source shell functions if exists
 ssource $XDG_CONFIG_HOME/shell/interactive_fns
@@ -101,7 +101,7 @@ export LC_MONETARY=$LANG
 export LC_NUMERIC=$LANG
 export LC_TIME=$LANG
 
-ssource "$XDG_CONFIG_HOME/secrets"
+#ssource "$XDG_CONFIG_HOME/secrets"
 # Some post-secret aliases
 #export HOMEBREW_GITHUB_API_TOKEN="$GITHUB_TOKEN"
 #export HUBOT_GITHUB_TOKEN="$GITHUB_TOKEN"
