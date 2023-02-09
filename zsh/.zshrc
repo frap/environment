@@ -91,13 +91,9 @@ fi
 # +------------+
 # | FZF        |
 # +------------+
-if command_exists fzf
-then
-    # Auto completion
-    ssource "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh"
-    # git enhancements to fzf
-    ssource "${XDG_CONFIG_HOME}/zsh/fzf.zsh"
-fi
+# git enhancements to fzf
+ssource "${XDG_CONFIG_HOME}/zsh/fzf.zsh"
+
 
 # more macOS/Bash-like word jumps
 #export WORDCHARS=""
@@ -109,4 +105,4 @@ fi
 command_exists direnv && eval "$(direnv hook zsh)"
 
 # to avoid non-zero exit code
-#true
+true

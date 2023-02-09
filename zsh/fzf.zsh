@@ -1,25 +1,35 @@
 # +---------+
 # |  FZF    |
 # +---------+
+if [[ ! "$PATH" == */opt/homebrew/opt/fzf/bin* ]]; then
+  PATH="${PATH:+${PATH}:}/opt/homebrew/opt/fzf/bin"
+fi
 
-ssource '/usr/local/opt/fzf/shell/key-bindings.zsh'
+# Auto-completion
+# ---------------
+[[ $- == *i* ]] && source "/opt/homebrew/opt/fzf/shell/completion.zsh" 2> /dev/null
+
+# Key bindings
+# ------------
+ssource "/opt/homebrew/opt/fzf/shell/key-bindings.zsh"
+
 
 # default options
-export FZF_DEFAULT_OPTS='--height 30% --info=inline
-    --color fg:223,bg:235,hl:208,fg+:223,bg+:235,gutter:235,hl+:167,border:237
-    --color info:241,prompt:214,pointer:214,marker:167,spinner:241,header:214'
+# export FZF_DEFAULT_OPTS='--height 30% --info=inline
+#     --color fg:223,bg:235,hl:208,fg+:223,bg+:235,gutter:235,hl+:167,border:237
+#     --color info:241,prompt:214,pointer:214,marker:167,spinner:241,header:214'
 
-export FZF_DEFAULT_COMMAND='fd -tf -HL 2> /dev/null'
-export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-export FZF_ALT_C_COMMAND='fd -td -HLI 2> /dev/null'
-export FZF_TMUX=1
-export FZF_TMUX_HEIGHT=30%
-export FZF_COMPLETION_TRIGGER='**'
+# export FZF_DEFAULT_COMMAND='fd -tf -HL 2> /dev/null'
+# export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+# export FZF_ALT_C_COMMAND='fd -td -HLI 2> /dev/null'
+# export FZF_TMUX=1
+# export FZF_TMUX_HEIGHT=30%
+# export FZF_COMPLETION_TRIGGER='**'
 
-export FZF_CTRL_T_OPTS='--no-reverse'
-export FZF_CTRL_R_OPTS='--no-reverse'
-export FZF_ALT_C_OPTS='--no-reverse'
-export FZF_COMPLETION_OPTS='--no-reverse'
+# export FZF_CTRL_T_OPTS='--no-reverse'
+# export FZF_CTRL_R_OPTS='--no-reverse'
+# export FZF_ALT_C_OPTS='--no-reverse'
+# export FZF_COMPLETION_OPTS='--no-reverse'
 
 
 ###################

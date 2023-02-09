@@ -18,3 +18,4 @@ ssh/id*
 ssh/known*
 gh/hosts.yml
 secrets/
+gnupg/
