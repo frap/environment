@@ -120,7 +120,7 @@
 	
 [merge]
 	ff = false
-	conflictStyle = merge
+	conflictStyle = zdiff3
 
 [mergetool]
 	prompt = true
@@ -490,6 +490,6 @@ user = frap
 [gitlab]
 user = agasson
 
-[hub]
-protocol = https
 
+[url "https://git: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@github.com/trovemoney"]
+	insteadOf = https://github.com/trovemoney

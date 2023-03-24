@@ -68,8 +68,16 @@ truncation_symbol = "…/"
 # "Important  " = "  "
 
 [aws]
-symbol = " "
-disabled = true
+format = 'on [$symbol($profile )(\($region\) )]($style)'
+style = 'bold blue'
+symbol = '🅰 '
+[aws.region_aliases]
+ap-southeast-2 = 'au'
+us-east-1 = 'va'
+
+#symbol = " "
+#disabled = false
+
 
 [battery]
 full_symbol = "🔋"
@@ -110,17 +118,28 @@ format = '[→](fg:#06969A bg:#33658A)[[ $symbol $context](bg:#06969A)]($style) 
 
 [elixir]
 symbol = " "
+disabled = true
 
 [elm]
 symbol = "🌳 "
 style = "bg:#86BBD8"
 format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
+disabled = true
 
 [git_branch]
 symbol = "🌱 "
-#style = "bg:#FCA17D"
 format = '→[$symbol$branch(:$remote_branch)]($style) '
-#ignore_branches = ["main", "master"]
+truncation_length = 4
+truncation_symbol = ''
+ignore_branches = ["main", "master"]
+
+[git_commit]
+commit_hash_length = 4
+tag_symbol = '🔖 '
+
+[git_state]
+format = '[\($state( $progress_current of $progress_total)\)]($style) '
+cherry_pick = '[🍒 PICKING](bold red)'
 
 [git_status]
 #style = "bg:#FCA17D"
@@ -144,6 +163,7 @@ symbol = " "
 symbol = " "
 style = "bg:#86BBD8"
 format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
+disabled = true
 
 [hostname]
 ssh_only = true
@@ -154,13 +174,13 @@ style = "bold dimmed white"
 
 [java]
 symbol = " "
-disabled=false
+disabled=true
 #style = "bg:#86BBD8"
 format = '→[[ $symbol:($version) ](bg:#86BBD8)]($style)'
 
 [kubernetes]
 format = '→[🕸️ $context \($namespace\)](dimmed cyan) '
-disabled = false
+disabled = true
 detect_folders = [ "k8s"]
 
 [kubernetes.context_aliases]
@@ -172,33 +192,26 @@ format = '→ [[ $symbol:($version) ](bg:#86BBD8)]($style)'
 [localip]
 ssh_only = true
 format = "@[$localipv4](bold cyan) "
-disabled = false
+disabled = true
 
 [memory_usage]
-disabled = false
+disabled = true
 format = "$symbol[${ram}( | ${swap})]($style) "
 threshold = 70
 style = "bold dimmed white"
 
 [nodejs]
-style = "bg:#86BBD8"
-format = "→ [$symbol($version )]($style)"
+format = 'via [🤖 $version](bold green) '
 
 [package]
-#style = "bg:#06969A"
-format = "→[$symbol$version]($style) "
 disabled = true
+format = 'via [🎁 $version](208 bold) '
 
 [python]
-symbol = "🐍 "
-#symbol = " "
-#pyenv_version_name = true
-format = '→ [${symbol}python (${version} )(\($virtualenv\) )]($style)'
-style = "bold yellow"
-pyenv_prefix = "venv "
-python_binary = ["./venv/bin/python", "python", "python3", "python2"]
-detect_extensions = ["py"]
-version_format = "v${raw}"
+symbol = '👾 '
+pyenv_version_name = true
+# Only use the `python3` binary to get the version.
+python_binary = 'python3'
 
 [rlang]
 #style = "bg:#86BBD8"
@@ -208,6 +221,7 @@ format = "→ [$symbol($version )]($style)"
 symbol = " "
 
 [rust]
+disabled = false
 symbol = "🦀"
 style = "bg:#86BBD8"
 format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
@@ -216,20 +230,17 @@ format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
 #symbol = "ﯣ "
 
 [custom.clj]
-disabled = false
+disabled = true
 detect_files =  ["deps.edn", "bb.edn", ".clj", ".cljs"]
 #command = "rg org.clojure/clojure deps.edn | cut -d '{' -f3  | cut -d '"' -f2"
 symbol = "λ "
 format = '→ [[ $symbol $command ]($bold yellow)]($style)'
 
 [terraform]
-format = " → [$symbol$workspace]($style) "
+format = '[🏎💨 $version$workspace]($style) '
 
 [time]
-time_format = "%R" # Hour:Minute Format
-format = "🕙 $time($style) "
-style = "bright-white"
 disabled = false
-#style = "bg:#33658A"
-#format = '[[ 🤍 $time ](bg:#33658A)]($style)'
-#utc_time_offset = "12"
+format = '🕙[\[ $time \]]($style) '
+time_format = '%T'
+time_range = '09:00:00-16:00:00'
