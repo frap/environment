@@ -12,7 +12,7 @@
 # Therefore we need to set $ENV so that if you use shell X as your login shell,
 # and then start "sh" as a non-login interactive shell the startup scripts will
 # correctly run.
-export ENV=~/.config/sh/interactive
+#export ENV=~/.config/sh/interactive
 
 # The XDG_ variables definitions:
 # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html#variables
@@ -29,7 +29,7 @@ export ENV=~/.config/sh/interactive
 
 
 # import local fns like ssource
-. ${XDG_CONFIG_HOME}/shell/env_fns
+source ~/.config/shell/env_fns
 
 # 077 would be more secure, but 022 is more useful.
 #umask 0077

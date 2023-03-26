@@ -2,36 +2,20 @@ name: run CI
 
 on:
   push:
-    branches: [ 'develop' ]
+    branches:
+      - master
+      - main
   workflow_dispatch:
 
 jobs:
   build-y-test:
     runs-on: ubuntu-latest
-
     steps:
-      -
-        name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      -
-        name: Login to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-      -
-        name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          push: false
-          tags: agasson/dotfiles:latest
+      - name: "☁️ checkout repository"
+        uses: actions/checkout@v3
           
-      -
-        name: Run functional Melkor tests
+      - name: Run functional Melkor tests
         run: ./eru-new.sh test
 
-      -
-        name: Shape the world!
+      - name: Shape the world!
         run: ./eru-new.sh

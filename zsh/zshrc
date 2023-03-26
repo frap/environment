@@ -84,8 +84,8 @@ then
     if command_exists starship; then
 	eval "$(starship init zsh)"
     fi
-else
-    ssource "${XDG_CONFIG_HOME}/zsh/prompt.zsh"
+#else
+#    ssource "${XDG_CONFIG_HOME}/zsh/prompt.zsh"
 fi
 
 # +------------+

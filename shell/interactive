@@ -63,14 +63,15 @@ else
     export CPUCOUNT=1
 fi
 
-# add local interactive binaries
-prepend_to_path "${HOME}/.local/bin"
 
 # XDG Setup for some apps
 ssource ${XDG_CONFIG_HOME}/shell/env_coding
 
 # put your aliases here
 ssource $XDG_CONFIG_HOME/shell/aliases
+
+# add local interactive binaries
+append_to_path "${HOME}/.local/bin"
 
 # other users shouldn't be able to message by default
 mesg n

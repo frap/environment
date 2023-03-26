@@ -68,12 +68,15 @@ truncation_symbol = "…/"
 # "Important  " = "  "
 
 [aws]
-format = 'on [$symbol($profile )(\($region\) )]($style)'
-style = 'bold blue'
+format = 'on [$symbol($profile )(\($region\) )(\[$duration\] )]($style)'
+#format = 'on [$symbol ($profile)(\($region\) )]($style)'
+#style = 'bold blue'
 symbol = '🅰 '
 [aws.region_aliases]
-ap-southeast-2 = 'au'
+ap-southeast-2 = 'Syd'
 us-east-1 = 'va'
+[aws.profile_aliases]
+Test = '318356030799**'
 
 #symbol = " "
 #disabled = false
@@ -90,7 +93,7 @@ style = "bold red"
 
 [c]
 symbol = "© "
-style = "bg:#86BBD8"
+#style = "bg:#86BBD8"
 detect_files = [".c"]
 format = '[→](fg:#DA627D bg:#FCA17D)[[ $symbol($version) ](bg:#86BBD8)]($style)'
 
@@ -113,7 +116,7 @@ symbol = " "
 [docker_context]
 symbol = "🐳 "
 detect_files = ["Dockerfile", "docker-compose.yml", "docker-entrypoint.sh" ]
-style = "bg:#06969A"
+#style = "bg:#06969A"
 format = '[→](fg:#06969A bg:#33658A)[[ $symbol $context](bg:#06969A)]($style) $path'
 
 [elixir]
@@ -122,15 +125,15 @@ disabled = true
 
 [elm]
 symbol = "🌳 "
-style = "bg:#86BBD8"
+#style = "bg:#86BBD8"
 format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
 disabled = true
 
 [git_branch]
 symbol = "🌱 "
 format = '→[$symbol$branch(:$remote_branch)]($style) '
-truncation_length = 4
-truncation_symbol = ''
+truncation_length = 11
+truncation_symbol = '⋮'
 ignore_branches = ["main", "master"]
 
 [git_commit]
@@ -161,7 +164,7 @@ symbol = " "
 
 [haskell]
 symbol = " "
-style = "bg:#86BBD8"
+#style = "bg:#86BBD8"
 format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
 disabled = true
 
@@ -223,7 +226,7 @@ symbol = " "
 [rust]
 disabled = false
 symbol = "🦀"
-style = "bg:#86BBD8"
+#style = "bg:#86BBD8"
 format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
 
 #[swift]

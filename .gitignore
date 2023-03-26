@@ -1,6 +1,6 @@
 *.elc
 aws/
-emacs
+emacs/
 auto-save-list/
 eln-cache/
 emacs/lisp/init-autoloads.el
@@ -19,3 +19,4 @@ ssh/known*
 gh/hosts.yml
 secrets/
 gnupg/
+rustup/*
