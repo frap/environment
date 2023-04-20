@@ -1,6 +1,7 @@
 *.elc
 aws/
 emacs/
+doom/
 auto-save-list/
 eln-cache/
 emacs/lisp/init-autoloads.el

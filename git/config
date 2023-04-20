@@ -1,10 +1,10 @@
 [user]
 	useconfigonly = true
-	name = Gas
+	name = frap
 	email = gas@tuatara.red
 
-[includeIf "gitdir:~/dev/"]
-	path = ~/dev/.gitconfig
+[includeIf "gitdir:~/work/"]
+	path = ~/work/.gitconfig
 	
 [core]
 	editor = emacs
@@ -62,7 +62,6 @@
 	oldMovedAlternative = 8
 	newMovedAlternative = 14
 	whitespace = 1 reverse
-
 
 [color "diff-highlight"]
 	oldHighlight = ul
@@ -484,12 +483,5 @@
 [includeIf "gitdir:~/Dev/"]
 	path = ~/Dev/.gitconfig
 
-[github]
-user = frap
-
 [gitlab]
 user = agasson
-
-
-[url "https://git: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@github.com/trovemoney"]
-	insteadOf = https://github.com/trovemoney
