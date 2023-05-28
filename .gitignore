@@ -22,3 +22,5 @@ gh/hosts.yml
 secrets/
 gnupg/
 rustup/*
+pyenv/
+pip/

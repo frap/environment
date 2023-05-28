@@ -18,7 +18,7 @@ fi
 
 # EDITOR emacs
 if command_exists emacs; then
-    function ec() {
+    function emacc() {
 	if [ -z "$DISPLAY" ]; then
 	    emacsclient -nw -a "" "$@"
 	else
@@ -35,8 +35,8 @@ if command_exists emacs; then
 	[[ -z "$@" ]] && CFLAG="--create-frame"
 	emacsclient $CFLAG --alternate-editor=emacs --no-wait "$@"
     }
-    alias e=ec
-    export EDITOR=ec
+    alias e="emacc"
+    export EDITOR=emacc
     export VISUAL="${EDITOR}"
     export ALTERNATE_EDITOR="vim"
 else
