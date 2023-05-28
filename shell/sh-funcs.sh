@@ -1,12 +1,6 @@
 #!/bin/sh
 # Editor
 
-#   Another wrapper around =emacsclient= but this is a blocking
-#   approach suitable for being set to the =EDITOR= variable.
-
-
-alias e='emacsclient -q -a emacs'
-
 # Diff Files
 
 #   My favorite diff tool is the =ediff= tool in Emacs, and little

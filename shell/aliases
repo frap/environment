@@ -213,10 +213,11 @@ fi
 # +----------+
 
 # Folders
-alias work="$HOME/Dev"
+alias work="$HOME/work"
+alias dev="$HOME/dev"
 alias doc="$HOME/Documents"
 alias dow="$HOME/Downloads"
-alias dot="$XDG_CONFIG_HOME/dotfiles"
+alias dot="$XDG_CONFIG_HOME/"
 
 # +---------+
 # | network |

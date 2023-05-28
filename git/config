@@ -7,8 +7,8 @@
 	path = ~/work/.gitconfig
 	
 [core]
-	editor = emacs
 #	autocrlf = input
+    editor = emact
 	whitespace = fix,trailing-space,cr-at-eol
 	hooksPath = ~/.config/git/hooks
 	excludesfile = ~/.ignore
@@ -16,9 +16,6 @@
 
 [credential]
 	helper = cache --timeout=7200
-
-[init]
-	defaultBranch = main
 
 [color]
 	advice = true
@@ -158,7 +155,7 @@
 	diffFilter = "diff-highlight"
 
 [branch]
-	autoSetupMerge = true
+	autoSetupMerge = always
 	autoSetupRebase = always
 
 [status]
