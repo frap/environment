@@ -24,3 +24,5 @@ gnupg/
 rustup/*
 pyenv/
 pip/
+bin/aws-list-subscription-filters.py
+doom

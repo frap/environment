@@ -1,7 +1,7 @@
 [user]
 	useconfigonly = true
 	name = frap
-	email = gas@tuatara.red
+	email = 1204361+frap@users.noreply.github.com
 
 [includeIf "gitdir:~/work/"]
 	path = ~/work/.gitconfig
@@ -116,7 +116,7 @@
 	
 [merge]
 	ff = false
-	conflictStyle = zdiff3
+	conflictstyle = diff3
 
 [mergetool]
 	prompt = true
@@ -481,4 +481,7 @@
 	path = ~/Dev/.gitconfig
 
 [gitlab]
-user = agasson
+	user = agasson
+
+[github]
+	user = frap
