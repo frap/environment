@@ -109,6 +109,8 @@ export PYENV_ROOT="$HOME/.config/pyenv"
 command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
 
+export GITHUB_AUTH="$(gh auth token)"
 #export PATH="$(brew --prefix)/opt/python@3.11/libexec/bin:$PATH"
 # to avoid non-zero exit code
 true
+/Users/agasson/money/trove-scripts/codeartifact/codeartifact_auth.py
