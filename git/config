@@ -474,8 +474,8 @@
 [include]
 	path = .gitconfig.local
 
-[includeIf "gitdir:~/projects/"]
-	path = ~/projects/.gitconfig
+[includeIf "gitdir:~/money/"]
+	path = ~/money/.gitconfig
 
 [includeIf "gitdir:~/Dev/"]
 	path = ~/Dev/.gitconfig
