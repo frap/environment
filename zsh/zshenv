@@ -1,5 +1,0 @@
-# Zshenv get calls first
-
-source ~/.config/shell/env
-
-alias assume="source assume"
