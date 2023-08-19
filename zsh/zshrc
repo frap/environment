@@ -1,4 +1,4 @@
-# -*- mode: sh; -*-
+# -*- mode: bash; -*-
 fpath=($XDG_CONFIG_HOME/zsh/plugins $fpath)
 
 # +------------+
@@ -114,9 +114,15 @@ export GITHUB_AUTH="$(gh auth token)"
 # +-------------+
 # |  PYTHON     |
 # +-------------+
-alias python3="$(brew --prefix)/bin/python3"
-alias python="$(brew --prefix)/bin/python3"
-alias pip="$(brew --prefix)/bin/pip3"
+export PYENV_ROOT="$(pyenv root)"
+export PATH="$PYENV_ROOT/shims:$PATH"
+
+# +-------------+
+# |   TROVE     |
+# +-------------+
+if exists "~/money"
+   $HOME/money/trove-scripts/codeartifact/codeartifact_auth.py
+   alias trove='poetry run trove'
+fi
 # to avoid non-zero exit code
 true
-/Users/agasson/money/trove-scripts/codeartifact/codeartifact_auth.py
