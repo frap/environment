@@ -126,10 +126,13 @@ alias pg='ping 8.8.8.8'
 # +-----+
 if command_exists bat
 then
-  export BAT_THEME="Dracula"
+  export BAT_THEME="TwoDark"
   alias batl='bat --paging=never -l log'
   alias batp='bat --paging=always --pager="less -RFX" --style=plain'
-  alias cat="batl"
+  alias cat="batp"
+  batdiff() {
+    git diff --name-only --relative --diff-filter=d | xargs bat --diff
+    }
 fi
 
 

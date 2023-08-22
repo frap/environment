@@ -108,6 +108,9 @@
 	wsErrorHighlight = all
 	statGraphWidth = 40
 
+[diff "org"]
+  xfuncname = "^(\\*+ +.*)$"
+
 [diff "bin"]
 	textconv = hexdump -v -C
 
@@ -139,9 +142,10 @@
 	rebase = interactive
 
 [push]
-	default = simple
+	default = current
 	gpgSign = if-asked
-	followTags = true
+	followTags = true 
+        pushFollowTags = matching
 
 [submodule]
 	fetchJobs = 0

@@ -120,7 +120,7 @@ export PATH="$PYENV_ROOT/shims:$PATH"
 # +-------------+
 # |   TROVE     |
 # +-------------+
-if exists "~/money" ; then
+if exists "~/money"; then
    $HOME/money/trove-scripts/codeartifact/codeartifact_auth.py
    alias trove='poetry run trove'
    alias assume="source assume"
