@@ -1,41 +1,28 @@
 # -*- mode: sh; -*-
 
-# Enable Terminal.app folder icons
-[ "$TERM_PROGRAM" = "Apple_Terminal" ] && export TERMINALAPP=1
-if [ $TERMINALAPP ]
-then
-
-     set_terminal_app_pwd() {
-	 # Tell Terminal.app about each directory change.
-	 printf '\e]7;%s\a' "$(echo "file://$HOST$PWD" | sed -e 's/ /%20/g')"
-     }
+# Setup Homebrew
+PATH="/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
+if quiet_which brew; then
+    eval $(brew shellenv) # exports HBREW PREFIX & PATH
 fi
 
-
-# complete fails on zsh
-# if command_exists kitty; then
-#     source <(kitty + complete setup zsh)
-# fi
+# Enable Terminal.app folder icons
+[ "$TERM_PROGRAM" = "Apple_Terminal" ] && export TERMINALAPP=1
+if [ $TERMINALAPP ]; then
+    set_terminal_app_pwd() {
+        # Tell Terminal.app about each directory change.
+        printf '\e]7;%s\a' "$(echo "file://$HOST$PWD" | sed -e 's/ /%20/g')"
+    }
+fi
 
 # OSX specific script (uses AppleScripts) to ask me to take a break every hour
 # Run this function as a background process using &
 # alert &
-pomodoro () {
-        while true ; do
-            # 3600 seconds is 1 hour, 1500 is 25 minutes
-            sleep 15 #00
-            osascript -e 'tell app "System Events" to display dialog "Prendre une pause! Tu regardes l\u0xE2 0x80 0x99 écran depuis bien trop longtemps "' 1>&/dev/null
-        done
-        exit 0
+pomodoro() {
+    while true; do
+        # 3600 seconds is 1 hour, 1500 is 25 minutes
+        sleep 15 #00
+        osascript -e 'tell app "System Events" to display dialog "Prendre une pause! Tu regardes l\u0xE2 0x80 0x99 écran depuis bien trop longtemps "' 1>&/dev/null
+    done
+    exit 0
 }
-
-# If Apple with M1 add below path otherwise wont find brew binary
-append_to_path "/opt/homebrew/bin"
-
-if command_exists brew
-then
-    eval $(brew shellenv) # exports HBREW PREFIX & PATH
-#    export PATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin:$PATH"
-#    export HOMEBREW_DEVELOPER=1
-#    export HOMEBREW_GIT_FILTER_TREE_ZERO=1
-fi

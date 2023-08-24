@@ -57,7 +57,7 @@ function ssource() {
 	fi
 }
 
-# Usage: command_exists starship
-function command_exists() {
+# Usage: quiet_which starship
+function quiet_which() {
 	hash $1 &>/dev/null
 }

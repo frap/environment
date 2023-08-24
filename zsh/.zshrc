@@ -75,20 +75,6 @@ ssource "${XDG_CONFIG_HOME}/shell/interactive"
 ssource "${XDG_CONFIG_HOME}/zsh/highlight.zsh"
 
 # +------------+
-# | PROMPT     |
-# +------------+
-# Enable substitution in the prompt
-#setopt prompt_subst
-if [ $TERMINALAPP ]
-then
-    if command_exists starship; then
-	eval "$(starship init zsh)"
-    fi
-#else
-#    ssource "${XDG_CONFIG_HOME}/zsh/prompt.zsh"
-fi
-
-# +------------+
 # | FZF        |
 # +------------+
 # git enhancements to fzf
@@ -96,19 +82,18 @@ ssource "${XDG_CONFIG_HOME}/zsh/fzf.zsh"
 
 
 # more macOS/Bash-like word jumps
-#export WORDCHARS=""
+export WORDCHARS=""
 
 # +-------------+
 # |   DIRENV    |
 # +-------------+
 # enable direnv (if installed)
-command_exists direnv && eval "$(direnv hook zsh)"
+quiet_which direnv && eval "$(direnv hook zsh)"
 
 # +-------------+
 # |  BABASHKA   |
 # +-------------+
-export PATH="$PATH:$XDG_DATA_HOME/.babashka/bbin/bin"
-
+append_to_path "$XDG_DATA_HOME/.babashka/bbin/bin"
 export GITHUB_AUTH="$(gh auth token)"
 
 # +-------------+
@@ -120,10 +105,11 @@ export PATH="$PYENV_ROOT/shims:$PATH"
 # +-------------+
 # |   TROVE     |
 # +-------------+
-if exists "~/money"; then
-   $HOME/money/trove-scripts/codeartifact/codeartifact_auth.py
-   alias trove='poetry run trove'
-   alias assume="source assume"
+if dir_exists "${HOME}/work/money"; then
+  echo '✅ entering Tempo setup!'
+  $HOME/money/trove-scripts/codeartifact/codeartifact_auth.py
+  alias trove='poetry run trove'
+  alias assume="source assume"
 fi
 # to avoid non-zero exit code
 true

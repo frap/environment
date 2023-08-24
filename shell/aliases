@@ -19,9 +19,8 @@ alias path='echo -e ${PATH//:/\\n}'
 alias count='find . -type f | wc -l'
 alias df='df -H'
 
-if command_exists ncdu
-then
-  alias du="ncdu --color dark -rr"
+if quiet_which ncdu; then
+    alias du="ncdu --color dark -rr"
 fi
 alias du='du -ch'
 
@@ -31,10 +30,8 @@ alias rsync="rsync --partial --progress --human-readable --compress"
 # Copying with progress
 alias cpv='rsync -ah --info=progress2'
 
-
-if command_exists htop
-then
-  alias top="sudo htop"
+if quiet_which htop; then
+    alias top="sudo htop"
 fi
 # show top cpu consuming processes
 alias topc="ps -e -o pcpu,pid,user,tty,args | sort -n -k 1 -r | head"
@@ -45,8 +42,7 @@ alias topm="ps -e -o pmem,pid,user,tty,args | sort -n -k 1 -r | head"
 # | grep |
 # +------+
 
-if command_exists rg
-then
+if quiet_which rg; then
     export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/ripgreprc"
     alias rg="rg --colors 'match:style:nobold' --colors 'path:style:nobold'"
 else
@@ -72,30 +68,28 @@ alias sha256="shasum -a 256"
 # | ls |
 # +----+
 
-if command_exists exa
-then
-  alias ls="exa --icons --classify --group --git"
-  alias ll="exa -l --icons --classify --group --git"
-  #alias ll='exa --icons --long -ag --sort accessed --reverse'
-  alias la="exa --icons --long -aag --sort modified --reverse"
-  alias ld="exa --only-dirs --tree --level 3"
-  alias ll2="exa --tree --level 2"
-  alias ll3="exa --tree --level 3"
-  alias l="exa --icons --sort modified --reverse"
-  #alias ls="exa --icons -g --long --sort size --reverse"
-elif [ "$MACOS" ] && command_exists gls
-then
-  alias ls="gls --color  -sAF"
-  alias la="gls --color -Atr"
-  alias ll="gls --color -AlhFtr"
-  alias  l="gls --color -AlhF"
+if quiet_which exa; then
+    alias ls="exa --icons --classify --group --git"
+    alias ll="exa -l --icons --classify --group --git"
+    #alias ll='exa --icons --long -ag --sort accessed --reverse'
+    alias la="exa --icons --long -aag --sort modified --reverse"
+    alias ld="exa --only-dirs --tree --level 3"
+    alias ll2="exa --tree --level 2"
+    alias ll3="exa --tree --level 3"
+    alias l="exa --icons --sort modified --reverse"
+    #alias ls="exa --icons -g --long --sort size --reverse"
+elif [ "$MACOS" ] && quiet_which gls; then
+    alias ls="gls --color  -sAF"
+    alias la="gls --color -Atr"
+    alias ll="gls --color -AlhFtr"
+    alias l="gls --color -AlhF"
 else
-  test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-  alias ls='ls -F --color=auto'
-  alias l='ls -lahF'
-  alias ll='ls -lahFtr'
-  alias la='ls -A'
-  alias l='ls -CF'
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls -F --color=auto'
+    alias l='ls -lahF'
+    alias ll='ls -lahFtr'
+    alias la='ls -A'
+    alias l='ls -CF'
 fi
 
 # sort by file size
@@ -115,61 +109,56 @@ alias la='ls -alh'
 # | ping |
 # +------+
 
-if command_exists prettyping
-then
-  alias ping="prettyping --nolegend --awkbin gawk"
+if quiet_which prettyping; then
+    alias ping="prettyping --nolegend --awkbin gawk"
 fi
 alias pg='ping 8.8.8.8'
 
 # +-----+
 # | bat |
 # +-----+
-if command_exists bat
-then
-  export BAT_THEME="TwoDark"
-  alias batl='bat --paging=never -l log'
-  alias batp='bat --paging=always --pager="less -RFX" --style=plain'
-  alias cat="batp"
-  batdiff() {
-    git diff --name-only --relative --diff-filter=d | xargs bat --diff
+if quiet_which bat; then
+    export BAT_THEME="TwoDark"
+    alias batl='bat --paging=never -l log'
+    alias batp='bat --paging=always --pager="less -RFX" --style=plain'
+    alias cat="batp"
+    batdiff() {
+        git diff --name-only --relative --diff-filter=d | xargs bat --diff
     }
 fi
-
 
 # +--------+
 # | Golang |
 # +--------+
-if command_exists go
-   then
-       alias gob="go build"
-       alias gor="go run"
-       alias goc="go clean -i"
-       alias gta="go test ./..."       # go test all
-       alias gia="go install ./..."    # go install all
+if quiet_which go; then
+    alias gob="go build"
+    alias gor="go run"
+    alias goc="go clean -i"
+    alias gta="go test ./..."    # go test all
+    alias gia="go install ./..." # go install all
 fi
 # +-----+
 # | Git |
 # +-----+
 
-if command_exists git
-then
+if quiet_which git; then
     alias g="git"
     ga() { git add "${@:-.}"; } # Add all files by default
-#        # Delete local branch merged with master
-#        alias gclean="git branch --merged | grep  -v '\\*\\|master\\|develop' | xargs -n 1 git branch -d"
+    #        # Delete local branch merged with master
+    #        alias gclean="git branch --merged | grep  -v '\\*\\|master\\|develop' | xargs -n 1 git branch -d"
 
-        alias gl='git  log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%Cgreen\\ [%cn]" --decorate --date=short'
-#        alias glo='git log --pretty="oneline"'
-#        alias glol='git log --graph --oneline --decorate --date-order --all'
+    alias gl='git  log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%Cgreen\\ [%cn]" --decorate --date=short'
+    #        alias glo='git log --pretty="oneline"'
+    #        alias glol='git log --graph --oneline --decorate --date-order --all'
 
-#        # pull submodules
-#        alias gblog="git for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'"
+    #        # pull submodules
+    #        alias gblog="git for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'"
 
-# git diff
-       alias gd='git diff'
-       alias gdc='git diff --cached'
-       alias gdh='git diff --histogram'
-       alias gds='git diff --stat'
+    # git diff
+    alias gd='git diff'
+    alias gdc='git diff --cached'
+    alias gdh='git diff --histogram'
+    alias gds='git diff --stat'
 
 #       alias gco='git checkout '
 #      function gc() { git checkout "${@:-main}"; } # Checkout main by default
@@ -182,33 +171,30 @@ fi
 # +------+
 # | tmux |
 # +------+
-if command_exists tmux
-then
-   alias tmuxk='tmux kill-session -t'
-   alias tmuxa='tmux attach -t'
-   alias tmuxl='tmux list-sessions'
+if quiet_which tmux; then
+    alias tmuxk='tmux kill-session -t'
+    alias tmuxa='tmux attach -t'
+    alias tmuxl='tmux list-sessions'
 fi
 # +--------+
 # | docker |
 # +--------+
-if command_exists docker
-then
-   alias docki="docker inspect"                                                    # display the information about a container
-   alias docke='docker exec -t -i'                                                 # going inside a container
-   alias dockDE='docker rm $(docker ps -a -q) && docker rmi $(docker images -q)'   # delete every containers / images
-   alias dockstats='docker stats $(docker ps -q)'                                  # stats on images
-   alias dockls='docker ps'                                                        # list docker containers
-   alias dockimg='docker images'                                                   # list images installed
-   alias dockprune='docker system prune -a'                                        # prune everything
-   alias dockceu='docker-compose run --rm -u $(id -u):$(id -g)'                    # run as the host user
-   alias dockce='docker-compose run --rm'
+if quiet_which docker; then
+    alias docki="docker inspect"                                                  # display the information about a container
+    alias docke='docker exec -t -i'                                               # going inside a container
+    alias dockDE='docker rm $(docker ps -a -q) && docker rmi $(docker images -q)' # delete every containers / images
+    alias dockstats='docker stats $(docker ps -q)'                                # stats on images
+    alias dockls='docker ps'                                                      # list docker containers
+    alias dockimg='docker images'                                                 # list images installed
+    alias dockprune='docker system prune -a'                                      # prune everything
+    alias dockceu='docker-compose run --rm -u $(id -u):$(id -g)'                  # run as the host user
+    alias dockce='docker-compose run --rm'
 
+    # +----------------+
+    # | docker-compose |
+    # +----------------+
 
-# +----------------+
-# | docker-compose |
-# +----------------+
-
-   alias docker-compose-dev='docker-compose -f docker-compose-dev.yml' # run a different config file than the default one
+    alias docker-compose-dev='docker-compose -f docker-compose-dev.yml' # run a different config file than the default one
 
 fi
 # +----------+
@@ -237,8 +223,7 @@ alias curdate='date +"%d-%m-%Y"'
 # +---------+
 # | LINUX   |
 # +---------+
-if [ $LINUX ]
-then
+if [ $LINUX ]; then
     alias sc='sudo systemctl'
     alias jc='sudo journalctl'
 

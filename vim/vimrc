@@ -25,6 +25,7 @@ endif
 " Enable syntax highlighting
 if has('syntax')
   syntax on
+  set re=0
 endif
 
 "------------------------------------------------------------

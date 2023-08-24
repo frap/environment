@@ -3,7 +3,7 @@
 # +------------+
 # | FZF        |
 # +------------+
-if command_exists
+if quiet_which
 then
     # Auto completion
     ssource "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.bash"

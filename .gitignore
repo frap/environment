@@ -1,6 +1,6 @@
 *.elc
 aws/
-emacs/
+emacs
 doom/
 auto-save-list/
 eln-cache/

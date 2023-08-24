@@ -2,13 +2,13 @@
 
 # Setup some apps for XDG_CONFIG
 # gnupg
-if command_exists gpg
+if quiet_which gpg
 then
     export GNUPGHOME=${XDG_CONFIG_HOME}/gnupg
 fi
 
 #  less
-if command_exists bat
+if quiet_which bat
 then
     export LESSHISTFILE="${XDG_CONFIG_HOME}/less/history"
 #    export LESSKEY="${XDG_CONFIG_HOME}/less/keys"
@@ -17,7 +17,7 @@ then
 fi
 
 # EDITOR emacs
-if command_exists emacs; then
+if quiet_which emacs; then
     function emacc() {
 	if [ -z "$DISPLAY" ]; then
 	    emacsclient -nw -a "" "$@"
@@ -44,7 +44,7 @@ else
 fi
 
 # vim
-if command_exists vim
+if quiet_which vim
    then
        export VIMINIT='let $MYVIMRC="$XDG_CONFIG_HOME/vim/vimrc" | source $MYVIMRC'
        export VIMDOTDIR="$XDG_CONFIG_HOME/vim"
@@ -52,14 +52,14 @@ fi
 
 
 # git
-export GIT_REVIEW_BASE=main # See gitconfig
+export GIT_REVIEW_BASE=master # See gitconfig
 git_branch() {
   GIT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null) || return
   [ -n "$GIT_BRANCH" ] && echo "($GIT_BRANCH) "
 }
 
 # golang
-if command_exists go
+if quiet_which go
    then
        export GOPATH="$HOME/Dev/go"
        export GOBIN="$HOME/Dev/go/bin"
@@ -70,12 +70,15 @@ if command_exists go
 fi
 
 # rust
-export RUSTUP_HOME="$XDG_CONFIG_HOME/rustup"
-export CARGO_HOME="$XDG_DATA_HOME"/cargo
-prepend_to_path "${CARGO_HOME}/bin"
+if quiet_which rust
+then
+    export RUSTUP_HOME="$XDG_CONFIG_HOME/rustup"
+    export CARGO_HOME="$XDG_DATA_HOME/cargo"
+    prepend_to_path "${CARGO_HOME}/bin"
+fi
 
 # fzf
-if command_exists fzf
+if quiet_which fzf
 then
     export FZF_DEFAULT_COMMAND="rg --files --hidden --glob '!.git'"
     export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
@@ -84,7 +87,7 @@ then
 fi
 
 # ripgrep
-if command_exists rg
+if quiet_which rg
 then
    rgf() {
       if [ -z "$2" ]
@@ -97,7 +100,7 @@ then
 fi
 
 # Pretty-print JSON files
-if command_exists jq
+if quiet_which jq
 then
   json() {
     [ -n "$1" ] || return
@@ -114,7 +117,7 @@ then
 fi
 
 # java
-if command_exists jenv
+if quiet_which jenv
 then
   force_append_to_path "$HOME/.jenv/bin"
   eval "$(jenv init -)"
@@ -122,7 +125,7 @@ fi
 
 
 # Lua related stuff
-if command_exists luarocks
+if quiet_which luarocks
 then
    eval "$(luarocks path)"
 
@@ -140,7 +143,7 @@ then
   export BUNDLE_JOBS="$CPUCOUNT"
 fi
 
-#if command_exists diff-so-fancy
+#if quiet_which diff-so-fancy
 #then
   # shellcheck disable=SC2016
 #  export GIT_PAGER='diff-so-fancy | less --tabs=4 -+$LESS -RX'
