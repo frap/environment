@@ -10,7 +10,6 @@
 #	autocrlf = input
     editor = emact
 	whitespace = fix,trailing-space,cr-at-eol
-	hooksPath = ~/.config/git/hooks
 	excludesfile = ~/.ignore
 	commitGraph = true
 
