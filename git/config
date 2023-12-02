@@ -5,7 +5,7 @@
 
 [includeIf "gitdir:~/work/"]
 	path = ~/work/.gitconfig
-	
+
 [core]
 #	autocrlf = input
     editor = emact
@@ -93,7 +93,7 @@
 	localBranch = 2 bold
 	remoteBranch = 1 bold
 	unmerged = 9 bold reverse
-	
+
 [commit]
 	gpgsign = false
 	status = true
@@ -115,10 +115,14 @@
 
 [difftool]
 	prompt = true
-	
+
 [merge]
+        tool = ediff
 	ff = false
 	conflictstyle = diff3
+
+[mergetool "ediff"]
+  cmd = emacsclient -c -a \"\"  --eval \"(ediff-merge-files-with-ancestor \\\"$LOCAL\\\" \\\"$REMOTE\\\" \\\"$BASE\\\" nil \\\"$MERGED\\\")\"
 
 [mergetool]
 	prompt = true
@@ -143,7 +147,7 @@
 [push]
 	default = current
 	gpgSign = if-asked
-	followTags = true 
+	followTags = true
         pushFollowTags = matching
 
 [submodule]
