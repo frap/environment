@@ -18,7 +18,7 @@ fi
 
 # EDITOR emacs
 if quiet_which emacs; then
-    function emacc() {
+    function em() {
 	if [ -z "$DISPLAY" ]; then
 	    emacsclient -nw -a "" "$@"
 	else
@@ -30,15 +30,22 @@ if quiet_which emacs; then
 	    fi
 	fi
     }
-    function em() {
+    function ec() {
 	CFLAG=""
 	[[ -z "$@" ]] && CFLAG="--create-frame"
 	emacsclient $CFLAG --alternate-editor=emacs --no-wait "$@"
     }
-    alias e="emacc"
-    export EDITOR=emacc
+    alias emacs="em"
+    export EDITOR=em
     export VISUAL="${EDITOR}"
-    export ALTERNATE_EDITOR="vim"
+    export ALTERNATE_EDITOR="emacs"
+    function aws_envs() {
+        fn=tempfile
+        echo "Updating AWS ENVs"
+        env | grep "AWS" > "$fn"
+        echo "$fn"
+        emacsclient -nw  -e '(update-aws-envs "'"$fn"'")' "$@" > /dev/null
+    }
 else
    export EDITOR="vim"
 fi
