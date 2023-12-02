@@ -1,0 +1,64 @@
+{
+	"window.zoomLevel": 2,
+	"workbench.colorTheme": "Dracula",
+	"files.associations": {
+		"*.ect": "html",
+	},
+    "workbench.editor.enablePreview": false,
+    "breadcrumbs.enabled": false,
+    "editor.minimap.enabled": false,
+    "scm.autoReveal": false,
+    "explorer.autoReveal": false,
+    "editor.semanticHighlighting.enabled": true,
+	"files.autoSave": "afterDelay",
+	"explorer.confirmDelete": false,
+	"editor.suggestSelection": "first",
+	"explorer.confirmDragAndDrop": false,
+	"editor.detectIndentation": true,
+	"editor.tokenColorCustomizations": {
+		"textMateRules": [
+			{
+				"scope": [
+					"constant.keyword.clojure"
+				],
+				"settings": {
+					"foreground": "#7afcf5"
+				}
+			},
+			{
+				"scope": [
+					"punctuation.section.expression.begin.clojure",
+					"punctuation.section.expression.end.trailing.clojure"
+				],
+				"settings": {
+					"foreground": "#999"
+				}
+			}
+		]
+	},
+	"calva.paredit.defaultKeyMap": "none",
+	"calva.testOnSave": true,
+	"calva.evalOnSave": true,
+	"workbench.startupEditor": "newUntitledFile",
+	"dart.previewFlutterUiGuides": true,
+	"[dart]": {
+		"editor.formatOnSave": true,
+		"editor.formatOnType": true,
+		"editor.rulers": [
+			80
+		],
+		"editor.selectionHighlight": false,
+		"editor.suggest.snippetsPreventQuickSuggestions": false,
+		"editor.suggestSelection": "first",
+		"editor.tabCompletion": "onlySnippets",
+		"editor.wordBasedSuggestions": false,
+		"files.insertFinalNewline": true
+	},
+	"debug.onTaskErrors": "debugAnyway",
+	"html.trace.server": "verbose",
+	"calva.referencesCodeLens.enabled": true,
+	"clojure.trace.server": "verbose",
+	"calva.clojureLspPath": "/Users/frap/.config/clojure-lsp/clojure-lsp",
+	"editor.hover.enabled": false,
+	"calva.fmt.configPath": "CLOJURE-LSP"
+}
