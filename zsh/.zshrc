@@ -105,11 +105,11 @@ export PATH="$PYENV_ROOT/shims:$PATH"
 # +-------------+
 # |   TROVE     |
 # +-------------+
-if dir_exists "${HOME}/work/money"; then
-  echo '✅ entering Tempo setup!'
+if dir_exists "${HOME}/work/tempo"; then
   $HOME/money/trove-scripts/codeartifact/codeartifact_auth.py
   alias trove='poetry run trove'
-  alias assume="source assume"
 fi
+
+alias assume="source assume"
 # to avoid non-zero exit code
 true
