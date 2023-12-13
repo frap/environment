@@ -13,8 +13,18 @@
   ;; testing and debugging tools (this would normally be overridden
   ;; by a :test alias in the project deps.edn file -- but it's a
   ;; useful default):
-  :test {:extra-paths ["test" "src/test/clojure"]
-         :extra-deps {org.clojure/test.check {:mvn/version "RELEASE"}}}
+  ;;:test {:extra-paths ["test" "src/test/clojure"]
+  ;;       :extra-deps {org.clojure/test.check {:mvn/version "RELEASE"}}}
+  :test
+  {:extra-paths ["test"]
+   :extra-deps  {lambdaisland/kaocha {:mvn/version "1.77.1236"}}
+   :exec-fn     kaocha.runner/exec-fn
+   :exec-args   {:skip-meta :slow}}
+
+  :watch
+  {:exec-args   {:watch?     true
+                 :skip-meta  :slow
+                 :fail-fast? true}}
   ;; - see https://github.com/cognitect-labs/test-runner
   ;; - run your tests: clj -X:test:runner
   :runner {:extra-deps {io.github.cognitect-labs/test-runner

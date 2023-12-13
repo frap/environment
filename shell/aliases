@@ -118,7 +118,7 @@ alias pg='ping 8.8.8.8'
 # | bat |
 # +-----+
 if quiet_which bat; then
-    export BAT_THEME="TwoDark"
+    export BAT_THEME="gruvbox-light"
     alias batl='bat --paging=never -l log'
     alias batp='bat --paging=always --pager="less -RFX" --style=plain'
     alias cat="batp"
@@ -145,7 +145,8 @@ if quiet_which git; then
     alias g="git"
     ga() { git add "${@:-.}"; } # Add all files by default
     #        # Delete local branch merged with master
-    #        alias gclean="git branch --merged | grep  -v '\\*\\|master\\|develop' | xargs -n 1 git branch -d"
+
+    alias gclean="git branch --merged | grep  -v '\\*\\|master\\|main' | xargs -n 1 git branch -d"
 
     alias gl='git  log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%Cgreen\\ [%cn]" --decorate --date=short'
     #        alias glo='git log --pretty="oneline"'
@@ -166,19 +167,30 @@ if quiet_which git; then
 #       alias gcb='gc -b'
 #       alias gbc='gc -b' # Dyslexia
 
+
+    alias gs='git status'
 fi
 
-# +------+
+if quiet_which gh; then
+    #    gh config set pager 'delta -s'
+    alias gpr="gh pr create"
+
+    gh alias set iv 'issue view --comments'
+    gh alias set co --shell 'id="$(gh pr list -L100 | fzf | cut
+fi
+
+
+# +-------+
 # | tmux |
-# +------+
+# +-------+
 if quiet_which tmux; then
     alias tmuxk='tmux kill-session -t'
     alias tmuxa='tmux attach -t'
     alias tmuxl='tmux list-sessions'
 fi
-# +--------+
+# +----------+
 # | docker |
-# +--------+
+# +----------+
 if quiet_which docker; then
     alias docki="docker inspect"                                                  # display the information about a container
     alias docke='docker exec -t -i'                                               # going inside a container
@@ -197,6 +209,12 @@ if quiet_which docker; then
     alias docker-compose-dev='docker-compose -f docker-compose-dev.yml' # run a different config file than the default one
 
 fi
+
+# +----------+
+# |  tools  |
+# +----------+
+alias tf=terraform
+
 # +----------+
 # | Personal |
 # +----------+
