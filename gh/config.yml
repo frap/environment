@@ -8,6 +8,9 @@ prompt: enabled
 pager: delta -s
 # Aliases allow you to create nicknames for gh commands
 aliases:
+    co: |
+        !id="$(gh pr list -L100 | fzf | cut
+    iv: issue view --comments
 #    co: pr checkout
 # The path to a unix socket through which send HTTP connections. If blank, HTTP traffic will be handled by net/http.DefaultTransport.
 http_unix_socket:

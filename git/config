@@ -305,7 +305,7 @@
 	can = commit --amend --no-edit
 
 	# checkout
-	co = checkout
+#	co = checkout
 	com = checkout master --
 	cod = checkout develop --
 	cob = checkout -b

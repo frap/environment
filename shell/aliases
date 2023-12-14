@@ -173,10 +173,10 @@ fi
 
 if quiet_which gh; then
     #    gh config set pager 'delta -s'
-    alias gpr="gh pr create"
+    alias gpr='gh pr create'
 
     gh alias set iv 'issue view --comments'
-    gh alias set co --shell 'id="$(gh pr list -L100 | fzf | cut
+    gh alias set co --shell 'id="$(gh pr list -L100 | fzf | cut'
 fi
 
 
