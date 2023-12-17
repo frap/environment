@@ -49,52 +49,6 @@ quiet_which() {
   command -v "$1" >/dev/null
 }
 
-add_to_path_start "/usr/local/bin"
-add_to_path_start "/opt/homebrew/bin"
-
-#add_to_path_end "$HOME/.dotfiles/bin"
-#add_to_path_end "$HOME/.gem/ruby/2.6.0/bin"
-
-# Setup Go development
-#export GOPATH="$HOME/.gopath"
-#add_to_path_end "$GOPATH/bin"
-
-# Run rbenv if it exists
-#quiet_which rbenv && add_to_path_start "$(rbenv root)/shims"
-
-
-
-if quiet_which diff-so-fancy
-then
-  # shellcheck disable=SC2016
-  export GIT_PAGER='diff-so-fancy | less -+$LESS -RX'
-else
-  # shellcheck disable=SC2016
-  export GIT_PAGER='less -+$LESS -RX'
-fi
-
-
-
-if quiet_which bat
-then
-  export BAT_THEME="ansi"
-  alias cat="bat"
-fi
-
-if quiet_which prettyping
-then
-  alias ping="prettyping --nolegend"
-fi
-
-if quiet_which htop
-then
-  alias top="sudo htop"
-fi
-
-if quiet_which ncdu
-then
-  alias du="ncdu --color dark -rr"
-fi
 
 # Configure environment
 export CLICOLOR=1
@@ -171,19 +125,6 @@ quiet_which dircolors && eval "$(dircolors -b)"
 # shellcheck disable=SC1090
 [ -f "$HOMEBREW_PREFIX/etc/grc.bashrc" ] && source "$HOMEBREW_PREFIX/etc/grc.bashrc"
 
-# Save directory changes
-cd() {
-  builtin cd "$@" || return
-  [ "$TERMINALAPP" ] && command -v set_terminal_app_pwd >/dev/null \
-    && set_terminal_app_pwd
-  pwd > "$HOME/.lastpwd"
-  ls
-}
-
-# Use ruby-prof to generate a call stack
-ruby-call-stack() {
-  ruby-prof --printer=call_stack --file=call_stack.html -- "$@"
-}
 
 # Pretty-print JSON files
 json() {
@@ -191,16 +132,9 @@ json() {
   cat "$1" | jq .
 }
 
-# Pretty-print Homebrew install receipts
-receipt() {
-  [ -n "$1" ] || return
-  json "$HOMEBREW_PREFIX/opt/$1/INSTALL_RECEIPT.json"
-}
 
-# Move files to the Trash folder
-trash() {
-  mv "$@" "$HOME/.Trash/"
-}
+
+
 
 # GitHub API shortcut
 github-api-curl() {

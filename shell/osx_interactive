@@ -26,3 +26,14 @@ pomodoro() {
     done
     exit 0
 }
+
+# Move files to the Trash folder
+trash() {
+  mv "$@" "$HOME/.Trash/"
+}
+
+# Pretty-print Homebrew install receipts
+receipt() {
+  [ -n "$1" ] || return
+  json "$HOMEBREW_PREFIX/opt/$1/INSTALL_RECEIPT.json"
+}

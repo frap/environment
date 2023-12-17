@@ -23,7 +23,6 @@
 	diff = true
 	grep = true
 	interactive = true
-	pager = true
 	push = true
 	remote = true
 	showBranch = true
@@ -45,26 +44,6 @@
 	stash = 5 bold
 	HEAD = 6 bold
 	grafted = 4 bold
-
-[color "diff"]
-	context = 15
-	meta = 4 bold reverse
-	frag = 3 bold reverse
-	func = 166 bold reverse
-	commit = 3 bold
-	old = 9
-	new = 10
-	oldMoved = 8
-	newMoved = 14
-	oldMovedAlternative = 8
-	newMovedAlternative = 14
-	whitespace = 1 reverse
-
-[color "diff-highlight"]
-	oldHighlight = ul
-	oldReset = noul
-	newHighlight = ul
-	newReset = noul
 
 [color "interactive"]
 	prompt = 4 bold
@@ -102,7 +81,9 @@
 [delta]
     navigate = true    # use n and N to move between diff sections
     light = false      # set to true if you're in a terminal w/ a light background color (e.g. the default macOS terminal)
-    tabs = 4
+    tabs = 2
+    side-by-side = true
+    line-numbers = true
 
 [diff]
 #	algorithm = myers
@@ -118,8 +99,6 @@
 [diff "bin"]
 	textconv = hexdump -v -C
 
-[difftool]
-	prompt = true
 
 [merge]
      #   tool = ediff
