@@ -200,8 +200,9 @@ fi
 # +----------+
 # |  tools  |
 # +----------+
-if quiet_which terraform
-   alias tf=terraform
+if quiet_which terraform; then
+    alias tf=terraform
+    alias tff="terraform -fmt recursive"
 fi
 
 
