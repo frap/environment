@@ -1,5 +1,5 @@
 [user]
-	useconfigonly = true
+     	useconfigonly = true
 	name = frap
 	email = 1204361+frap@users.noreply.github.com
 
@@ -9,9 +9,10 @@
 [core]
 #	autocrlf = input
     editor = emact
-	whitespace = fix,trailing-space,cr-at-eol
-	excludesfile = ~/.ignore
-	commitGraph = true
+    whitespace = fix,trailing-space,cr-at-eol
+    excludesfile = ~/.ignore
+    commitGraph = true
+    pager = delta
 
 [credential]
 	helper = cache --timeout=7200
@@ -98,9 +99,13 @@
 	gpgsign = false
 	status = true
 
+[delta]
+    navigate = true    # use n and N to move between diff sections
+    light = false      # set to true if you're in a terminal w/ a light background color (e.g. the default macOS terminal)
+    tabs = 4
+
 [diff]
-	algorithm = myers
-#	tool = vimdiff
+#	algorithm = myers
 	colorMoved = default
 	renames = copy
 	mnemonicPrefix = true
@@ -117,7 +122,7 @@
 	prompt = true
 
 [merge]
-        tool = ediff
+     #   tool = ediff
 	ff = false
 	conflictstyle = diff3
 
@@ -159,7 +164,7 @@
 
 [interactive]
 	singlekey = true
-	diffFilter = "diff-highlight"
+	diffFilter = "delta --color-only"
 
 [branch]
 	autoSetupMerge = always
@@ -181,11 +186,6 @@
 	showRoot = true
 	mailmap = true
 
-[pager]
-	log = "diff-highlight | less"
-	show = "diff-highlight | less"
-	diff = "diff-highlight | less"
-
 [rerere]
 	enabled = true
 
@@ -194,9 +194,6 @@
 
 [column]
 	ui = auto,column
-
-[web]
-	browser = chromium
 
 [advice]
 	pushUpdateRejected = false

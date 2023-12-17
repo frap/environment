@@ -162,11 +162,10 @@ if quiet_which git; then
     alias gds='git diff --stat'
 
 #       alias gco='git checkout '
-#      function gc() { git checkout "${@:-main}"; } # Checkout main by default
-#       alias gco='gc'
-#       alias gcb='gc -b'
-#       alias gbc='gc -b' # Dyslexia
-
+    function gc() { git checkout "${@:-main}"; } # Checkout main by default
+    alias gco='gc'
+    alias gcb='gc -b'
+    alias gbc='gc -b' # Dyslexia
 
     alias gs='git status'
 fi
@@ -174,20 +173,8 @@ fi
 if quiet_which gh; then
     #    gh config set pager 'delta -s'
     alias gpr='gh pr create'
-
-    gh alias set iv 'issue view --comments'
-    gh alias set co --shell 'id="$(gh pr list -L100 | fzf | cut'
 fi
 
-
-# +-------+
-# | tmux |
-# +-------+
-if quiet_which tmux; then
-    alias tmuxk='tmux kill-session -t'
-    alias tmuxa='tmux attach -t'
-    alias tmuxl='tmux list-sessions'
-fi
 # +----------+
 # | docker |
 # +----------+
@@ -213,7 +200,10 @@ fi
 # +----------+
 # |  tools  |
 # +----------+
-alias tf=terraform
+if quiet_which terraform
+   alias tf=terraform
+fi
+
 
 # +----------+
 # | Personal |
