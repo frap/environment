@@ -143,6 +143,13 @@ then
   # export LUA_PATH
 fi
 
+#Python setup
+if quiet_which pyenv
+   export PYENV_ROOT="$HOME/.pyenv"
+   [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+   eval "$(pyenv init -)"
+fi
+
 # Count CPUs for Make jobs
 if [ "$CPUCOUNT" -gt 1 ]
 then
