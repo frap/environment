@@ -1,7 +1,7 @@
 *.elc
 aws/
 emacs
-doom/
+doom
 auto-save-list/
 eln-cache/
 emacs/lisp/init-autoloads.el
@@ -25,4 +25,4 @@ rustup/*
 pyenv/
 pip/
 bin/aws-list-subscription-filters.py
-doom
+zed
