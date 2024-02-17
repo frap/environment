@@ -58,7 +58,7 @@ truncation_symbol = "…/"
 [directory.substitutions]
 "Documents" = "📄 "
 "Downloads" = "📥 "
-"Music" = "🎜 "
+"Music" = "🎵 "
 "Pictures" = "📷 "
 "Dev" = "🎬 "
 # Keep in mind that the order matters. For example:
@@ -68,19 +68,17 @@ truncation_symbol = "…/"
 # "Important  " = "  "
 
 [aws]
-format = 'on [$symbol($profile )(\($region\) )(\[$duration\] )]($style)'
+format = '[$symbol ($profile )(\($region\) )(\[$duration\] )]($style)'
 #format = 'on [$symbol ($profile)(\($region\) )]($style)'
 #style = 'bold blue'
-symbol = '🅰 '
+symbol = "☁️ "
+#symbol = '🅰 '
 [aws.region_aliases]
 ap-southeast-2 = 'Syd'
 us-east-1 = 'va'
 [aws.profile_aliases]
-Test = '318356030799**'
-
-#symbol = " "
+Dev = '318356030799**'
 #disabled = false
-
 
 [battery]
 full_symbol = "🔋"
@@ -101,17 +99,11 @@ format = '[→](fg:#DA627D bg:#FCA17D)[[ $symbol($version) ](bg:#86BBD8)]($style
 error_symbol = "[✖](bold red)"
 success_symbol = "[➜](bold green)"
 
-[conda]
-symbol = " "
-
 [cmd_duration]
 # $duration – The command duration (e.g. "15s")
 # $style    – The default style of the module (e.g. "bold yellow")
 min_time = 4_000  # Show command duration over 4,000 milliseconds (=4 sec)
 format = "tomó [$duration]($style) "
-
-[dart]
-symbol = " "
 
 [docker_context]
 symbol = "🐳 "
@@ -123,21 +115,15 @@ format = '[→](fg:#06969A bg:#33658A)[[ $symbol $context](bg:#06969A)]($style) 
 symbol = " "
 disabled = true
 
-[elm]
-symbol = "🌳 "
-#style = "bg:#86BBD8"
-format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
-disabled = true
-
 [git_branch]
 symbol = "🌱 "
 format = '→[$symbol$branch(:$remote_branch)]($style) '
-truncation_length = 11
+truncation_length = 15
 truncation_symbol = '⋮'
 ignore_branches = ["main", "master"]
 
 [git_commit]
-commit_hash_length = 4
+commit_hash_length = 6
 tag_symbol = '🔖 '
 
 [git_state]
@@ -161,12 +147,6 @@ format = '[($all_status$ahead_behind )]($style)'
 
 [golang]
 symbol = " "
-
-[haskell]
-symbol = " "
-#style = "bg:#86BBD8"
-format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
-disabled = true
 
 [hostname]
 ssh_only = true
@@ -204,14 +184,14 @@ threshold = 70
 style = "bold dimmed white"
 
 [nodejs]
-format = 'via [🤖 $version](bold green) '
+format = '➡️  [☊ $version](bold cyan) '
 
 [package]
 disabled = true
-format = 'via [🎁 $version](208 bold) '
+format = '➡️  [🎁 $version](208 bold) '
 
 [python]
-symbol = '👾 '
+symbol = '🐍 '
 pyenv_version_name = true
 # Only use the `python3` binary to get the version.
 python_binary = 'python3'
@@ -229,21 +209,18 @@ symbol = "🦀"
 #style = "bg:#86BBD8"
 format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
 
-#[swift]
-#symbol = "ﯣ "
-
 [custom.clj]
-disabled = true
+disabled = false
 detect_files =  ["deps.edn", "bb.edn", ".clj", ".cljs"]
 #command = "rg org.clojure/clojure deps.edn | cut -d '{' -f3  | cut -d '"' -f2"
 symbol = "λ "
 format = '→ [[ $symbol $command ]($bold yellow)]($style)'
 
 [terraform]
-format = '[🏎💨 $version$workspace]($style) '
+format = '[🌏 $version ]($style) '
 
 [time]
 disabled = false
-format = '🕙[\[ $time \]]($style) '
+format = '[\[ $time \]]($style) '
 time_format = '%T'
-time_range = '09:00:00-16:00:00'
+time_range = '08:00:00-17:00:00'

@@ -1,10 +1,7 @@
 # -*- mode: sh; -*-
 
 # Setup Homebrew
-PATH="/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
-if quiet_which brew; then
-    eval $(brew shellenv) # exports HBREW PREFIX & PATH
-fi
+eval $(/opt/homebrew/bin/brew shellenv) # exports HBREW PREFIX & PATH
 
 # Enable Terminal.app folder icons
 [ "$TERM_PROGRAM" = "Apple_Terminal" ] && export TERMINALAPP=1

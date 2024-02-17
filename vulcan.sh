@@ -11,6 +11,11 @@
 #
 # or ./eru.sh upgrade -SSH -Linking -Repositories -Emacs -git
 
+#
+# Hi, my name is
+#
+
+fellow="agasson"
 
 #
 # Fast failure
@@ -24,6 +29,7 @@ set -e
 # OS detection
 KERNEL_NAME=$(uname -s | tr '[:upper:]' '[:lower:]')
 [[ "$OSTYPE" =~ ^darwin ]] 2>/dev/null && KERNEL_RELEASE="darwin"
+[[ "$ANDROID_DATA" =~ data ]] 2>/dev/null && KERNEL_RELEASE="android"
 [[ "$(cat /etc/issue 2>/dev/null)" =~ Ubuntu ]] && KERNEL_RELEASE="ubuntu"
 [[ "$(cat /etc/redhat-release 2>/dev/null)" =~ "Red Hat" ]] && KERNEL_RELEASE="redhat"
 
@@ -138,7 +144,7 @@ function a_theme() {
   local length="${#text}"
   echo
   echo '┌────────────────────────────────────────────────────────────────────────────┐'
-  echo -ne "│ \033[$1m$text${normal}"
+  echo -ne "│ \033[$1m$text\033[0m"
   printf "%$((75 - length))s│\n"
   echo '└────────────────────────────────────────────────────────────────────────────┘'
 }
@@ -159,8 +165,8 @@ function inactive_theme() {
 # Greetings
 #
 
-intro "La programmation n'est PAS une question de saisie, il s'agit de réfléchir."
-echo ""
+intro "Programming is NOT about Typing, It's about thinking."
+intro
 
 log "Kernel name:      $KERNEL_NAME"
 log "Kernel release:   $KERNEL_RELEASE"
