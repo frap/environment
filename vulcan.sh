@@ -3,13 +3,13 @@
 # Run this script to install all dependencies and configurations. If you wish to
 # perform only specific task or tasks pass them as arguments, space-separated.
 #
-#   ./eru.sh [command] [theme] ...
+#   ./vulcan.sh [command] [theme] ...
 #
 # For example,
 #
-#   ./eru.sh linking repositories packages
+#   ./vulcan.sh linking repositories packages
 #
-# or ./eru.sh upgrade -SSH -Linking -Repositories -Emacs -git
+# or ./vulcan.sh upgrade -SSH -Linking -Repositories -Emacs -git
 
 
 #
@@ -117,12 +117,16 @@ function error() {
     echo -e "${bred}🦤 $*${normal}"
 }
 
-function intro() {
-    echo -e "${bblue}🦚 $*${normal}"
+function info() {
+    echo -e "${bcyan} $*${normal}"
+}
+
+function owl() {
+    echo -e "${bgreen}🦉 $*${reset}"
 }
 
 function log() {
-    echo -e "${bgreen}🦉 $*${reset}"
+    echo -e "${bgreen}✔ $*${reset}"
 }
 
 function install() {
@@ -144,7 +148,7 @@ function a_theme() {
 }
 
 function theme() {
-  echo -e "\033[1;36m ✔ $1 Theme :: ${*:2}${reset}"
+  echo -e "\033[1;36m ✅ $1 Theme :: ${*:2}${reset}"
 }
 
 function optional_theme() {
@@ -162,13 +166,13 @@ function inactive_theme() {
 intro "La programmation n'est PAS une question de saisie, il s'agit de réfléchir."
 echo ""
 
-log "Kernel name:      $KERNEL_NAME"
-log "Kernel release:   $KERNEL_RELEASE"
-log "Operating system: $OS_NAME"
-log "OS version:       $OS_VERSION"
-log "User:             $USER"
-log "XDG_CONFIG_HOME:  $XDG_CONFIG_HOME"
-log
+info "Kernel name:      $KERNEL_NAME"
+info "Kernel release:   $KERNEL_RELEASE"
+info "Operating system: $OS_NAME"
+info "OS version:       $OS_VERSION"
+info "User:             $USER"
+info "XDG_CONFIG_HOME:  $XDG_CONFIG_HOME"
+info
 
 #
 # Helpers
@@ -264,7 +268,7 @@ function sync_repo() {
     fi
 
     if [[ -d "$wd/.git" ]]; then
-	log "$wd existe déjà"
+	info "$wd existe déjà"
     else
 	git clone "$url" "$wd" -b "$branch"
     fi
@@ -418,7 +422,7 @@ function download_bin() {
 # Setup variables
 #
 
-theme "Setup ERU" "Defining variables"
+theme "Setup VULCAN" "Defining variables"
 
 ALL="true"
 ACTION=
@@ -475,15 +479,16 @@ fi
 # Lock
 #
 
-LOCK_FILE=$XDG_CACHE_HOME/eru/eru.lock
+LOCK_FILE=$XDG_CACHE_HOME/vulcan/vulcan.lock
 if [ -f "$LOCK_FILE" ]; then
-    error "
-Yet another world is being shaped by Eru
+ error "
+Yet another world is being shaped by Hephaestus
 
 One must either wait patiently or embrace the horrors of the unknown and
 manually delete the $LOCK_FILE"
-    exit 1
+ exit 1
 fi
+
 mkdir -p "$(dirname "$LOCK_FILE")"
 touch "$LOCK_FILE"
 
@@ -507,8 +512,8 @@ ensure_dir "$XDG_STATE_HOME"
 ensure_dir "$DEVELOPER"
 
 
-theme_guard "system" "make Eru more approachable" && {
-    "$XDG_CONFIG_HOME/bin/safe_link" "$XDG_CONFIG_HOME/eru.sh" "$HOME/.local/bin/eru"
+theme_guard "system" "make Vulcan more approachable" && {
+    "$XDG_CONFIG_HOME/bin/safe_link" "$XDG_CONFIG_HOME/vulcan.sh" "$HOME/.local/bin/vulcan"
 }
 
 # TODO: make it work on Linux from command line
@@ -551,8 +556,8 @@ install_guard && theme_guard "SSH" "Vérification des clés SSH" && {
 
 theme_guard "Linking" "Lier tous les fichiers comme défini dans Linkfile" && {
     linkfile "$target/Linkfile"
-    linkfile "$XDG_CACHE_HOME/eru/Linkfile"
-    linkfile "$XDG_CACHE_HOME/eru/Linkfile_${KERNEL_NAME}"
+    linkfile "$XDG_CACHE_HOME/vulcan/Linkfile"
+    linkfile "$XDG_CACHE_HOME/vulcan/Linkfile_${KERNEL_NAME}"
     for f in "$target"/**/Linkfile; do
 	linkfile "$f"
     done
@@ -563,7 +568,7 @@ theme_guard "Linking" "Lier tous les fichiers comme défini dans Linkfile" && {
 
 theme_guard "Repositories" "Synchroniser les référentiels à partir de Repofiles" && {
     map_lines sync_repo "$target/Repofile" || true
-    map_lines sync_repo "$XDG_CACHE_HOME/eru/Repofile" || true
+    map_lines sync_repo "$XDG_CACHE_HOME/vulcan/Repofile" || true
 }
 
 ubuntu_guard && {
@@ -571,7 +576,7 @@ ubuntu_guard && {
 	section "Installer des dépendances cruciales"
 	sudo add-apt-repository ppa:kelleyk/emacs -y
 	sudo apt update
-	sudo apt install emacs27-nox python3-pygments
+	sudo apt install emacs29-nox python3-pygments
 	sudo snap install starship
     }
 
@@ -591,6 +596,12 @@ macos_guard && {
       eval "$(/opt/homebrew/bin/brew shellenv)"
       brew update
     }
+  }
+
+  test_guard && {
+    theme_guard "babashka" "Install all deps"
+    brew install borkdude/brew/babashka
+    log "Installed Babashka"
   }
 
   install_guard && {
@@ -620,7 +631,7 @@ install_guard && {
     touch "$target/git/local.config"
 }
 
-test_guard && macos_guard && {
+nontest_guard && macos_guard && {
     theme_guard "OS" "Write all defaults" && {
       cd "$target/macos" && sudo ./defaults.sh
     }
