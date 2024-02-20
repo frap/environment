@@ -35,10 +35,9 @@ if quiet_which emacs; then
 	[[ -z "$@" ]] && CFLAG="--create-frame"
 	emacsclient $CFLAG --alternate-editor=emacs --no-wait "$@"
     }
-    alias emacs="em"
-    export EDITOR=em
+    export EDITOR=emacs
     export VISUAL="${EDITOR}"
-    export ALTERNATE_EDITOR="emacs"
+    export ALTERNATE_EDITOR="em"
     function aws_envs() {
         fn=tempfile
         echo "Updating AWS ENVs"
