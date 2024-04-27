@@ -1,7 +1,7 @@
 # -*- mode: sh; -*-
 
 # Setup Homebrew
-eval $(/opt/homebrew/bin/brew shellenv) # exports HBREW PREFIX & PATH
+eval $(brew shellenv) # exports HBREW PREFIX & PATH
 
 # Enable Terminal.app folder icons
 [ "$TERM_PROGRAM" = "Apple_Terminal" ] && export TERMINALAPP=1

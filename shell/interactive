@@ -35,6 +35,9 @@ fi
 # Fix systems missing $USER
 [ -z "$USER" ] && export USER="$(whoami)"
 
+# set different version of homebrew PATHS
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
 # set up homebrew
 if [ $MACOS ]; then
   ssource "${XDG_CONFIG_HOME}/shell/osx_interactive"
