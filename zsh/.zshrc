@@ -4,7 +4,6 @@ fpath=($XDG_CONFIG_HOME/zsh/plugins $fpath)
 # +------------+
 # | NAVIGATION |
 # +------------+
-
 setopt AUTO_CD              # Go to folder path without using cd.
 
 setopt AUTO_PUSHD           # Push the old directory onto the stack on cd.
@@ -20,7 +19,6 @@ setopt EXTENDED_GLOB        # Use extended globbing syntax.
 # +---------+
 # | HISTORY |
 # +---------+
-
 setopt EXTENDED_HISTORY          # Write the history file in the ':start:elapsed;command' format.
 setopt SHARE_HISTORY             # Share history between all sessions.
 setopt HIST_EXPIRE_DUPS_FIRST    # Expire a duplicate event first when trimming history.
@@ -37,7 +35,6 @@ setopt HIST_REDUCE_BLANKS       # Remove unnecessary blanks from history
 # +---------+
 # | SCRIPTS |
 # +---------+
-
 #. "$XDG_CONFIG_HOME"/zsh/scripts.zsh # Scripts
 
 # Don't hang up background jobs
@@ -66,7 +63,6 @@ ssource "$ZSH_AUTOSUGGESTIONS"
 # +-------------+
 # | INTERACTIVE |
 # +-------------+
-
 ssource "${XDG_CONFIG_HOME}/shell/interactive"
 
 # +------------+
@@ -79,7 +75,6 @@ ssource "${XDG_CONFIG_HOME}/zsh/highlight.zsh"
 # +------------+
 # git enhancements to fzf
 ssource "${XDG_CONFIG_HOME}/zsh/fzf.zsh"
-
 
 # more macOS/Bash-like word jumps
 export WORDCHARS=""
@@ -94,22 +89,32 @@ quiet_which direnv && eval "$(direnv hook zsh)"
 # |  BABASHKA   |
 # +-------------+
 append_to_path "$XDG_DATA_HOME/.babashka/bbin/bin"
-export GITHUB_AUTH="$(gh auth token)"
 
 # +-------------+
 # |  PYTHON     |
 # +-------------+
-export PYENV_ROOT="$(pyenv root)"
-export PATH="$PYENV_ROOT/shims:$PATH"
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
+# +-------------+
+# |  GITHUB     |
+# +-------------+
+export GITHUB_AUTH="$(gh auth token)"
 
 # +-------------+
 # |   TROVE     |
 # +-------------+
-if dir_exists "${HOME}/work/tempo"; then
+if dir_exists "${HOME}/work/trove"; then
   $HOME/money/trove-scripts/codeartifact/codeartifact_auth.py
   alias trove='poetry run trove'
 fi
 
+# +-------------+
+# |    AWS      |
+# +-------------+
 alias assume="source assume"
+
+
 # to avoid non-zero exit code
 true

@@ -233,12 +233,12 @@ alias curdate='date +"%d-%m-%Y"'
 # | LINUX   |
 # +---------+
 if [ $LINUX ]; then
-    alias sc='sudo systemctl'
-    alias jc='sudo journalctl'
+  alias sc='sudo systemctl'
+  alias jc='sudo journalctl'
 
-    # +---------+
-    # | netstat |
-    # +---------+
+  # +---------+
+  # | netstat |
+  # +---------+
 
-    alias port="netstat -tulpn | grep"
+  alias port="netstat -tulpn | grep"
 fi
