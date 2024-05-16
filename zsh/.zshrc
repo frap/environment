@@ -108,6 +108,7 @@ export GITHUB_AUTH="$(gh auth token)"
 if dir_exists "${HOME}/work/trove"; then
   $HOME/money/trove-scripts/codeartifact/codeartifact_auth.py
   alias trove='poetry run trove'
+
 fi
 
 # +-------------+

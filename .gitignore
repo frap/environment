@@ -25,4 +25,5 @@ rustup/*
 pyenv/
 pip/
 bin/aws-list-subscription-filters.py
-zed
+zed/.tmp*
+zed/embeddings/

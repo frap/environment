@@ -1,0 +1,15 @@
+1password				font-inconsolata-nerd-font		font-sf-pro
+1password-cli				font-iosevka-aile			font-source-code-pro
+cljstyle				font-iosevka-curly			font-ubuntu
+discord					font-iosevka-etoile			font-ubuntu-mono-nerd-font
+dynamodb-local				font-iosevka-nerd-font			google-chrome
+firefox					font-iosevka-slab			graphiql
+font-alegreya				font-iosevka-ss04			jitsi-meet
+font-awesome-terminal-fonts		font-iosevka-ss14			karabiner-elements
+font-droid-sans-mono-nerd-font		font-jetbrains-mono			kitty
+font-fira-code				font-jetbrains-mono-nerd-font		logseq
+font-fira-code-nerd-font		font-juliamono				love
+font-fira-mono-nerd-font		font-material-design-icons-webfont	slack
+font-fontawesome			font-overpass				telegram
+font-hack-nerd-font			font-roboto-mono-nerd-font		tor-browser
+font-ibm-plex-mono			font-sf-mono				visual-studio-code

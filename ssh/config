@@ -1,3 +1,5 @@
+Include /Users/agasson/.colima/ssh_config
+
 # Ensure KnownHosts are unreadable if leaked
 # making it harder to know which hosts your keys have access to
 HashKnownHosts yes
@@ -9,19 +11,7 @@ KexAlgorithms curve25519-sha256@libssh.org,ecdh-sha2-nistp521,ecdh-sha2-nistp384
 MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com
 Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
 
-#Host ssh://git@github.com/frap/
-
 Host *
-    ForwardAgent yes
-    AddKeysToAgent yes
-    ControlMaster auto
-    ControlPath ~/.ssh/master-%r@%h:%p
-    ControlPersist yes
-    ServerAliveInterval 10
-    ServerAliveCountMax 10
-
-Host *.tuatara.red
-    ProxyJump bastion.tuatara.red
-
-Host *
-  IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+  UseKeychain yes
+  AddKeysToAgent yes
+  IdentityFile ~/.ssh/id_rsa
