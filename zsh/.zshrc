@@ -105,17 +105,15 @@ export GITHUB_AUTH="$(gh auth token)"
 # +-------------+
 # |   TROVE     |
 # +-------------+
-if dir_exists "${HOME}/work/trove"; then
-  $HOME/money/trove-scripts/codeartifact/codeartifact_auth.py
+if dir_exists "${HOME}/work/tempo"; then
+  $HOME/work/tempo/trove-scripts/codeartifact/codeartifact_auth.py
   alias trove='poetry run trove'
-
 fi
 
 # +-------------+
 # |    AWS      |
 # +-------------+
 alias assume="source assume"
-
 
 # to avoid non-zero exit code
 true
