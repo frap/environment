@@ -74,7 +74,11 @@ ssource "${XDG_CONFIG_HOME}/zsh/highlight.zsh"
 # | FZF        |
 # +------------+
 # git enhancements to fzf
-ssource "${XDG_CONFIG_HOME}/zsh/fzf.zsh"
+
+eval "$(fzf --zsh)"
+
+# fzf-git
+source "${HOME}/.config/fzf-git.sh/fzf-git.sh"
 
 # more macOS/Bash-like word jumps
 export WORDCHARS=""

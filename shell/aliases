@@ -137,6 +137,8 @@ if quiet_which go; then
     alias gta="go test ./..."    # go test all
     alias gia="go install ./..." # go install all
 fi
+
+
 # +-----+
 # | Git |
 # +-----+
@@ -145,6 +147,9 @@ if quiet_which git; then
     alias g="git"
     ga() { git add "${@:-.}"; } # Add all files by default
     #        # Delete local branch merged with master
+
+    #git branch
+    alias gb="git branch -a | fzf | xargs git checkout"
 
     alias gclean="git branch --merged | grep  -v '\\*\\|master\\|main' | xargs -n 1 git branch -d"
 
@@ -162,7 +167,7 @@ if quiet_which git; then
     alias gds='git diff --stat'
 
 #       alias gco='git checkout '
-    function gc() { git checkout "${@:-main}"; } # Checkout main by default
+    function gc() { git checkout "${@:-master}"; } # Checkout master by default
     alias gco='gc'
     alias gcb='gc -b'
     alias gbc='gc -b' # Dyslexia

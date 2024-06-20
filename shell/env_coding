@@ -37,7 +37,7 @@ if quiet_which emacs; then
     }
     export EDITOR=emacs
     export VISUAL="${EDITOR}"
-    export ALTERNATE_EDITOR="em"
+    export ALTERNATE_EDITOR="vim"
     function aws_envs() {
         fn=tempfile
         echo "Updating AWS ENVs"
@@ -83,13 +83,16 @@ then
     prepend_to_path "${CARGO_HOME}/bin"
 fi
 
-# fzf
-if quiet_which fzf
+# +-----+
+# | FZF |
+# +-----+
+if dir_exists  "${HOMEBREW_PREFIX}/opt/fzf/bin"
 then
     export FZF_DEFAULT_COMMAND="rg --files --hidden --glob '!.git'"
     export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
     #Load up auto completion for fzf
     append_to_path "${HOMEBREW_PREFIX}/opt/fzf/bin"
+
 fi
 
 # ripgrep
