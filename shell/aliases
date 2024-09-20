@@ -68,16 +68,13 @@ alias sha256="shasum -a 256"
 # | ls |
 # +----+
 
-if quiet_which exa; then
-    alias ls="exa --icons --classify --group --git"
-    alias ll="exa -l --icons --classify --group --git"
-    #alias ll='exa --icons --long -ag --sort accessed --reverse'
-    alias la="exa --icons --long -aag --sort modified --reverse"
-    alias ld="exa --only-dirs --tree --level 3"
-    alias ll2="exa --tree --level 2"
-    alias ll3="exa --tree --level 3"
-    alias l="exa --icons --sort modified --reverse"
-    #alias ls="exa --icons -g --long --sort size --reverse"
+if quiet_which eza; then
+    alias ld="eza -lD"
+    alias lf="eza -lf --color=always | grep -v /"
+    alias lh="eza -dl .* --group-directories-first"
+    alias ll='eza -al --group-directories-first'
+    alias ls='eza -alf --color=always --sort=size| grep -v /'
+    alias lt="eza -al --sort-modified"
 elif [ "$MACOS" ] && quiet_which gls; then
     alias ls="gls --color  -sAF"
     alias la="gls --color -Atr"
@@ -146,7 +143,31 @@ fi
 if quiet_which git; then
     alias g="git"
     ga() { git add "${@:-.}"; } # Add all files by default
-    #        # Delete local branch merged with master
+
+    alias gs='git status'
+
+    # Helper function to get the current branch name
+    git_current_branch() {
+        git rev-parse --abbrev-ref HEAD
+    }
+
+    # git commit
+    alias gc='git commit -m'
+    alias gca='git commit --amend'
+    alias gcam='git commit --amend --no-edit'
+    alias gcm='git commit -m "Minor changes"'
+    alias gcmd='git commit -m "dependencies update"'
+    alias gcaam='git commit --amend --no-edit -a'
+
+    # git pull - aliases to fetch
+    alias gf="git pull"
+
+    # git push
+    alias gp='git push'
+    alias gpf='git push --force'
+    alias gpo='git push origin'
+    alias gpfom='git push --force origin master'
+    alias gpu='git push --set-upstream origin $(git_current_branch)'
 
     #git branch
     alias gb="git branch -a | fzf | xargs git checkout"
@@ -154,11 +175,11 @@ if quiet_which git; then
     alias gclean="git branch --merged | grep  -v '\\*\\|master\\|main' | xargs -n 1 git branch -d"
 
     alias gl='git  log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%Cgreen\\ [%cn]" --decorate --date=short'
-    #        alias glo='git log --pretty="oneline"'
-    #        alias glol='git log --graph --oneline --decorate --date-order --all'
+    alias glo='git log --pretty="oneline"'
+    alias glol='git log --graph --oneline --decorate --date-order --all'
 
-    #        # pull submodules
-    #        alias gblog="git for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'"
+    # pull submodules
+    # alias gblog="git for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'"
 
     # git diff
     alias gd='git diff'
@@ -166,13 +187,10 @@ if quiet_which git; then
     alias gdh='git diff --histogram'
     alias gds='git diff --stat'
 
-#       alias gco='git checkout '
-    function gc() { git checkout "${@:-master}"; } # Checkout master by default
-    alias gco='gc'
-    alias gcb='gc -b'
-    alias gbc='gc -b' # Dyslexia
+    # git switch
+    function gsw() { git switch --guess "${@:-master}"; } # Checkout master by default
+    alias gswc='gsw -c'
 
-    alias gs='git status'
 fi
 
 if quiet_which gh; then
