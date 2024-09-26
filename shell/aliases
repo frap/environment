@@ -44,9 +44,11 @@ alias topm="ps -e -o pmem,pid,user,tty,args | sort -n -k 1 -r | head"
 
 if quiet_which rg; then
     export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/ripgreprc"
-    alias rg="rg --colors 'match:style:nobold' --colors 'path:style:nobold'"
+    alias rgc="rg --colors 'match:style:nobold' --colors 'path:style:nobold'"
+    alias grep="rgc"
+
 else
-    alias grep='grep --color=auto'
+    alias grep='ggrep --color=auto'
 fi
 
 # search history
@@ -135,7 +137,6 @@ if quiet_which go; then
     alias gia="go install ./..." # go install all
 fi
 
-
 # +-----+
 # | Git |
 # +-----+
@@ -191,6 +192,9 @@ if quiet_which git; then
     function gsw() { git switch --guess "${@:-master}"; } # Checkout master by default
     alias gswc='gsw -c'
 
+    #git resst
+    alias grso='git reset --soft origin/master'
+
 fi
 
 if quiet_which gh; then
@@ -228,7 +232,6 @@ if quiet_which terraform; then
     alias tff="terraform -fmt recursive"
 fi
 
-
 # +----------+
 # | Personal |
 # +----------+
@@ -256,12 +259,12 @@ alias curdate='date +"%d-%m-%Y"'
 # | LINUX   |
 # +---------+
 if [ $LINUX ]; then
-  alias sc='sudo systemctl'
-  alias jc='sudo journalctl'
+    alias sc='sudo systemctl'
+    alias jc='sudo journalctl'
 
-  # +---------+
-  # | netstat |
-  # +---------+
+    # +---------+
+    # | netstat |
+    # +---------+
 
-  alias port="netstat -tulpn | grep"
+    alias port="netstat -tulpn | grep"
 fi
