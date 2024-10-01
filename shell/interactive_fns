@@ -1,26 +1,17 @@
 # -*- mode: sh; -*-
 
 function cl() {
-    DIR="$*";
-        # if no DIR given, go home
-        if [ $# -lt 1 ]; then
-            DIR=$HOME;
-        fi;
-    builtin cd "${DIR}" && \
+  DIR="$*"
+  # if no DIR given, go home
+  if [ $# -lt 1 ]; then
+    DIR=$HOME
+  fi
+  builtin cd "${DIR}" &&
     # use your preferred ls command
-        ll
+    ls
 }
 
 # Create a new directory and enter it
 function md() {
   mkdir -p "$@" && cd "$@"
-}
-
-# Save directory changes
-cd() {
-  builtin cd "$@" || return
-  [ "$TERMINALAPP" ] && command -v set_terminal_app_pwd >/dev/null \
-    && set_terminal_app_pwd
-  pwd > "${XDG_STATE_HOME}/.lastpwd"
-  ls
 }

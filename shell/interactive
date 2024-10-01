@@ -25,6 +25,10 @@
 # OS variables
 [ "$(uname -s)" = "Darwin" ] && export MACOS=1 && export UNIX=1
 
+if  [ ! -z "$INSIDE_EMACS" ]; then
+  export ESHELL=1
+fi
+
 if ! [ $MACOS ]; then
   [ "$(uname -s)" = "Linux" ] && export LINUX=1 && export UNIX=1
   uname -s | grep -q "_NT-" && export WINDOWS=1
@@ -35,11 +39,10 @@ fi
 # Fix systems missing $USER
 [ -z "$USER" ] && export USER="$(whoami)"
 
-# set different version of homebrew PATHS
-export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
-
 # set up homebrew
 if [ $MACOS ]; then
+  # set different version of homebrew PATHS
+  force_append_to_path "/opt/homebrew/bin:/usr/local/bin"
   ssource "${XDG_CONFIG_HOME}/shell/osx_interactive"
   export CPUCOUNT="$(/usr/sbin/sysctl -n hw.ncpu)"
 elif [ $LINUX ]; then
@@ -76,24 +79,17 @@ mesg n
 
 #if in a terminal
 if [ -t 0 ] && [ $TERMINALAPP ] && quiet_which starship; then
-  #load up the bash_prompt - do it here as emacs tramp gets fucked up with
-  # non > prompts
   case "$TERM" in
-    xterm* | rxvt* | eterm* | screen*)
-      eval "$(starship init zsh)"
-      #PS1="➜ "
-      ;;
-    *)
-      PS1="> "
-      ;;
+  xterm* | screen*)
+    eval "$(starship init zsh)"
+    #PS1="➜ "
+    ;;
+  *)
+    precmd() { eval "$PROMPT_COMMAND" }
+    #PS1="> "
+    ;;
   esac
 fi
-
-#  ssource "${XDG_CONFIG_HOME}/zsh/prompt.zsh"
-# state on last working dir
-[ -s ${XDG_STATE_HOME}/lastpwd ] && [ "$PWD" = "$HOME" ] &&
-  builtin cd "$(cat ${XDG_STATE_HOME}/lastpwd)" 2>/dev/null
-[ $TERMINALAPP ] && set_terminal_app_pwd
 
 # start-up ssh-agent
 [ -z "$SSH_AUTH_SOCK" ] && eval "$(ssh-agent -s)"

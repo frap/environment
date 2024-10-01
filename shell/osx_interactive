@@ -5,23 +5,24 @@ eval $(brew shellenv) # exports HBREW PREFIX & PATH
 
 # Enable Terminal.app folder icons
 [ "$TERM_PROGRAM" = "Apple_Terminal" ] && export TERMINALAPP=1
-if [ $TERMINALAPP ]; then
-    set_terminal_app_pwd() {
-        # Tell Terminal.app about each directory change.
-        printf '\e]7;%s\a' "$(echo "file://$HOST$PWD" | sed -e 's/ /%20/g')"
-    }
+
+if [ $TERMINALAPP ] && [ ! "$ESHELL" ]; then
+  set_terminal_app_pwd() {
+    # Tell Terminal.app about each directory change.
+    printf '\e]7;%s\a' "$(echo "file://$HOST$PWD" | sed -e 's/ /%20/g')"
+  }
 fi
 
 # OSX specific script (uses AppleScripts) to ask me to take a break every hour
 # Run this function as a background process using &
 # alert &
 pomodoro() {
-    while true; do
-        # 3600 seconds is 1 hour, 1500 is 25 minutes
-        sleep 15 #00
-        osascript -e 'tell app "System Events" to display dialog "Prendre une pause! Tu regardes l\u0xE2 0x80 0x99 écran depuis bien trop longtemps "' 1>&/dev/null
-    done
-    exit 0
+  while true; do
+    # 3600 seconds is 1 hour, 1500 is 25 minutes
+    sleep 15 #00
+    osascript -e 'tell app "System Events" to display dialog "Prendre une pause! Tu regardes l\u0xE2 0x80 0x99 écran depuis bien trop longtemps "' 1>&/dev/null
+  done
+  exit 0
 }
 
 # Move files to the Trash folder
@@ -34,3 +35,15 @@ receipt() {
   [ -n "$1" ] || return
   json "$HOMEBREW_PREFIX/opt/$1/INSTALL_RECEIPT.json"
 }
+
+# Save directory changes
+cd() {
+  builtin cd "$@" || return
+  [ "$TERMINALAPP" ] && [ ! "$ESHELL" ] && set_terminal_app_pwd
+  pwd >"${XDG_STATE_HOME}/.lastpwd"
+  eza -lf
+}
+
+# state on last working dir
+[ -s ${XDG_STATE_HOME}/lastpwd ] && [ "$PWD" = "$HOME" ] && builtin cd "$(cat ${XDG_STATE_HOME}/lastpwd)" 2>/dev/null
+[ ! $$ESHELL ] && [ $TERMINALAPP ] && set_terminal_app_pwd

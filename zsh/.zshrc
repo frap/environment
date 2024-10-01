@@ -4,38 +4,33 @@ fpath=($XDG_CONFIG_HOME/zsh/plugins $fpath)
 # +------------+
 # | NAVIGATION |
 # +------------+
-setopt AUTO_CD              # Go to folder path without using cd.
+setopt AUTO_CD # Go to folder path without using cd.
 
-setopt AUTO_PUSHD           # Push the old directory onto the stack on cd.
-setopt PUSHD_IGNORE_DUPS    # Do not store duplicates in the stack.
-setopt PUSHD_SILENT         # Do not print the directory stack after pushd or popd.
+setopt AUTO_PUSHD        # Push the old directory onto the stack on cd.
+setopt PUSHD_IGNORE_DUPS # Do not store duplicates in the stack.
+setopt PUSHD_SILENT      # Do not print the directory stack after pushd or popd.
 
-setopt CORRECT              # Spelling correction
-setopt CDABLE_VARS          # Change directory to a path stored in a variable.
-setopt EXTENDED_GLOB        # Use extended globbing syntax.
+setopt CORRECT       # Spelling correction
+setopt CDABLE_VARS   # Change directory to a path stored in a variable.
+setopt EXTENDED_GLOB # Use extended globbing syntax.
 
 #autoload -Uz bd; bd
 
 # +---------+
 # | HISTORY |
 # +---------+
-setopt EXTENDED_HISTORY          # Write the history file in the ':start:elapsed;command' format.
-setopt SHARE_HISTORY             # Share history between all sessions.
-setopt HIST_EXPIRE_DUPS_FIRST    # Expire a duplicate event first when trimming history.
-setopt HIST_IGNORE_DUPS          # Do not record an event that was just recorded again.
-setopt HIST_IGNORE_ALL_DUPS      # Delete an old recorded event if a new event is a duplicate.
-setopt HIST_FIND_NO_DUPS         # Do not display a previously found event.
-setopt HIST_IGNORE_SPACE         # Do not record an event starting with a space.
-setopt HIST_SAVE_NO_DUPS         # Do not write a duplicate event to the history file.
-setopt HIST_VERIFY               # Do not execute immediately upon history expansion.
-setopt APPEND_HISTORY            # adds commands as they are typed, not at shell exit
+setopt EXTENDED_HISTORY       # Write the history file in the ':start:elapsed;command' format.
+setopt SHARE_HISTORY          # Share history between all sessions.
+setopt HIST_EXPIRE_DUPS_FIRST # Expire a duplicate event first when trimming history.
+setopt HIST_IGNORE_DUPS       # Do not record an event that was just recorded again.
+setopt HIST_IGNORE_ALL_DUPS   # Delete an old recorded event if a new event is a duplicate.
+setopt HIST_FIND_NO_DUPS      # Do not display a previously found event.
+setopt HIST_IGNORE_SPACE      # Do not record an event starting with a space.
+setopt HIST_SAVE_NO_DUPS      # Do not write a duplicate event to the history file.
+setopt HIST_VERIFY            # Do not execute immediately upon history expansion.
+setopt APPEND_HISTORY         # adds commands as they are typed, not at shell exit
 setopt INC_APPEND_HISTORY
-setopt HIST_REDUCE_BLANKS       # Remove unnecessary blanks from history
-
-# +---------+
-# | SCRIPTS |
-# +---------+
-#. "$XDG_CONFIG_HOME"/zsh/scripts.zsh # Scripts
+setopt HIST_REDUCE_BLANKS # Remove unnecessary blanks from history
 
 # Don't hang up background jobs
 setopt no_hup
@@ -65,59 +60,51 @@ ssource "$ZSH_AUTOSUGGESTIONS"
 # +-------------+
 ssource "${XDG_CONFIG_HOME}/shell/interactive"
 
-# +------------+
-# | HIGHLIGHT  |
-# +------------+
-ssource "${XDG_CONFIG_HOME}/zsh/highlight.zsh"
+if [ -z "$ESHELL" ]; then
 
-# +------------+
-# | FZF        |
-# +------------+
-# git enhancements to fzf
+  # +------------+
+  # | HIGHLIGHT  |
+  # +------------+
+  ssource "${XDG_CONFIG_HOME}/zsh/highlight.zsh"
 
-eval "$(fzf --zsh)"
+  # +------------+
+  # | FZF        |
+  # +------------+
+  # git enhancements to fzf
 
-# fzf-git
-source "${HOME}/.config/fzf-git.sh/fzf-git.sh"
+  eval "$(fzf --zsh)"
 
-# more macOS/Bash-like word jumps
-export WORDCHARS=""
+  # fzf-git
+  source "${HOME}/.config/fzf-git.sh/fzf-git.sh"
 
-# +-------------+
-# |   DIRENV    |
-# +-------------+
-# enable direnv (if installed)
-quiet_which direnv && eval "$(direnv hook zsh)"
+  # more macOS/Bash-like word jumps
+  export WORDCHARS=""
 
-# +-------------+
-# |  BABASHKA   |
-# +-------------+
-append_to_path "$XDG_DATA_HOME/.babashka/bbin/bin"
+  # +-------------+
+  # |   DIRENV    |
+  # +-------------+
+  # enable direnv (if installed)
+  quiet_which direnv && eval "$(direnv hook zsh)"
 
-# +-------------+
-# |  PYTHON     |
-# +-------------+
-export PYENV_ROOT="$HOME/.pyenv"
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
+  # +-------------+
+  # |  GITHUB     |
+  # +-------------+
 
-# +-------------+
-# |  GITHUB     |
-# +-------------+
-export GITHUB_AUTH="$(gh auth token)"
+  # +-------------+
+  # |   TROVE     |
+  # +-------------+
+  if dir_exists "${HOME}/work/tempo"; then
+    export GITHUB_AUTH="$(gh auth token)"
+    $HOME/work/tempo/trove-scripts/codeartifact/codeartifact_auth.py
+    alias trove='poetry run trove'
+  fi
 
-# +-------------+
-# |   TROVE     |
-# +-------------+
-if dir_exists "${HOME}/work/tempo"; then
-  $HOME/work/tempo/trove-scripts/codeartifact/codeartifact_auth.py
-  alias trove='poetry run trove'
+  # +-------------+
+  # |    AWS      |
+  # +-------------+
+  alias assume="source assume"
+
 fi
-
-# +-------------+
-# |    AWS      |
-# +-------------+
-alias assume="source assume"
 
 # to avoid non-zero exit code
 true

@@ -1,39 +1,43 @@
 # -*- mode: sh; -*-
 
 # Setup some apps for XDG_CONFIG
-# gnupg
-if quiet_which gpg
-then
+# +-------------+
+# |   GNUPG     |
+# +-------------+
+if quiet_which gpg; then
     export GNUPGHOME=${XDG_CONFIG_HOME}/gnupg
 fi
 
-#  less
-if quiet_which bat
-then
+# +-------------+
+# |    LESS     |
+# +-------------+
+if quiet_which bat; then
     export LESSHISTFILE="${XDG_CONFIG_HOME}/less/history"
-#    export LESSKEY="${XDG_CONFIG_HOME}/less/keys"
-    export LESS='-RFX'  # -R allows colours -F like tail -X leaves on screen
+    #    export LESSKEY="${XDG_CONFIG_HOME}/less/keys"
+    export LESS='-RFX' # -R allows colours -F like tail -X leaves on screen
     export LESSOPEN='| bat %s'
 fi
 
-# EDITOR emacs
+# +-------------+
+# |    EMACS    |
+# +-------------+
 if quiet_which emacs; then
     function em() {
-	if [ -z "$DISPLAY" ]; then
-	    emacsclient -nw -a "" "$@"
-	else
-	    emacsclient -n -e "(> (length (frame-list)) 1)" | grep t
-	    if [ "$?" = "1" ]; then
-		emacsclient -c -n -a "" "$@"
-	    else
-		emacsclient -n -a "" "$@"
-	    fi
-	fi
+        if [ -z "$DISPLAY" ]; then
+            emacsclient -nw -a "" "$@"
+        else
+            emacsclient -n -e "(> (length (frame-list)) 1)" | grep t
+            if [ "$?" = "1" ]; then
+                emacsclient -c -n -a "" "$@"
+            else
+                emacsclient -n -a "" "$@"
+            fi
+        fi
     }
     function ec() {
-	CFLAG=""
-	[[ -z "$@" ]] && CFLAG="--create-frame"
-	emacsclient $CFLAG --alternate-editor=emacs --no-wait "$@"
+        CFLAG=""
+        [[ -z "$@" ]] && CFLAG="--create-frame"
+        emacsclient $CFLAG --alternate-editor=emacs --no-wait "$@"
     }
     export EDITOR=emacs
     export VISUAL="${EDITOR}"
@@ -41,43 +45,45 @@ if quiet_which emacs; then
     function aws_envs() {
         fn=tempfile
         echo "Updating AWS ENVs"
-        env | grep "AWS" > "$fn"
+        env | grep "AWS" >"$fn"
         echo "$fn"
-        emacsclient -nw  -e '(update-aws-envs "'"$fn"'")' "$@" > /dev/null
+        emacsclient -nw -e '(update-aws-envs "'"$fn"'")' "$@" >/dev/null
     }
 else
-   export EDITOR="vim"
+    export EDITOR="vim"
 fi
 
-# vim
-if quiet_which vim
-   then
-       export VIMINIT='let $MYVIMRC="$XDG_CONFIG_HOME/vim/vimrc" | source $MYVIMRC'
-       export VIMDOTDIR="$XDG_CONFIG_HOME/vim"
+# +-------------+
+# |    VIM      |
+# +-------------+
+if quiet_which vim; then
+    export VIMINIT='let $MYVIMRC="$XDG_CONFIG_HOME/vim/vimrc" | source $MYVIMRC'
+    export VIMDOTDIR="$XDG_CONFIG_HOME/vim"
 fi
-
 
 # git
-export GIT_REVIEW_BASE=master # See gitconfig
-git_branch() {
-  GIT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null) || return
-  [ -n "$GIT_BRANCH" ] && echo "($GIT_BRANCH) "
-}
+# export GIT_REVIEW_BASE=master # See gitconfig
+# git_branch() {
+#   GIT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null) || return
+#   [ -n "$GIT_BRANCH" ] && echo "($GIT_BRANCH) "
+# }
 
-# golang
-if quiet_which go
-   then
-       export GOPATH="$HOME/Dev/go"
-       export GOBIN="$HOME/Dev/go/bin"
-       export GOCACHE="$XDG_CACHE_HOME/go-build"
-       prepend_to_path  "${GOCACHE}"
-       prepend_to_path  "${GOBIN}"
-       prepend_to_path  "${GOPATH}"
+# +-----+
+# | GO  |
+# +-----+
+if quiet_which go; then
+    export GOPATH="$HOME/Dev/go"
+    export GOBIN="$HOME/Dev/go/bin"
+    export GOCACHE="$XDG_CACHE_HOME/go-build"
+    prepend_to_path "${GOCACHE}"
+    prepend_to_path "${GOBIN}"
+    prepend_to_path "${GOPATH}"
 fi
 
-# rust
-if quiet_which rust
-then
+# +-------------+
+# |    RUST     |
+# +-------------+
+if quiet_which rust; then
     export RUSTUP_HOME="$XDG_CONFIG_HOME/rustup"
     export CARGO_HOME="$XDG_DATA_HOME/cargo"
     prepend_to_path "${CARGO_HOME}/bin"
@@ -86,8 +92,7 @@ fi
 # +-----+
 # | FZF |
 # +-----+
-if dir_exists  "${HOMEBREW_PREFIX}/opt/fzf/bin"
-then
+if dir_exists "${HOMEBREW_PREFIX}/opt/fzf/bin" && [ ! "$ESHELL" ]; then
     export FZF_DEFAULT_COMMAND="rg --files --hidden --glob '!.git'"
     export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
     #Load up auto completion for fzf
@@ -95,67 +100,75 @@ then
 
 fi
 
-# ripgrep
-if quiet_which rg
-then
-   rgf() {
-      if [ -z "$2" ]
-      then
-        rg --files | rg "$1"
-      else
-        rg --files "$2" | rg "$1"
-      fi
-   }
+# +-------------+
+# |  RIPGREP    |
+# +-------------+
+if quiet_which rg; then
+    rgf() {
+        if [ -z "$2" ]; then
+            rg --files | rg "$1"
+        else
+            rg --files "$2" | rg "$1"
+        fi
+    }
 fi
 
-# Pretty-print JSON files
-if quiet_which jq
-then
-  json() {
-    [ -n "$1" ] || return
-    cat "$1" | jq .
-  }
+# +-------------+
+# |    JSON     |
+# +-------------+
+if quiet_which jq; then
+    json() {
+        [ -n "$1" ] || return
+        cat "$1" | jq .
+    }
 fi
 
-# nvm
+# +-------------+
+# |    NODE     |
+# +-------------+
 export NVM_DIR="${XDG_CACHE_HOME}/nvm"
-if [ $MACOS ]
-then
-    ssource "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh"  # This loads nvm
+if [ $MACOS ]; then
+    ssource "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh" # This loads nvm
     ssource "${HOMEBREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"
 fi
 
-# java
-if quiet_which jenv
-then
-  force_append_to_path "$HOME/.jenv/bin"
-  eval "$(jenv init -)"
+# +-------------+
+# |    JAVA     |
+# +-------------+
+if quiet_which jenv; then
+    force_append_to_path "$XDG_CACHE_HOME/.jenv/bin"
+    eval "$(jenv init -)"
 fi
 
+# +-------------+
+# |    LUA      |
+# +-------------+
+if quiet_which luarocks; then
+    eval "$(luarocks path)"
 
-# Lua related stuff
-if quiet_which luarocks
-then
-   eval "$(luarocks path)"
+    #  for path in "$XDG_DATA_HOME"/lua/*; do
+    #      LUA_PATH="$path/?.lua;$LUA_PATH"
+    #   done
 
-  #  for path in "$XDG_DATA_HOME"/lua/*; do
-  #      LUA_PATH="$path/?.lua;$LUA_PATH"
-  #   done
-
-  # export LUA_PATH
+    # export LUA_PATH
 fi
 
-#Python setup
-if quiet_which pyenv
-then
-   export PYENV_ROOT="$HOME/.pyenv"
-   [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-   eval "$(pyenv init -)"
-fi
+# +-------------+
+# |   PYTHON    |
+# +-------------+
+export PYENV_ROOT="$XDG_CACHE_HOME/pyenv"
+[[ -d $PYENV_ROOT/bin ]] && append_to_path "$PYENV_ROOT/bin"
+eval "$(pyenv init -)"
 
-# Count CPUs for Make jobs
-if [ "$CPUCOUNT" -gt 1 ]
-then
-  export MAKEFLAGS="-j$CPUCOUNT"
-  export BUNDLE_JOBS="$CPUCOUNT"
+# +-------------+
+# |  BABASHKA   |
+# +-------------+
+append_to_path "$XDG_DATA_HOME/.babashka/bbin/bin"
+
+# +-------------+
+# |    MAKE     |
+# +-------------+
+if [ "$CPUCOUNT" -gt 1 ]; then
+    export MAKEFLAGS="-j$CPUCOUNT"
+    export BUNDLE_JOBS="$CPUCOUNT"
 fi
