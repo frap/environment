@@ -61,7 +61,15 @@ function quiet_which() {
   hash $1 &>/dev/null
 }
 
-function myprompt() {
-  printf "\e]7;file://%s%s\e\\" "$HOSTNAME" "$PWD"
-}
-PROMPT_COMMAND=myprompt
+# Source Highlighting in Less
+
+#   From [[http://funkworks.blogspot.com/2013/01/syntax-highlighting-in-less-on-osx.html][this blog entry]], comes details how to install the
+#   =source-highlight= program on the Mac in order to see various code
+#   highlighted in pretty colors.
+
+LESSPIPE=$(quiet_which src-hilite-lesspipe.sh)
+if [ -z $LESSPIPE ]; then
+  export LESSOPEN="| ${LESSPIPE} %s"
+  export LESS='-R'
+  alias less='less -m -N -g -i -J --underline-special --SILENT'
+fi

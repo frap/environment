@@ -9,4 +9,5 @@ export HISTSIZE=-1
 export HISTTIMEFORMAT="[%F %T] "
 export HISTIGNORE='ls:ll:cd:pwd:bg:fg:history'
 
+# sets XDG_CONFIG, umask and local fns aka *_to_path
 . ~/.config/shell/env

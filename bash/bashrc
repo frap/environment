@@ -14,8 +14,7 @@
 # however, we assume that #2 is a recovery mode, so we don't want to do much.
 # (also, my google-fu didn't find a way to distinguish them)
 
+# 1. get *_to_path fns, ssource, umask and export  HIST*
 . ~/.config/bash/env
+# 2.call shell/interactive and setup DIRENV, FZF for ! ESHELL
 . ~/.config/bash/interactive
-
-# Hook in direnv
-eval "$(direnv hook bash)"

@@ -138,15 +138,41 @@ if quiet_which go; then
     alias gia="go install ./..." # go install all
 fi
 
+# Whitespace Removers
+
+#    These alias remove trailing whitespace and lines containing
+#    nothing by spaces/tabs.
+
+alias pre-commit='git status --porcelain | egrep '\''^[MA]'\'' | cut -d '\'' '\'' -f 3 | xargs perl -pi -e '\''s/\t/    /g; s/[\t ]+$//'\'''
+alias pre-add='git status --porcelain | grep "^ M" | cut -d" " -f3 | xargs git add'
+alias white='xargs perl -pi -e '\''s/\t/    /g; s/[\t ]+$//'\'''
+
 # +-----+
 # | Git |
 # +-----+
+# Pull
+
+#    Allows me to pull new information from the remote branch, but not
+#    lose anything.
+function pull {
+    git stash
+    git pull
+    git stash pop
+}
 
 if quiet_which git; then
     alias g="git"
-    ga() { git add "${@:-.}"; } # Add all files by default
+
+    # git add
+    ga() { git add "${@:-.}"; }     # Add all files by default
+    alias gaa='git add --update :/' # Use full 'git add' if haven't already added it
 
     alias gs='git status'
+    alias gst='git status'
+    alias gstatus='git status'
+    alias gf='git status --porcelain | cut -c4-'
+    alias gf-new='git status --porcelain | grep "^??" | cut -c4-'
+    alias gf-changed='git status --porcelain | grep "^ M" | cut -c4-'
 
     # Helper function to get the current branch name
     git_current_branch() {
@@ -160,6 +186,7 @@ if quiet_which git; then
     alias gcm='git commit -m "Minor changes"'
     alias gcmd='git commit -m "dependencies update"'
     alias gcaam='git commit --amend --no-edit -a'
+    alias gamend='git commit --amend --no-edit'
 
     # git pull - aliases to fetch
     alias gf="git pull"
@@ -190,12 +217,16 @@ if quiet_which git; then
     alias gds='git diff --stat'
 
     # git switch
-    function gsw() { git switch --guess "${@:-master}"; } # Checkout master by default
+    function gsw() { git switch --guess "${@:-ma}"; } # Checkout master by default
     alias gswc='gsw -c'
 
-    #git resst
+    #git reset
     alias grso='git reset --soft origin/master'
 
+    #git stash
+    alias gstash='git stash'
+    alias gpop='git stash pop'
+    alias gshow='git stash show -p stash@{0}'
 fi
 
 if quiet_which gh; then

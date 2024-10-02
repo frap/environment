@@ -1,12 +1,22 @@
-. ~/.config/shell/interactive
+# -*- mode: sh; -*-
+#export PS1='\[\e[0;36m\] \h:\W ➜ \[\e[m\] '
+#
+ssource ~/.config/bash/bash_prompt
+
+ssource ~/.config/shell/interactive
 
 # +------------+
 # | FZF        |
 # +------------+
-if quiet_which
-then
+if quiet_which && [ -z "$ESHELL" ]; then
     # Auto completion
     ssource "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.bash"
     # git enhancements to fzf
     ssource "${XDG_CONFIG_HOME}/bash/fzf.zsh"
 fi
+
+# +-------------+
+# |   DIRENV    |
+# +-------------+
+# enable direnv (if installed)
+quiet_which direnv && eval "$(direnv hook bash)"

@@ -99,12 +99,12 @@ if [ -z "$ESHELL" ]; then
     alias trove='poetry run trove'
   fi
 
-  # +-------------+
-  # |    AWS      |
-  # +-------------+
-  alias assume="source assume"
-
 fi
+
+# +-------------+
+# |    AWS      |
+# +-------------+
+alias assume="source assume"
 
 # to avoid non-zero exit code
 true

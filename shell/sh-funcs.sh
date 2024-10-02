@@ -3,20 +3,7 @@
 
 # Diff Files
 
-#   My favorite diff tool is the =ediff= tool in Emacs, and little
-#   function (taken from [[http://defunitive.wordpress.com/2011/07/23/invoking-emacs-ediff-from-the-command-line/][this blog post]]) allows me to use it from the
-#   command line.
 
-
-function ediff() {
-    if [ -z "$2" ]
-    then
-        echo "USAGE: ediff <FILE 1> <FILE 2>"
-    else
-        # The --eval flag takes lisp code and evaluates it with EMACS
-        emacsclient -c --eval "(ediff-files \"$1\" \"$2\")"
-    fi
-}
 
 # Listing Files
 
@@ -285,76 +272,16 @@ function clip {
   perl -ne "\$s=1 if (/$FIRST/); \$s=0 if (/$ENDING/); print \"$PADDING\$_\" if (\$s==1);"
 }
 
-# Source Highlighting in Less
-
-#   From [[http://funkworks.blogspot.com/2013/01/syntax-highlighting-in-less-on-osx.html][this blog entry]], comes details how to install the
-#   =source-highlight= program on the Mac in order to see various code
-#   highlighted in pretty colors.
 
 
-#LESSPIPE=$(which src-hilite-lesspipe.sh | grep -v no)
-#if [ -z $LESSPIPE ]
-#then
-#export LESSOPEN="| ${LESSPIPE} %s"
-#export LESS='-R'
-#alias less='less -m -N -g -i -J --underline-special --SILENT'
-#fi
-
-# Tab Completion
-
-#    Complete expected git (and others) commands by pressing the tab key
-#    for Bash.
 
 
-if [ -n "$ON_A_MAC" ] && [ -f `brew --prefix`/etc/bash_completion ]
-then
-    . `brew --prefix`/etc/bash_completion
-fi
-
-# Whitespace Removers
-
-#    These alias remove trailing whitespace and lines containing
-#    nothing by spaces/tabs.
 
 
-alias pre-commit='git status --porcelain | egrep '\''^[MA]'\'' | cut -d '\'' '\'' -f 3 | xargs perl -pi -e '\''s/\t/    /g; s/[\t ]+$//'\'''
-alias pre-add='git status --porcelain | grep "^ M" | cut -d" " -f3 | xargs git add'
-alias white='xargs perl -pi -e '\''s/\t/    /g; s/[\t ]+$//'\'''
-
-# Pull
-
-#    Allows me to pull new information from the remote branch, but not
-#    lose anything.
 
 
-function pull {
-    git stash
-    git pull
-    git stash pop
-}
-
-# Helper Aliases
-
-#    The following are shortcuts to some git commands that I use all
-#    the time. Most people prefix them with a 'g' character to keep
-#    them unique.
 
 
-alias gst='git status'
-alias gstatus='git status'
-alias gd='git diff'
-alias gdc='git diff --cached'
-
-alias gaa='git add --update :/'  # Use full 'git add' if haven't already added it
-alias gamend='git commit --amend --no-edit'
-
-alias gstash='git stash'
-alias gpop='git stash pop'
-alias gshow='git stash show -p stash@{0}'
-
-alias gf='git status --porcelain | cut -c4-'
-alias gf-new='git status --porcelain | grep "^??" | cut -c4-'
-alias gf-changed='git status --porcelain | grep "^ M" | cut -c4-'
 
 # Directory Bookmarks
 

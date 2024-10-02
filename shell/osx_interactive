@@ -6,12 +6,30 @@ eval $(brew shellenv) # exports HBREW PREFIX & PATH
 # Enable Terminal.app folder icons
 [ "$TERM_PROGRAM" = "Apple_Terminal" ] && export TERMINALAPP=1
 
-if [ $TERMINALAPP ] && [ ! "$ESHELL" ]; then
-  set_terminal_app_pwd() {
-    # Tell Terminal.app about each directory change.
-    printf '\e]7;%s\a' "$(echo "file://$HOST$PWD" | sed -e 's/ /%20/g')"
-  }
+# Tab Completion
+
+#    Complete expected git (and others) commands by pressing the tab key
+#    for Bash.
+if [ -f $(brew --prefix)/etc/bash_completion ]; then
+  . $(brew --prefix)/etc/bash_completion
 fi
+# function set_terminal_app_pwd() {
+#   # Tell Terminal.app about each directory change.
+#   printf '\e]7;%s\a' "$(echo "file://$HOST$PWD" | sed -e 's/ /%20/g')"
+# }
+
+#   My favorite diff tool is the =ediff= tool in Emacs, and little
+#   function (taken from [[http://defunitive.wordpress.com/2011/07/23/invoking-emacs-ediff-from-the-command-line/][this blog post]]) allows me to use it from the
+#   command line.
+
+function ediff() {
+  if [ -z "$2" ]; then
+    echo "USAGE: ediff <FILE 1> <FILE 2>"
+  else
+    # The --eval flag takes lisp code and evaluates it with EMACS
+    emacsclient -c --eval "(ediff-files \"$1\" \"$2\")"
+  fi
+}
 
 # OSX specific script (uses AppleScripts) to ask me to take a break every hour
 # Run this function as a background process using &
@@ -39,11 +57,11 @@ receipt() {
 # Save directory changes
 cd() {
   builtin cd "$@" || return
-  [ "$TERMINALAPP" ] && [ ! "$ESHELL" ] && set_terminal_app_pwd
-  pwd >"${XDG_STATE_HOME}/.lastpwd"
+  #  [ "$TERMINALAPP" ] && [ ! "$ESHELL" ] && set_terminal_app_pwd
+  pwd >"${XDG_STATE_HOME}/lastpwd"
   eza -lf
 }
 
 # state on last working dir
 [ -s ${XDG_STATE_HOME}/lastpwd ] && [ "$PWD" = "$HOME" ] && builtin cd "$(cat ${XDG_STATE_HOME}/lastpwd)" 2>/dev/null
-[ ! $$ESHELL ] && [ $TERMINALAPP ] && set_terminal_app_pwd
+#[ $TERMINALAPP ] && [ -z "$INSIDE_EMACS" ] && set_terminal_app_pwd
