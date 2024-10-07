@@ -6,12 +6,12 @@ export NAME='Andrés Gasson'
 export EMAIL='gas@tuatara.red'
 
 # Preferred programs
-export PAGER=less
+export PAGER=bat
 export EDITOR=em
 export VISUAL=$EDITOR
 
 # Path settings
-#prepend_to_path ~/.local/bin PATH
+prepend_to_path ~/opt/homebrew/bin PATH
 ## Brew
 #pathprepend ~/usr/local/sbin PATH
 #pathprepend ~/lib LD_LIBRARY_PATH

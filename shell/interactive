@@ -76,13 +76,13 @@ if [ -t 0 ] && [ $TERMINALAPP ] && quiet_which starship; then
     eval "$(starship init bash)"
     ;;
   *)
-    #export PS1='\[\e[0;36m\] :\W ➜ \[\e[m\]'
+    export PS1='\[\e[0;36m\] :\W ➜ \[\e[m\]'
     ;;
   esac
 fi
 
 # start-up ssh-agent
-[ -z "$SSH_AUTH_SOCK" ] && eval "$(ssh-agent -s)"
+#[ -z "$SSH_AUTH_SOCK" ] && eval "$(ssh-agent -s)"
 
 # Language
 export LANG='en_NZ.UTF-8'
