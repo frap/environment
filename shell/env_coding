@@ -11,12 +11,15 @@ fi
 # +-------------+
 # |    LESS     |
 # +-------------+
-if quiet_which bat; then
-    export LESSHISTFILE="${XDG_CONFIG_HOME}/less/history"
-    #    export LESSKEY="${XDG_CONFIG_HOME}/less/keys"
-    export LESS='-RFX' # -R allows colours -F like tail -X leaves on screen
-    export LESSOPEN='| bat %s'
-fi
+#   From [[http://funkworks.blogspot.com/2013/01/syntax-highlighting-in-less-on-osx.html][this blog entry]], comes details how to install the
+#   =source-highlight= program on the Mac in order to see various code
+#   highlighted in pretty colors.
+
+LESSPIPE=$(which src-hilite-lesspipe.sh)
+export LESSOPEN="| ${LESSPIPE} %s"
+export LESSHISTFILE="${XDG_CONFIG_HOME}/less/history"
+export LESS='-SXIFRs' # -S chop lines left-right arrows -R colours -F like tail -X leaves on screen
+alias less='less -m -N -g -i -J --underline-special --SILENT'
 
 # +-------------+
 # |    EMACS    |
@@ -57,16 +60,9 @@ fi
 # |    VIM      |
 # +-------------+
 if quiet_which vim; then
-    export VIMINIT='let $MYVIMRC="$XDG_CONFIG_HOME/vim/vimrc" | source $MYVIMRC'
     export VIMDOTDIR="$XDG_CONFIG_HOME/vim"
+    export VIMINIT='let $MYVIMRC="$VIMDOTDIR/vimrc" | ssource $MYVIMRC'
 fi
-
-# git
-# export GIT_REVIEW_BASE=master # See gitconfig
-# git_branch() {
-#   GIT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null) || return
-#   [ -n "$GIT_BRANCH" ] && echo "($GIT_BRANCH) "
-# }
 
 # +-----+
 # | GO  |
@@ -98,7 +94,7 @@ if dir_exists "${HOMEBREW_PREFIX}/opt/fzf/bin" && [ ! "$ESHELL" ]; then
     #Load up auto completion for fzf
     ssource "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.bash"
     append_to_path "${HOMEBREW_PREFIX}/opt/fzf/bin"
-    # fzf-git fials badly the shell!!
+    # fzf-git fails badly the shell!!
     #ssource "${XDG_CONFIG_HOME}/fzf-git.sh/fzf-git.sh"
 
 fi
@@ -160,7 +156,7 @@ fi
 # |   PYTHON    |
 # +-------------+
 export PYENV_ROOT="$XDG_CACHE_HOME/pyenv"
-[[ -d $PYENV_ROOT/bin ]] && append_to_path "$PYENV_ROOT/bin"
+dir_exists $PYENV_ROOT/bin && append_to_path "$PYENV_ROOT/bin"
 eval "$(pyenv init -)"
 
 # +-------------+

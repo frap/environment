@@ -8,7 +8,7 @@ alias shutdown='sudo shutdown now'
 alias restart='sudo reboot'
 alias vi=vim
 
-#alias bigf= 'find / -xdev -type f -size +500M'  # display "big" files > 500M
+#alias bigf= 'find / -xdev -type f -size +500M' # display "big" files > 500M
 
 # handy short cuts #
 alias h='history'
@@ -19,16 +19,13 @@ alias path='echo -e ${PATH//:/\\n}'
 alias count='find . -type f | wc -l'
 alias df='df -H'
 
+alias du='du -ch'
 if quiet_which ncdu; then
     alias du="ncdu --color dark -rr"
 fi
-alias du='du -ch'
 
 alias make="nice make"
-alias less="less --ignore-case --raw-control-chars"
 alias rsync="rsync --partial --progress --human-readable --compress"
-# Copying with progress
-alias cpv='rsync -ah --info=progress2'
 
 if quiet_which htop; then
     alias top="sudo htop"
@@ -44,8 +41,8 @@ alias topm="ps -e -o pmem,pid,user,tty,args | sort -n -k 1 -r | head"
 
 if quiet_which rg; then
     export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/ripgreprc"
-    alias rgc="rg --colors 'match:style:nobold' --colors 'path:style:nobold'"
-    alias grep="rgc"
+    #    alias rgc="rg --colors 'match:style:nobold' --colors 'path:style:nobold'"
+    alias grep="rg"
 
 else
     alias grep='ggrep --color=auto'
@@ -101,10 +98,11 @@ fi
 # | cp |
 # +----+
 
-#alias cp="cp -irv"
 alias cp='cp -iv'
 alias mv='mv -iv'
 alias rm='rm -i'
+# Copying with progress
+alias cpv='rsync -ah --info=progress2'
 
 # +------+
 # | ping |
@@ -120,9 +118,14 @@ alias pg='ping 8.8.8.8'
 # +-----+
 if quiet_which bat; then
     export BAT_THEME="gruvbox-light"
-    alias batl='bat --paging=never -l log'
-    alias batp='bat --paging=always --pager="less -RFX" --style=plain'
-    batdiff() {
+    alias bd="bat -l diff"
+    alias bj="bat -l json"
+    alias bc="bat -l clojure"
+    alias by="bat -l yaml"
+    alias bm="bat -p -l man"
+    alias bl='bat -p -l log'
+    #alias batp='bat --paging=always --pager="less -RFX" --style=plain'
+    bdiff() {
         git diff --name-only --relative --diff-filter=d | xargs bat --diff
     }
 fi
@@ -151,7 +154,6 @@ alias white='xargs perl -pi -e '\''s/\t/    /g; s/[\t ]+$//'\'''
 # | Git |
 # +-----+
 # Pull
-
 #    Allows me to pull new information from the remote branch, but not
 #    lose anything.
 function pull {
@@ -161,6 +163,13 @@ function pull {
 }
 
 if quiet_which git; then
+    # git
+    # export GIT_REVIEW_BASE=master # See gitconfig
+    git_branch() {
+        GIT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null) || return
+        [ -n "$GIT_BRANCH" ] && echo "($GIT_BRANCH) "
+    }
+
     alias g="git"
 
     # git add
@@ -187,9 +196,6 @@ if quiet_which git; then
     alias gcmd='git commit -m "dependencies update"'
     alias gcaam='git commit --amend --no-edit -a'
     alias gamend='git commit --amend --no-edit'
-
-    # git pull - aliases to fetch
-    alias gf="git pull"
 
     # git push
     alias gp='git push'
