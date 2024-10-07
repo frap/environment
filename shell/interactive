@@ -7,14 +7,6 @@
 
 # An interactive shell generally reads from and writes to a user’s terminal.
 
-#To determine within a startup script whether or not Bash is running interactively,
-# test the value of the ‘-’ special parameter. It contains i when the shell is
-# interactive. For example:
-#case "$-" in
-#*i*)	echo This shell is interactive ;;
-#*)	echo This shell is not interactive ;;
-#esac
-
 # OS variables
 [ "$(uname -s)" = "Darwin" ] && export MACOS=1 && export UNIX=1
 
@@ -61,14 +53,6 @@ mesg n
 # +------------+
 # | PROMPT     |
 # +------------+
-
-# Enable substitution in the prompt
-#setopt prompt_subst
-# Load up ANSI colours for terminal and logging
-#if [ $(tput colors) -ge 8 ]; then
-#    ssource $XDG_CONFIG_HOME/shell/ansi_colours
-#fi
-
 #if in a terminal
 if [ -t 0 ] && [ $TERMINALAPP ] && quiet_which starship; then
   case "$TERM" in
@@ -82,7 +66,7 @@ if [ -t 0 ] && [ $TERMINALAPP ] && quiet_which starship; then
 fi
 
 # start-up ssh-agent
-#[ -z "$SSH_AUTH_SOCK" ] && eval "$(ssh-agent -s)"
+[ -z "$SSH_AUTH_SOCK" ] && eval "$(ssh-agent -s)"
 
 # Language
 export LANG='en_NZ.UTF-8'

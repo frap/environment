@@ -74,30 +74,8 @@ if [ -z "$ESHELL" ]; then
 
   eval "$(fzf --zsh)"
 
-  # fzf-git
-  source "${HOME}/.config/fzf-git.sh/fzf-git.sh"
-
   # more macOS/Bash-like word jumps
   export WORDCHARS=""
-
-  # +-------------+
-  # |   DIRENV    |
-  # +-------------+
-  # enable direnv (if installed)
-  quiet_which direnv && eval "$(direnv hook zsh)"
-
-  # +-------------+
-  # |  GITHUB     |
-  # +-------------+
-
-  # +-------------+
-  # |   TROVE     |
-  # +-------------+
-  if dir_exists "${HOME}/work/tempo"; then
-    export GITHUB_AUTH="$(gh auth token)"
-    $HOME/work/tempo/trove-scripts/codeartifact/codeartifact_auth.py
-    alias trove='poetry run trove'
-  fi
 
 fi
 

@@ -34,22 +34,6 @@ if [ "$PS1" ]; then
     . ~/.config/bash/interactive
 fi
 
-if [ -z "$ESHELL" ]; then
-    # +-------------+
-    # |  GITHUB     |
-    # +-------------+
-
-    # +-------------+
-    # |   TROVE     |
-    # +-------------+
-    if dir_exists "${HOME}/work/tempo"; then
-        export GITHUB_AUTH="$(gh auth token)"
-        $HOME/work/tempo/trove-scripts/codeartifact/codeartifact_auth.py
-        alias trove='poetry run trove'
-    fi
-
-fi
-
 # +-------------+
 # |    AWS      |
 # +-------------+

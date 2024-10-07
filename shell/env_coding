@@ -96,7 +96,10 @@ if dir_exists "${HOMEBREW_PREFIX}/opt/fzf/bin" && [ ! "$ESHELL" ]; then
     export FZF_DEFAULT_COMMAND="rg --files --hidden --glob '!.git'"
     export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
     #Load up auto completion for fzf
+    ssource "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.bash"
     append_to_path "${HOMEBREW_PREFIX}/opt/fzf/bin"
+    # fzf-git fials badly the shell!!
+    #ssource "${XDG_CONFIG_HOME}/fzf-git.sh/fzf-git.sh"
 
 fi
 
@@ -166,9 +169,27 @@ eval "$(pyenv init -)"
 append_to_path "$XDG_DATA_HOME/.babashka/bbin/bin"
 
 # +-------------+
+# |   DIRENV    |
+# +-------------+
+if [[ "$SHELL" == */bash ]]; then
+    quiet_which direnv && eval "$(direnv hook bash)"
+    ssource "/opt/homebrew/etc/profile.d/bash_completion.sh"
+else
+    quiet_which direnv && eval "$(direnv hook zsh)"
+fi
+# +-------------+
 # |    MAKE     |
 # +-------------+
 if [ "$CPUCOUNT" -gt 1 ]; then
     export MAKEFLAGS="-j$CPUCOUNT"
     export BUNDLE_JOBS="$CPUCOUNT"
+fi
+
+# +-------------+
+# |   TROVE     |
+# +-------------+
+if dir_exists "${HOME}/work/tempo"; then
+    export GITHUB_AUTH="$(gh auth token)"
+    $HOME/work/tempo/trove-scripts/codeartifact/codeartifact_auth.py
+    alias trove='poetry run trove'
 fi
