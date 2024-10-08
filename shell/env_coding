@@ -61,7 +61,7 @@ fi
 # +-------------+
 if quiet_which vim; then
     export VIMDOTDIR="$XDG_CONFIG_HOME/vim"
-    export VIMINIT='let $MYVIMRC="$VIMDOTDIR/vimrc" | ssource $MYVIMRC'
+    export VIMINIT='let $MYVIMRC="$VIMDOTDIR/vimrc" | source $MYVIMRC'
 fi
 
 # +-----+
