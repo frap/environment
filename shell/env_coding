@@ -42,6 +42,11 @@ if quiet_which emacs; then
         [[ -z "$@" ]] && CFLAG="--create-frame"
         emacsclient $CFLAG --alternate-editor=emacs --no-wait "$@"
     }
+
+    alias m='e --eval "(progn (magit-status) (delete-other-windows))"'
+    alias mt="m -t"
+    alias et="e -t"
+
     export EDITOR=emacs
     export VISUAL="${EDITOR}"
     export ALTERNATE_EDITOR="vim"
