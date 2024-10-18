@@ -60,7 +60,7 @@ ssource "$ZSH_AUTOSUGGESTIONS"
 # +-------------+
 ssource "${XDG_CONFIG_HOME}/shell/interactive"
 
-if [ -z "$ESHELL" ]; then
+if [ ! -z "$INSIDE_EMACS" ]; then
 
   # +------------+
   # | HIGHLIGHT  |

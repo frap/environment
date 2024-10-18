@@ -1,5 +1,13 @@
 # -*- mode: sh; -*-
 
+# Save directory changes
+cd() {
+  builtin cd "$@" || return
+  #  [ "$TERMINALAPP" ] && [ ! -z "$INSIDE_EMACS" ] && set_terminal_app_pwd
+  pwd >"${XDG_STATE_HOME}/lastpwd"
+  eza -lf
+}
+
 function cl() {
   DIR="$*"
   # if no DIR given, go home
@@ -8,10 +16,14 @@ function cl() {
   fi
   builtin cd "${DIR}" &&
     # use your preferred ls command
-    ls
+    eza -ll
 }
 
 # Create a new directory and enter it
 function md() {
   mkdir -p "$@" && cd "$@"
 }
+
+# state on last working dir
+[ -s ${XDG_STATE_HOME}/lastpwd ] && [ "$PWD" = "$HOME" ] && builtin cd "$(cat ${XDG_STATE_HOME}/lastpwd)" 2>/dev/null
+#[ $TERMINALAPP ] && [ ! -z "$INSIDE_EMACS" ] && set_terminal_app_pwd

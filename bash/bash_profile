@@ -13,7 +13,7 @@
 
 # So we set all login information in .bashrc
 # We need to do two things here:
-
+#echo "in: bash_profile"
 # 1. get *_to_path fns, ssource, umask and export  HIST*
 . ~/.config/bash/env
 
@@ -26,10 +26,11 @@ BASH_ENV=
 # 3. Join the spanish inquisition. ;)
 # so much for only two things...
 
-# 4. alias to shell/login - set NAME EMAIL PAGER EDITOR
-. ~/.config/bash/login
+# 4. alias to shell/login - set NAME EMAIL PAGER EDITOR assume
+. ~/.config/shell/login
 
 # 5.call shell/interactive and setup DIRENV, FZF for ! ESHELL
+# will this stop mac os exec-path-from-shell? I dont think so
 if [ "$PS1" ]; then
     . ~/.config/bash/interactive
 fi
@@ -40,4 +41,4 @@ fi
 alias assume="source assume"
 
 # to avoid non-zero exit code
-true
+#true

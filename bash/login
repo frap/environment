@@ -7,5 +7,5 @@
 # executes commands from the FIRST one that exists and is readable. The
 # --noprofile option may be used when the shell is started to inhibit this
 # behaviour.
-
+echo "in: bash_login"
 . ~/.config/shell/login

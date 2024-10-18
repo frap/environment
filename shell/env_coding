@@ -69,6 +69,7 @@ if quiet_which vim; then
     export VIMINIT='let $MYVIMRC="$VIMDOTDIR/vimrc" | source $MYVIMRC'
 fi
 
+
 # +-----+
 # | GO  |
 # +-----+
@@ -93,7 +94,8 @@ fi
 # +-----+
 # | FZF |
 # +-----+
-if dir_exists "${HOMEBREW_PREFIX}/opt/fzf/bin" && [ ! "$ESHELL" ]; then
+if [ -z "$INSIDE_EMACS" ] && dir_exists "${HOMEBREW_PREFIX}/opt/fzf/bin"; then
+   # echo "in: setting up fzf"
     export FZF_DEFAULT_COMMAND="rg --files --hidden --glob '!.git'"
     export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
     #Load up auto completion for fzf
@@ -184,13 +186,4 @@ fi
 if [ "$CPUCOUNT" -gt 1 ]; then
     export MAKEFLAGS="-j$CPUCOUNT"
     export BUNDLE_JOBS="$CPUCOUNT"
-fi
-
-# +-------------+
-# |   TROVE     |
-# +-------------+
-if dir_exists "${HOME}/work/tempo"; then
-    export GITHUB_AUTH="$(gh auth token)"
-    $HOME/work/tempo/trove-scripts/codeartifact/codeartifact_auth.py
-    alias trove='poetry run trove'
 fi

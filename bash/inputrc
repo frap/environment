@@ -1,3 +1,4 @@
+# -*- mode: conf-unix -*-
 # I like this!
 set editing-mode emacs
 
@@ -18,10 +19,12 @@ set match-hidden-files off
 # Ignore case (on/off).
 set completion-ignore-case on
 
-set completion-query-items 100
+#set completion-query-items 100
 
 # First tab suggests ambiguous variants.
 set show-all-if-ambiguous on
+
+set show-all-if-unmodified on
 
 # Replace common prefix with ...
 set completion-prefix-display-length 1
@@ -30,6 +33,7 @@ set skip-completed-text off
 
 # If set to 'on', completed directory names have a slash appended. The default is 'on'.
 set mark-directories on
+
 # If a tab-completed file is symlink to directory - treat it like a directory NOT a file
 set mark-symlinked-directories on
 
@@ -69,8 +73,14 @@ $endif
 "\eOB": history-search-forward
 
 # Bind 'Shift+TAB' to complete as in Python TAB was need for another purpose.
-"\e[Z": complete
+"\e[Z": menu-complete-backward
 # Cycling possible completion forward and backward in place.
 "\e[1;3C": menu-complete                    # M-Right
 "\e[1;3D": menu-complete-backward           # M-Left
 "\e[1;5I": menu-complete                    # C-TAB
+"\e[Z": menu-complete-backward
+Tab: menu-complete
+#
+## Emacs-like C-M-f and C-M-b
+"\e\C-f": vi-match
+"\e\C-b": vi-match

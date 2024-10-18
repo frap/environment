@@ -10,6 +10,7 @@
 # OS variables
 [ "$(uname -s)" = "Darwin" ] && export MACOS=1 && export UNIX=1
 
+# try and identify when using Emacs shell
 [ ! -z "$INSIDE_EMACS" ] && export ESHELL=1
 
 if ! [ $MACOS ]; then
@@ -25,9 +26,11 @@ fi
 # set up homebrew
 if [ $MACOS ]; then
   # set different version of homebrew PATHS
-  force_append_to_path "/opt/homebrew/bin:/usr/local/bin"
-  # loadup osx Interactive shit
-  ssource "${XDG_CONFIG_HOME}/shell/osx_interactive"
+    force_append_to_path "/opt/homebrew/bin:/usr/local/bin"
+  # Setup Homebrew
+    eval $(brew shellenv) # exports HBREW PREFIX & PATH
+  # loadup any OSc specific Interactive shit
+  [ -z  "$INSIDE_EMACS" ] && ssource "${XDG_CONFIG_HOME}/shell/osx_interactive"
   export CPUCOUNT="$(/usr/sbin/sysctl -n hw.ncpu)"
 elif [ $LINUX ]; then
   export CPUCOUNT="$(getconf _NPROCESSORS_ONLN)"
@@ -41,11 +44,11 @@ append_to_path "${HOME}/.local/bin"
 # XDG Setup for some apps
 ssource ${XDG_CONFIG_HOME}/shell/env_coding
 
-# source shell functions if exists
-ssource $XDG_CONFIG_HOME/shell/interactive_fns
+# source shell interactive functions unless eshell
+[ -z "$INSIDE_EMACS" ] && ssource $XDG_CONFIGcl_HOME/shell/interactive_fns
 
-# put your aliases here
-ssource $XDG_CONFIG_HOME/shell/aliases
+# put your aliases here unless eshell
+[ -z "$INSIDE_EMACS" ] &&  ssource $XDG_CONFIG_HOME/shell/aliases
 
 # other users shouldn't be able to message by default
 mesg n

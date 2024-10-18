@@ -1,7 +1,6 @@
 # -*- mode: sh; -*-
 
-# Setup Homebrew
-eval $(brew shellenv) # exports HBREW PREFIX & PATH
+#echo "in: osx_interactive"
 
 # Enable Terminal.app folder icons
 [ "$TERM_PROGRAM" = "Apple_Terminal" ] && export TERMINALAPP=1
@@ -53,15 +52,3 @@ receipt() {
   [ -n "$1" ] || return
   json "$HOMEBREW_PREFIX/opt/$1/INSTALL_RECEIPT.json"
 }
-
-# Save directory changes
-cd() {
-  builtin cd "$@" || return
-  #  [ "$TERMINALAPP" ] && [ ! "$ESHELL" ] && set_terminal_app_pwd
-  pwd >"${XDG_STATE_HOME}/lastpwd"
-  eza -lf
-}
-
-# state on last working dir
-[ -s ${XDG_STATE_HOME}/lastpwd ] && [ "$PWD" = "$HOME" ] && builtin cd "$(cat ${XDG_STATE_HOME}/lastpwd)" 2>/dev/null
-#[ $TERMINALAPP ] && [ -z "$INSIDE_EMACS" ] && set_terminal_app_pwd
