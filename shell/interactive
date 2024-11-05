@@ -10,9 +10,6 @@
 # OS variables
 [ "$(uname -s)" = "Darwin" ] && export MACOS=1 && export UNIX=1
 
-# try and identify when using Emacs shell
-[ ! -z "$INSIDE_EMACS" ] && export ESHELL=1
-
 if ! [ $MACOS ]; then
   [ "$(uname -s)" = "Linux" ] && export LINUX=1 && export UNIX=1
   uname -s | grep -q "_NT-" && export WINDOWS=1
@@ -45,7 +42,7 @@ append_to_path "${HOME}/.local/bin"
 ssource ${XDG_CONFIG_HOME}/shell/env_coding
 
 # source shell interactive functions unless eshell
-[ -z "$INSIDE_EMACS" ] && ssource $XDG_CONFIGcl_HOME/shell/interactive_fns
+[ -z "$INSIDE_EMACS" ] && ssource $XDG_CONFIG_HOME/shell/interactive_fns
 
 # put your aliases here unless eshell
 [ -z "$INSIDE_EMACS" ] &&  ssource $XDG_CONFIG_HOME/shell/aliases
@@ -71,12 +68,11 @@ fi
 # start-up ssh-agent
 [ -z "$SSH_AUTH_SOCK" ] && eval "$(ssh-agent -s)"
 
-# Language
-export LANG='en_NZ.UTF-8'
-export LC_ALL=$LANG
-#export LC_COLLATE=$LANG
-#export LC_CTYPE=$LANG
-export LC_MESSAGES=$LANG
-export LC_MONETARY=$LANG
-export LC_NUMERIC=$LANG
-export LC_TIME=$LANG
+# +-------------+
+# |   TROVE     |
+# +-------------+
+if [ -z "$ESHELL" ] && dir_exists "${HOME}/work/tempo"; then
+    export GITHUB_AUTH="$(gh auth token)"
+    $HOME/work/tempo/trove-scripts/codeartifact/codeartifact_auth.py
+    alias trove='poetry run trove'
+fi

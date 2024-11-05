@@ -72,11 +72,12 @@ export PYENV_ROOT="$XDG_CACHE_HOME/pyenv"
 dir_exists $PYENV_ROOT/bin && append_to_path "$PYENV_ROOT/bin"
 eval "$(pyenv init -)"
 
-# +-------------+
-# |   TROVE     |
-# +-------------+
-if dir_exists "${HOME}/work/tempo"; then
-    export GITHUB_AUTH="$(gh auth token)"
-    $HOME/work/tempo/trove-scripts/codeartifact/codeartifact_auth.py
-    alias trove='poetry run trove'
-fi
+# Language
+export LANG='en_NZ.UTF-8'
+export LC_ALL=$LANG
+#export LC_COLLATE=$LANG
+#export LC_CTYPE=$LANG
+export LC_MESSAGES=$LANG
+export LC_MONETARY=$LANG
+export LC_NUMERIC=$LANG
+export LC_TIME=$LANG

@@ -31,6 +31,9 @@ export ENV=~/.config/sh/interactive
 # import local fns like ssource
 source ~/.config/shell/env_fns
 
+# try and identify when using Emacs shell
+[ ! -z "$INSIDE_EMACS" ] && export ESHELL=1
+
 # 077 would be more secure, but 022 is more useful.
 #umask 0077
 umask 022

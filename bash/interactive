@@ -3,3 +3,8 @@
 #ssource ~/.config/bash/bash_prompt
 
 ssource ~/.config/shell/interactive
+
+# +-------------+
+# |    FZF      |
+# +-------------+
+eval "$(fzf --bash)"
