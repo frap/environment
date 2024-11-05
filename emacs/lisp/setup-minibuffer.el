@@ -1,0 +1,115 @@
+;; setup-minibuffer  -*- lexical-binding: t; -*-
+
+(use-package minibuffer
+  :hook (minibuffer-setup .  cursor-intangible-mode)
+  :config
+;; Minibuffer completion
+  (setq completion-cycle-threshold 2
+      completion-flex-nospace nil
+      completion-pcm-complete-word-inserts-delimiters nil
+      ;;completion-pcm-word-delimiters "-_./:| "
+      completion-show-help nil
+      completion-ignore-case nil
+      read-buffer-completion-ignore-case t
+      read-file-name-completion-ignore-case t
+      completions-format 'vertical   ; *Completions* buffer
+      enable-recursive-minibuffers t
+      read-minibuffer-restore-windows t
+      read-answer-short t
+      resize-mini-windows 'grow-only
+      completion-styles '(partial-completion substring initials)
+      completion-category-overrides '((file (styles basic-remote partial-completion initials)))
+      ;; '((file (styles basic flex substring))
+      ;;   (buffer (styles basic flex substring)))
+)
+
+  (defun minibuffer-replace-input (&optional arg)
+    "Replace original minibuffer input.
+
+When a recursive minibuffer is active, insert the current string
+into the original minibuffer input.  With prefix ARG, replace it
+instead."
+    (interactive "P")
+    (when (and (minibufferp) (> (minibuffer-depth) 1))
+      (let* ((replacement (minibuffer-contents)))
+        (unwind-protect (minibuffer-quit-recursive-edit)
+          (run-at-time 0 nil
+                       (lambda (rep)
+                         (when arg (delete-minibuffer-contents))
+                         (insert rep)
+                         (pulse-momentary-highlight-one-line))
+                       replacement)))))
+
+  (define-key minibuffer-local-map (kbd "C-x C-i") 'minibuffer-replace-input)
+
+  (defun basic-remote-try-completion (string table pred point)
+    (and (path-remote-p string)
+         (completion-basic-try-completion string table pred point)))
+  (defun basic-remote-all-completions (string table pred point)
+    (and (path-remote-p string)
+         (completion-basic-all-completions string table pred point)))
+  (add-to-list
+   'completion-styles-alist
+   '(basic-remote basic-remote-try-completion basic-remote-all-completions nil))
+
+  (defun path-remote-p (path)
+    "Return t if PATH is a remote path."
+    (string-match-p "\\`/[^/|:]+:" (substitute-in-file-name path)))
+
+(defun my/messageless (fn &rest args)
+  "Set `minibuffer-message-timeout' to 0.
+Meant as advice around minibuffer completion FN with ARGS."
+  (let ((minibuffer-message-timeout 0))
+    (apply fn args)))
+
+(advice-add 'minibuffer-force-complete-and-exit :around #'my/messageless)
+
+(minibuffer-depth-indicate-mode 1)
+(minibuffer-electric-default-mode nil)
+;; (define-key minibuffer-local-completion-map (kbd "-") #'minibuffer-complete-word)
+
+(define-key minibuffer-local-completion-map (kbd "?")
+  (lambda () (interactive)
+    (minibuffer-completion-help)
+    (switch-to-completions)))
+(define-key completion-list-mode-map "n" 'next-line)
+(define-key completion-list-mode-map "p" 'previous-line)
+(define-key completion-list-mode-map "n" 'next-line)
+(define-key completion-list-mode-map "f" 'next-completion)
+(define-key completion-list-mode-map "b" 'previous-completion)
+(define-key completion-list-mode-map "M-v" 'my/focus-minibuffer)
+(define-key completion-list-mode-map "?" 'my/focus-minibuffer)
+
+(defun my/minibuffer-focus-mini ()
+  "Focus the active minibuffer."
+  (interactive)
+  (let ((mini (active-minibuffer-window)))
+    (when mini
+      (select-window mini))))
+
+;; Try really hard to keep the cursor from getting stuck in the read-only prompt
+;; portion of the minibuffer.
+(setq minibuffer-prompt-properties
+      '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
+;;   :preface
+;;   (unless (fboundp 'minibuffer-keyboard-quit)
+;;     (autoload #'minibuffer-keyboard-quit "delsel" nil t))
+;;   (define-advice keyboard-quit
+;;       (:around (quit) quit-current-context)
+;;     "Quit the current context.
+
+;; When there is an active minibuffer and we are not inside it close
+;; it.  When we are inside the minibuffer use the regular
+;; `minibuffer-keyboard-quit' which quits any active region before
+;; exiting.  When there is no minibuffer `keyboard-quit' unless we
+;; are defining or executing a macro."
+;;     (if (active-minibuffer-window)
+;;         (if (minibufferp)
+;;             (minibuffer-keyboard-quit)
+;;           (abort-recursive-edit))
+;;       (unless (or defining-kbd-macro
+;;                   executing-kbd-macro)
+;;         (funcall-interactively quit))))
+)
+
+(provide 'setup-minibuffer)
