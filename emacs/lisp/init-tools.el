@@ -1,8 +1,105 @@
 ;;; lisp/init-tools.el --- Emacs Tools -*- lexical-binding: t -*-
 
 ;;; Tools
+
+(use-package ediff-wind
+  :defer t
+  :init
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain
+        ediff-split-window-function 'split-window-horizontally))
+
+;; (use-package ediff
+;;   :defer t
+;;   :custom
+;;   (ediff-split-window-function 'split-window-horizontally)
+;;   (ediff-window-setup-function 'ediff-setup-windows-plain)
+;;   :config
+;;   (advice-add 'ediff-window-display-p :override #'ignore))
+
+(use-package project
+  ;; :bind-keymap ("s-p" . project-prefix-map)
+  ;; :bind ( :map project-prefix-map
+  ;;         ("s" . project-save-some-buffers)
+  ;;         ("t" . eshell)
+  ;;         ("v" . magit)
+  ;;         ("s-p" . project-switch-project))
+  ;; :bind (("C-c k" . #'project-kill-buffers)
+  ;;        ("C-c m" . #'project-compile)
+  ;;        ("C-x f" . #'find-file)
+  ;;        ("C-c F" . #'project-switch-project)
+  ;;        ("C-c R" . #'pt/recentf-in-project)
+  ;;        ("C-c f" . #'project-find-file))
+  :bind (("C-x p q" . project-query-replace-regexp) ; C-x p is `project-prefix-map'
+         ("C-x p <delete>" . my/project-remove-project)
+         ("C-x p DEL" . my/project-remove-project)
+         ;; ("M-s p" . my/project-switch-project)
+         ;; ("M-s f" . my/project-find-file-vc-or-dir)
+         ("M-s L" . find-library))
+  :init
+  (defun my/frame-title-format ()
+      (and-let* ((proj (project-current))
+                 (name (project-root proj))
+                 (name (file-name-nondirectory
+                        (directory-file-name name))))
+        (concat name ":")))
+  ;; (defun my/frame-title-format ()
+  ;;   (let ((proj (project-current)))
+  ;;     (if proj
+  ;;         (let ((name (project-root proj)))
+  ;;           (concat (file-name-nondirectory
+  ;;                    (directory-file-name name)) ":"))
+  ;;       "Pas de projet")))
+  ;; (timeout-throttle! #'my/frame-title-format 4.0)
+  ;; (add-to-list
+  ;;  'frame-title-format
+  ;;  '(:eval (my/frame-title-format)))
+
+  (setq project-switch-commands
+        '((?f "Find file" project-find-file)
+          (?g "Find regexp" project-find-regexp)
+          (?d "Dired" project-dired)
+          (?b "Buffer" project-switch-to-buffer)
+          (?q "Query replace" project-query-replace-regexp)
+          (?v "magit" project-magit-status)
+          (?k "Kill buffers" project-kill-buffers)
+          (?! "Shell command" project-shell-command)
+          (?e "Eshell" project-eshell)))
+
+  (cl-defgeneric project-root (project)
+    "Return root directory of the current project.
+
+It usually contains the main build file, dependencies
+configuration file, etc. Though neither is mandatory.
+
+The directory name must be absolute."
+    (car project))
+
+  :custom
+  (project-compilation-buffer-name-function 'project-prefixed-buffer-name)
+  (project-vc-extra-root-markers
+   '("Cargo.toml" "project.clj" "yarn.lock" "trove-ci.yml"
+     "deps.edn" "shadow-cljs.edn" "bb.edn" "pyproject.toml"))
+  :config
+  (setq project-list-file (dir-concat user-cache-directory "projects"))
+
+  (defun project-magit-status ()
+    "Run magit-status in the current project's root."
+    (interactive)
+    (magit-status-setup-buffer (project-root (project-current t))))
+
+  (defun my/project-remove-project ()
+    "Remove project from `project--list' using completion."
+    (interactive)
+    (project--ensure-read-project-list)
+    (let* ((projects project--list)
+           (dir (completing-read "REMOVE project from list: " projects nil t)))
+      (setq project--list (delete (assoc dir projects) projects))))
+
+  (setq project-window-list-file (dir-concat user-cache-directory "project-window-list")
+        project-vc-merge-submodules nil)
+  )
+
 ;; (use-package project
-;;   :straight (:type built-in)
 ;;   :bind-keymap ("s-p" . project-prefix-map)
 ;;   :bind ( :map project-prefix-map
 ;;           ("s" . project-save-some-buffers)
@@ -91,134 +188,36 @@
 ;;   (add-to-list 'project-switch-commands
 ;;                '(project-switch-to-buffer "Switch buffer")))
 
-(use-package projectile
- ;; :delight
-  :config
-  (setq projectile-project-search-path '(("~/work" . 2)  ("~/.config" . 1) ("~/dev/frap" . 3)))
-  (setq ;; projectile-enable-caching nil
-   projectile-sort-order 'recentf )
-  (projectile-mode))
+;; (use-package projectile
+;;  ;; :delight
+;;   :config
+;;   (setq projectile-project-search-path '(("~/work" . 2)  ("~/.config" . 1) ("~/dev/frap" . 3)))
+;;   (setq ;; projectile-enable-caching nil
+;;    projectile-sort-order 'recentf )
+;;   (projectile-mode))
 
 (defun pt/recentf-in-project ()
   "As `recentf', but filtering based on the current project root."
   (interactive)
   (let* ((proj (project-current))
-         (root (if proj (project-root proj) (user-error "Not in a project"))))
+         (root (if proj (project-root proj) (user-error "Pas de projet"))))
     (cl-flet ((ok (fpath) (string-prefix-p root fpath)))
       (find-file (completing-read "Find recent file:" recentf-list #'ok)))))
 
-(use-package comint
-  :straight nil
-  :defer t
-  :custom
-  (comint-scroll-show-maximum-output nil)
-  (comint-highlight-input nil)
-  (comint-input-ignoredups t))
-
-(use-package ediff
-  :straight nil
-  :custom
-  (ediff-split-window-function 'split-window-horizontally)
-  (ediff-window-setup-function 'ediff-setup-windows-plain)
-  :config
-  (advice-add 'ediff-window-display-p :override #'ignore))
-
-(use-package eat
-  :hook (eshell-load . eat-eshell-mode))
-
-;; (use-package esh-mode
-;;   :straight nil
-;;   :hook (eshell-mode . common-lisp-modes-mode)
-;;   :preface
-;;   (declare-function eshell-search-path "ext:esh-ext")
-;;   (defun eshell-prompt ()
-;;     (let* ((date (propertize (format-time-string "%a %H:%M") 'face '(:inherit shadow)))
-;;            (path (abbreviate-file-name default-directory))
-;;            (branch (when (and (eshell-search-path "git")
-;;                               (locate-dominating-file default-directory ".git"))
-;;                      (concat (propertize (propertize " on " 'face '(:inherit shadow)))
-;;                              (propertize (string-trim (shell-command-to-string "git branch --show-current"))
-;;                                          'face (if (string-empty-p (shell-command-to-string "git status --porcelain 2>/dev/null"))
-;;                                                    '(:inherit shadow)
-;;                                                  '(:inherit font-lock-builtin-face))))))
-;;            (container (cond
-;;                        ((file-exists-p "/run/.containerenv")
-;;                         (format " in %s"
-;;                                 (with-temp-buffer
-;;                                   (save-match-data
-;;                                     (insert-file-contents "/run/.containerenv")
-;;                                     (re-search-forward "^name=\"\\([^\"]+\\)\"" nil t)
-;;                                     (switch-to-buffer (current-buffer))
-;;                                     (or (match-string-no-properties 1) "podman")))))
-;;                        ((file-exists-p "/.dockerenv") " in docker")))
-;;            (ssh (when (getenv "SSH_CONNECTION") " via ssh"))
-;;            (info (concat (or branch "")
-;;                          (propertize (concat (or container "")
-;;                                              (or ssh ""))
-;;                                      'face '(:inherit shadow))))
-;;            (prompt (if (= eshell-last-command-status 0)
-;;                        "$"
-;;                      (propertize "$" 'face '(:inherit error)))))
-;;       (concat date " " path info "\n" prompt " ")))
-;;   :custom
-;;   (eshell-scroll-show-maximum-output nil)
-;;   (eshell-prompt-function 'eshell-prompt)
-;;   (eshell-banner-message ""))
-
-;; (use-package esh-module
-;;   :straight nil
-;;   :after eshell
-;;   :custom
-;;   (eshell-modules-list
-;;    (cl-remove 'eshell-term eshell-modules-list)))
 ;;when I do a git-pull I'd like to see what's new
 (global-auto-revert-mode t)
 
-(use-package vc-hooks
-  :straight nil
-  :defer t
-  :custom
-  (vc-follow-symlinks t))
+(use-package transient
+  :ensure t)
 
-(defun vcs-quit (&optional _kill-buffer)
-  "Clean up magit buffers after quitting `magit-status'.
-    And don't forget to refresh version control in all buffers of
-    current workspace."
-  (interactive)
-  (quit-window)
-  (unless (cdr
-           (delq nil
-                 (mapcar (lambda (win)
-                           (with-selected-window win
-                             (eq major-mode 'magit-status-mode)))
-                         (window-list))))
-    (when (fboundp 'magit-mode-get-buffers)
-      (mapc #'vcs--kill-buffer (magit-mode-get-buffers)))))
-
-(defun vcs--kill-buffer (buffer)
-  "Gracefully kill `magit' BUFFER.
-    If any alive process is related to this BUFFER, wait for 5
-    seconds before nuking BUFFER and the process. If it's dead -
-    don't wait at all."
-  (when (and (bufferp buffer) (buffer-live-p buffer))
-    (let ((process (get-buffer-process buffer)))
-      (if (not (processp process))
-          (kill-buffer buffer)
-        (with-current-buffer buffer
-          (if (process-live-p process)
-              (run-with-timer 5 nil #'vcs--kill-buffer buffer)
-            (kill-process process)
-            (kill-buffer buffer)))))))
-
-(use-package transient)
-
-(global-set-key (kbd "C-x g") 'magit-status)
 (use-package magit
   :ensure t
-  :defer 1
+  ;; :hook ((git-commit-mode . flyspell-mode)
+  ;;        (git-commit-mode . magit-git-commit-insert-branch))
   :bind
-  ("C-c g" . magit-status)
-  ("C-x g" . magit-status)
+  (("C-c g" . magit-status)
+   :map project-prefix-map
+   ("m" . magit-project-status))
   :defines (magit-status-mode-map
             magit-revision-show-gravatars
             magit-display-buffer-function
@@ -229,46 +228,67 @@
   :mode (("COMMIT_EDITMSG" . git-commit-mode))
   :init
   (setq-default magit-git-executable (executable-find "git"))
-  :hook (git-commit-mode . flyspell-mode)
-  :bind ( :map project-prefix-map
-          ("m" . magit-project-status))
   :custom
   (magit-ediff-dwim-show-on-hunks t)
   (magit-diff-refine-ignore-whitespace t)
   (magit-diff-refine-hunk 'all)
   (magit-no-message (list "Turning on magit-auto-revert-mode..."))
    :config
-  (setq-default vc-follow-symlinks t)
-  ;; properly kill leftover magit buffers on quit
-  (define-key magit-status-mode-map
-    [remap magit-mode-bury-buffer]
-    #'vcs-quit)
- (setq magit-revision-show-gravatars
-        '("^Author:     " . "^Commit:     ")
-        magit-display-buffer-function
-        #'magit-display-buffer-same-window-except-diff-v1
-        ;; show word-granularity on selected hunk
-        magit-diff-refine-hunk t)
-  (setq git-commit-summary-max-length 120)
-  (setq magit-commit-show-diff nil)
-  (setq magit-delete-by-moving-to-trash nil)
-  (setq magit-display-buffer-function
-        #'magit-display-buffer-same-window-except-diff-v1)
-  (setq magit-log-auto-more t)
-  (setq magit-log-margin-show-committer-date t)
-  (setq magit-revert-buffers 'silent)
-  (setq magit-save-repository-buffers 'dontask)
-  (setq magit-wip-after-apply-mode t)
-  (setq magit-wip-after-save-mode t)
-  (setq magit-wip-before-change-mode t)
-  (setq transient-values
-        '((magit-log:magit-log-mode "--graph" "--color" "--decorate"))))
+   (setq-default vc-follow-symlinks t)
+   ;; properly kill leftover magit buffers on quit
+   (define-key magit-status-mode-map
+               [remap magit-mode-bury-buffer]
+               #'vcs-quit)
+   (setq magit-revision-show-gravatars
+         '("^Author:     " . "^Commit:     ")
+         magit-display-buffer-function
+         #'magit-display-buffer-same-window-except-diff-v1
+         ;; show word-granularity on selected hunk
+         magit-diff-refine-hunk t)
+   (setq git-commit-summary-max-length 120)
+   (setq magit-commit-show-diff nil)
+   (setq magit-delete-by-moving-to-trash nil)
+   (setq magit-display-buffer-function
+         #'magit-display-buffer-same-window-except-diff-v1)
+   (setq magit-log-auto-more t)
+   (setq magit-log-margin-show-committer-date t)
+   (setq magit-revert-buffers 'silent)
+   (setq magit-save-repository-buffers 'dontask)
+   (setq magit-wip-after-apply-mode t)
+   (setq magit-wip-after-save-mode t)
+   (setq magit-wip-before-change-mode t)
+   (setq transient-values
+         '((magit-log:magit-log-mode "--graph" "--color" "--decorate")))
+   :preface
+   (defun magit-extract-jira-tag (branch-name)
+     "Extract jira tag from BRANCH-NAME."
+     (let ((ticket-pattern "\\([[:alpha:]]+-[[:digit:]]+\\)"))
+       (when (string-match-p ticket-pattern branch-name)
+         (upcase (replace-regexp-in-string ticket-pattern "\\1: " branch-name)))))
+   (defun magit-git-commit-insert-branch ()
+     "Insert the branch tag in the commit buffer if feasible."
+     (when-let ((tag (magit-extract-jira-tag (magit-get-current-branch))))
+       (insert tag)
+       (forward-char -1)))
+   (global-set-key (kbd "C-x g") 'magit-status))
 
 (use-package magit
   :after project
   :config
   (add-to-list 'project-switch-commands
                '(magit-project-status "Magit") t))
+
+(use-package ghub
+  :ensure t
+  :defer t)
+
+(use-package forge
+  :ensure t
+  :commands forge-create-pullreq forge-create-issue
+  :init
+  (setq-default forge-database-file
+                (expand-file-name "forge/forge-database.sqlite"
+                                  user-cache-directory)))
 
 ;;;;; gutter
 (use-package git-gutter
@@ -314,6 +334,8 @@
 
 ;; show todos
 (use-package magit-todos
+  :ensure t
+  :when (version<= emacs-version "30.0.91")
   :after magit
   :config (magit-todos-mode 1))
 
@@ -326,10 +348,49 @@
   :commands (git-link git-link-commit git-link-homepage))
 
 ;;;;; git-time
-(use-package git-timemachine)
+(use-package git-timemachine
+  :ensure t
+  :defer t)
+
+(use-package diff-hl
+  :ensure t
+  :defer t
+  :hook ((prog-mode . turn-on-diff-hl-mode)
+         (text-mode . turn-on-diff-hl-mode)
+         (vc-dir-mode . turn-on-diff-hl-mode)
+         (dired-mode . diff-hl-dired-mode)))
+
+(defun vcs-quit (&optional _kill-buffer)
+  "Clean up magit buffers after quitting `magit-status'.
+    And don't forget to refresh version control in all buffers of
+    current workspace."
+  (interactive)
+  (quit-window)
+  (unless (cdr
+           (delq nil
+                 (mapcar (lambda (win)
+                           (with-selected-window win
+                             (eq major-mode 'magit-status-mode)))
+                         (window-list))))
+    (when (fboundp 'magit-mode-get-buffers)
+      (mapc #'vcs--kill-buffer (magit-mode-get-buffers)))))
+
+(defun vcs--kill-buffer (buffer)
+  "Gracefully kill `magit' BUFFER.
+    If any alive process is related to this BUFFER, wait for 5
+    seconds before nuking BUFFER and the process. If it's dead -
+    don't wait at all."
+  (when (and (bufferp buffer) (buffer-live-p buffer))
+    (let ((process (get-buffer-process buffer)))
+      (if (not (processp process))
+          (kill-buffer buffer)
+        (with-current-buffer buffer
+          (if (process-live-p process)
+              (run-with-timer 5 nil #'vcs--kill-buffer buffer)
+            (kill-process process)
+            (kill-buffer buffer)))))))
 
 (use-package server
-  :straight nil
   :commands (server-running-p)
   :init
   (unless (server-running-p)
@@ -356,7 +417,7 @@
       "Edit, then exit with `\\[separedit-commit]' or abort with \\<edit-indirect-mode-map>`\\[edit-indirect-abort]'"))))
 
 (use-package hl-todo
-  :straight (:host github :repo "tarsius/hl-todo")
+  :ensure (:host github :repo "tarsius/hl-todo")
   :hook (prog-mode . hl-todo-mode)
   :config
   (setq hl-todo-keyword-faces
@@ -371,7 +432,6 @@
            ("PERF"  . "#e09030")))))
 
 (use-package compile
-  :straight nil
   :hook
   (compilation-filter . ansi-color-compilation-filter)
   :custom
@@ -597,5 +657,31 @@ Set automatically by the `" (symbol-name compilation-mode-name) "'."))
 ;;    "\\(?:^[[:space:]]+\\([^
 ;; :]+\\):\\([[:digit:]]+\\):[[:space:]]+in.+$\\)"
 ;;    :file 1 :line 2))
+
+(use-package password-store
+  :no-require
+  :when (executable-find "pass")
+  :commands (password-store-copy
+             password-store-get
+             password-store-insert
+             password-store-generate)
+  :functions (password-store--completing-read@use-orderless)
+  :load-path "/usr/share/doc/pass/emacs/"
+  :config
+  (define-advice password-store--completing-read
+      (:around (fn &optional require-match) use-orderless)
+    (let ((completion-styles (append completion-styles '(orderless))))
+      (funcall fn require-match))))
+
+;;; Messaging
+
+(use-package message
+  :defer t
+  :custom
+  (message-kill-buffer-on-exit t))
+
+(use-package message-view-patch
+  :ensure t
+  :hook (gnus-part-display . message-view-patch-highlight))
 
 (provide 'init-tools)

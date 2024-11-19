@@ -128,10 +128,11 @@ in `user-emacs-directory'."
         user-emacs-directory))
     (find-file (expand-file-name "init.el" user-emacs-directory))))
 
-(require 'package)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-(add-to-list 'package-archives '("gnu-devel" . "https://elpa.gnu.org/devel/"))
-(package-initialize)
+(setq package-enable-at-startup nil)
+;; (require 'package)
+;; (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+;; (add-to-list 'package-archives '("gnu-devel" . "https://elpa.gnu.org/devel/"))
+;; (package-initialize)
 
 (provide 'early-init)
 ;;; early-init.el ends here

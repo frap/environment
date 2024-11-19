@@ -428,48 +428,71 @@ Additionally, add `cape-file' as early as possible to the list."
          ("C-x C-d" . consult-dir)
          ("C-x C-j" . consult-dir-jump-file)))
 
+;;; Embark package helps find actions relevant to what is near the point.
+;;(require 'setup-embark)
 (use-package embark
-  :after vertico
-  :bind (:map vertico-map
-              ("C-x C-l" . embark-act))
+  :ensure t
+  :bind
+  (("C-." . embark-act)
+   ("C-;" . embark-dwim)
+   ("C-x ." . embark-act)
+   ("C-x ;" . embark-dwim)
+   ("C-h C-b" . embark-bindings))
   :init
-  ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
   :config
-  ;; Hide the mode line of the Embark live/completions buffers
   (add-to-list 'display-buffer-alist
-               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+               '("\\'\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
                  (window-parameters (mode-line-format . none)))))
-  ;; (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate))
 
-  (use-package embark-consult
-    :after (embark consult)
-    ;; :demand t ; only necessary if you have the hook below
-    ;; if you want to have consult previews as you move around an
-    ;; auto-updating embark collect buffer
-    ;; :hook
-    ;; (embark-collect-mode . embark-consult-preview-minor-mode)
-    ;;:hook (embark-collect-mode . consult-preview-at-point-mode)
-    )
+(use-package embark-consult
+  :after (emark consult)
+  :ensure t
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+;; (use-package embark
+;;   :after vertico
+;;   :bind (:map vertico-map
+;;               ("C-x C-l" . embark-act))
+;;   :init
+;;   ;; Optionally replace the key help with a completing-read interface
+;;   (setq prefix-help-command #'embark-prefix-help-command)
+;;   :config
+;;   ;; Hide the mode line of the Embark live/completions buffers
+;;   (add-to-list 'display-buffer-alist
+;;                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+;;                  nil
+;;                  (window-parameters (mode-line-format . none)))))
+;;   ;; (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate))
 
-  ;; A few more useful configurations...
-  ;; (use-package emacs
-  ;;   :init
-  ;;   ;; TAB cycle if there are only few candidates
-  ;;   (setq completion-cycle-threshold 3)
+;;   (use-package embark-consult
+;;     :after (embark consult)
+;;     ;; :demand t ; only necessary if you have the hook below
+;;     ;; if you want to have consult previews as you move around an
+;;     ;; auto-updating embark collect buffer
+;;     ;; :hook
+;;     ;; (embark-collect-mode . embark-consult-preview-minor-mode)
+;;     ;;:hook (embark-collect-mode . consult-preview-at-point-mode)
+;;     )
 
-;; )
+;;   ;; A few more useful configurations...
+;;   ;; (use-package emacs
+;;   ;;   :init
+;;   ;;   ;; TAB cycle if there are only few candidates
+;;   ;;   (setq completion-cycle-threshold 3)
 
-  (use-package marginalia
-    :after vertico
-    :bind (:map minibuffer-local-map
+;; ;; )
+
+(use-package marginalia
+  :after vertico
+  :bind (:map minibuffer-local-map
               ("M-A" . marginalia-cycle))
-    :custom
-    (marginalia-max-relative-age 0)
-    (marginalia-align 'right)
-    :config
-    (marginalia-mode))
+  :custom
+  (marginalia-max-relative-age 0)
+  (marginalia-align 'right)
+  :config
+  (marginalia-mode))
 
   ;; (use-package minibuffer
   ;;   :straight nil
@@ -771,10 +794,7 @@ parses its input."
   ;;                    "  ")
   ;;                  cand))))
 
-;; Persist history over Emacs restarts. Vertico sorts by history position.
-(use-package savehist
-  :init
-  (savehist-mode))
+
 
 ;; Configure directory extension.
 (use-package vertico-directory

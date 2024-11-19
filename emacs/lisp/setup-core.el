@@ -1,4 +1,4 @@
-;;; Optimisations  -*- lexical-binding: t; -*-
+;;; setup-core.el --- Optimisations  -*- lexical-binding: t; -*-
 
 ;; A helper to keep track of start-up time:
 (eval-when-compile (require 'cl-lib))
@@ -9,8 +9,9 @@
                 (message "[Emacs chargé dans %.3fs secondes avec %d ramasse-miettes]" elapsed gcs-done)))))
 
 
-(defconst IS-MAC     (eq system-type 'darwin))
-(defconst IS-LINUX   (eq system-type 'gnu/linux))
+(defconst IS-MAC?     (eq system-type 'darwin))
+(defconst IS-LINUX?   (eq system-type 'gnu/linux))
+(defconst IS-GUI?     (display-graphic-p))
 
 ;; Disable bidirectional text rendering for a modest performance boost. Just
 ;; need to remember to turn it on when displaying a right-to-left language!
@@ -35,10 +36,17 @@
 ;; Don't ping things that look like domain names.
 (setq ffap-machine-p-known 'reject)
 
+(setq
+ ;; Reduce debug output, well, unless we've asked for it.
+ debug-on-error init-file-debug
+ jka-compr-verbose init-file-debug
+ read-process-output-max (* 64 1024)    ; 64kb
+ )
+
 ;; Remove command line options that aren't relevant to our current OS; that
 ;; means less to process at startup.
-(unless IS-MAC   (setq command-line-ns-option-alist nil))
-(unless IS-LINUX (setq command-line-x-option-alist nil))
+(unless IS-MAC?   (setq command-line-ns-option-alist nil))
+(unless IS-LINUX? (setq command-line-x-option-alist nil))
 
 (defvar doom-local-dir
   (expand-file-name ".local/" (or (getenv-internal "XDG_CONFIG_HOME") "~/.config/emacs/")))

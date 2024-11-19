@@ -4,10 +4,8 @@
 ;; Embark for actions
 (use-package embark
   :demand
-  :ensure t
-  ;;(:host github :repo "oantolin/embark"
-  ;; :files ("embark.el" "embark.texi" "embark-org.el")
-  ;; )
+  :ensure (:host github :repo "oantolin/embark"
+                 :files ("embark.el" "embark.texi" "embark-org.el") )
   :after minibuffer
   :hook ((embark-collect-mode . hl-line-mode))
   :bind (("M-SPC" . embark-act)
@@ -382,34 +380,6 @@ targets."
               ("C-M-o" . avy-embark-collect-act)
               ("C-M-j" . avy-embark-collect-act)))
 
-;; Embark integration for Straight
-(use-package embark
-  :disabled
-  :defer
-  :config
-  (use-package straight
-    :defer
-    :config
-    (defvar embark-straight-map
-      (let ((map (make-sparse-keymap)))
-        (pcase-dolist
-            (`(,key ,command)
-             '(("u" straight-visit-package-website)
-               ("r" straight-get-recipe)
-               ("i" straight-use-package)
-               ("v" straight-visit-package-website)
-               ("c" straight-check-package)
-               ("F" straight-pull-package)
-               ("f" straight-fetch-package)
-               ("p" straight-push-package)
-               ("n" straight-normalize-package)
-               ("m" straight-merge-package)))
-          (define-key map (kbd key) command))
-        map))
-
-    (add-to-list 'embark-keymap-alist '(straight . embark-straight-map))
-
-    (add-to-list 'marginalia-prompt-categories '("recipe\\|package" . straight))))
 
 (provide 'setup-embark)
 ;; setup-embark.el ends here

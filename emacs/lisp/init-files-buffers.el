@@ -2,33 +2,45 @@
 ;;; Commentary:
 ;;; Code:
 
+;; Benchmark
+;; benchmark-init is a simple package that may or may not carry its
+;; weight versus usepackage-compute-statistics. Run
+;; benchmark-init/show-durations-tabulated to check this one out.
+(use-package benchmark-init
+  :ensure t
+  :demand t
+  :hook (after-init . benchmark-init/deactivate)
+  :config
+  (benchmark-init/activate))
+
 ;; ffap, short for “find file at point,” guesses a default file from
 ;; the point. ffap-bindings rebinds several commands with ffap
 ;; equivalents. aka smarter C-x C-f when point on path or URL
 (use-package ffap
-  :straight (:type built-in)
   :init
   ;; Don't ping things that look like domain names.
-   (setq ffap-machine-p-known 'reject)
-   :hook (on-first-input . ffap-bindings))
+  (setq ffap-machine-p-known 'reject)
+  :hook (on-first-input . ffap-bindings))
 
 (use-package dired
-  :straight (:type built-in)
-  :hook
-  (dired-mode . dired-hide-details-mode)
+  :hook (dired-mode . dired-hide-details-mode)
+  :custom (dired-listing-switches "-lAXhv --group-directories-first")
   :bind (:map dired-mode-map
-              ("/" . dired-goto-file)
-              ("," . dired-create-directory)
-              ("." . dired-create-empty-file)
-              ;; ("I" . dired-insert-subdir)
-              ("K" . dired-kill-subdir)
-              ;; ("O" . dired-find-file-other-window)
-              ("[" . dired-prev-dirline)
-              ("]" . dired-next-dirline)
-              ;; ("^" . mode-line-other-buffer)
-              ("x" . dired-do-delete)
-              ("X" . dired-do-flagged-delete)
-              ("y" . dired-do-copy))
+	       ("<backspace>" . dired-up-directory)
+               ("M-<up>" . dired-up-directory)
+               ("~" . dired-home-directory)
+               ("/" . dired-goto-file)
+               ("," . dired-create-directory)
+               ("." . dired-create-empty-file)
+               ;; ("I" . dired-insert-subdir)
+               ("K" . dired-kill-subdir)
+               ;; ("O" . dired-find-file-other-window)
+               ("[" . dired-prev-dirline)
+               ("]" . dired-next-dirline)
+               ;; ("^" . mode-line-other-buffer)
+               ("x" . dired-do-delete)
+               ("X" . dired-do-flagged-delete)
+               ("y" . dired-do-copy))
   :init
   (setq dired-omit-files "^\\.[^.]\\|$Rhistory\\|$RData\\|__pycache__|node_modules")
   (setq dired-listing-switches "-agho --group-directories-first")
@@ -37,10 +49,13 @@
   (autoload 'dired-omit-mode "dired-x")
   (put 'dired-find-alternate-file 'disabled nil)
   :config
+  (defun dired-home-directory ()
+    (interactive)
+    (dired (expand-file-name "~/")))
   (setq-default
-    dired-kill-when-opening-new-dired-buffer t   ; delete dired buffer when opening another directory
-    backward-delete-char-untabify-method 'hungry ; Alternatives is: 'all (remove all consecutive whitespace characters, even newlines).
-    )
+    dired-kill-when-opening-new-dired-buffer t    ; delete dired buffer when opening another directory
+    backward-delete-char-untabify-method 'hungry) ; Alternatives is: 'all (remove all consecutive ws chars, even \n).
+
   (setq dired-omit-verbose nil
       dired-dwim-target t ; Copy and move files netween dired buffers
       dired-recursive-copies 'always ; "always" means no asking
@@ -57,7 +72,6 @@
     (setq dired-dwim-target t))
 
 (use-package files
-  :straight (:type built-in)
   :preface
   (setq
    ;; more info in completions
@@ -69,7 +83,8 @@
     ;;Emacs is super fond of littering filesystems with backups and autosaves. This was valid in 1980. It is no longer the case
    make-backup-files nil
    auto-save-default nil
-   create-lockfiles nil )
+   create-lockfiles nil
+   warning-minimum-level :error )
   (setq-default
    x-select-enable-clipboard t       ; Makes killing/yanking interact with the clipboard.
    save-interprogram-paste-before-kill t ; Save clipboard strings into kill ring before replacing them.
@@ -118,76 +133,76 @@
         ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
         (t (format "%8d" (buffer-size)))))))
 
-(use-package ibuffer
-  :straight (:type built-in)
-  :bind (("C-x C-b" . ibuffer)
-         :map ibuffer-mode-map
-         ("M-n" . nil)
-        ;; ("M-o" . nil)
-         ("M-p" . nil))
-;;  :delight
-  :config
-  ;; modify the default ibuffer-formats
-  (setq ibuffer-formats
-        '((mark modified read-only " "
-                (name 18 18 :left :elide)
-                " "
-                (size-h 9 -1 :right)
-                " "
-                (mode 16 16 :left :elide)
-                " "
-                filename-and-process)))
-  ;; Don't show filter groups if there are no buffers in that group
-  (setq ibuffer-show-empty-filter-groups nil)
-  ;; Don't ask for confirmation to delete marked buffers
-  (setq ibuffer-expert t)
-  (setq ibuffer-saved-filter-groups
-      (quote (("default"
-               ("dired" (mode . dired-mode))
-               ("org" (name . "^.*org$"))
-               ("web" (or (mode . web-mode) (mode . js2-mode)))
-               ("shell" (or (mode . eshell-mode) (mode . shell-mode)))
-               ("mu4e" (name . "\*mu4e\*"))
-               ("coding" (or
-                               (mode . python-mode)
-                               (mode . clojure-mode)
-                               (name . "^\\*scratch-clj\\*$")))
-               ("emacs" (or
-                         (name . "^\\*scratch\\*$")
-                         (name . "^\\*Messages\\*$")))
-               ))))
+;; (use-package ibuffer
+;;   :bind (("C-x C-b" . ibuffer)
+;;          :map ibuffer-mode-map
+;;          ("M-n" . nil)
+;;         ;; ("M-o" . nil)
+;;          ("M-p" . nil))
+;; ;;  :delight
+;;   :config
+;;   ;; modify the default ibuffer-formats
+;;   (setq ibuffer-formats
+;;         '((mark modified read-only " "
+;;                 (name 18 18 :left :elide)
+;;                 " "
+;;                 (size-h 9 -1 :right)
+;;                 " "
+;;                 (mode 16 16 :left :elide)
+;;                 " "
+;;                 filename-and-process)))
+;;   ;; Don't show filter groups if there are no buffers in that group
+;;   (setq ibuffer-show-empty-filter-groups nil)
+;;   ;; Don't ask for confirmation to delete marked buffers
+;;   (setq ibuffer-expert t)
+;;   (setq ibuffer-saved-filter-groups
+;;       (quote (("default"
+;;                ("dired" (mode . dired-mode))
+;;                ("org" (name . "^.*org$"))
+;;                ("web" (or (mode . web-mode) (mode . js2-mode)))
+;;                ("shell" (or (mode . eshell-mode) (mode . shell-mode)))
+;;                ("mu4e" (name . "\*mu4e\*"))
+;;                ("coding" (or
+;;                                (mode . python-mode)
+;;                                (mode . clojure-mode)
+;;                                (name . "^\\*scratch-clj\\*$")))
+;;                ("emacs" (or
+;;                          (name . "^\\*scratch\\*$")
+;;                          (name . "^\\*Messages\\*$")))
+;;                ))))
 
-  ;; Switching to ibuffer puts the cursor on the most recent buffer
- (define-advice ibuffer
-     (:around ibuffer-point-to-most-recent) ()
-     "Open ibuffer with cursor pointed to most recent buffer name.
-   This advice sets the cursor position to the name of the most recently
-   visited buffer when ibuffer is called. This makes it easier to quickly
-   switch back to a recent buffer without having to search for it in the list."
-     (let ((recent-buffer-name (buffer-name)))
-       ad-do-it
-       (ibuffer-jump-to-buffer recent-buffer-name)))
- ;; ─────────────────────── Delete current file and buffer ──────────────────────
- ;; based on http://emacsredux.com/blog/2013/04/03/delete-file-and-buffer/
- (defun delete-current-file-and-buffer ()
-   "Kill the current buffer and deletes the file it is visiting."
-   (interactive)
-   (let ((filename (buffer-file-name)))
-     (if filename
-         (if (y-or-n-p (concat "Do you really want to delete file " filename " ?"))
-             (progn
-               (delete-file filename)
-               (message "Deleted file %s." filename)
-               (kill-buffer)))
-       (message "Not a file visiting buffer!"))))
- (setq ibuffer-default-sorting-mode 'recency)
- (add-hook 'ibuffer-mode-hook
-          (lambda ()
-            (ibuffer-auto-mode 1)
-            (ibuffer-switch-to-saved-filter-groups "default"))))
+;;   ;; Switching to ibuffer puts the cursor on the most recent buffer
+;;  (define-advice ibuffer
+;;      (:around ibuffer-point-to-most-recent) ()
+;;      "Open ibuffer with cursor pointed to most recent buffer name.
+;;    This advice sets the cursor position to the name of the most recently
+;;    visited buffer when ibuffer is called. This makes it easier to quickly
+;;    switch back to a recent buffer without having to search for it in the list."
+;;      (let ((recent-buffer-name (buffer-name)))
+;;        ad-do-it
+;;        (ibuffer-jump-to-buffer recent-buffer-name)))
+;;  ;; ─────────────────────── Delete current file and buffer ──────────────────────
+;;  ;; based on http://emacsredux.com/blog/2013/04/03/delete-file-and-buffer/
+;;  (defun delete-current-file-and-buffer ()
+;;    "Kill the current buffer and deletes the file it is visiting."
+;;    (interactive)
+;;    (let ((filename (buffer-file-name)))
+;;      (if filename
+;;          (if (y-or-n-p (concat "Do you really want to delete file " filename " ?"))
+;;              (progn
+;;                (delete-file filename)
+;;                (message "Deleted file %s." filename)
+;;                (kill-buffer)))
+;;        (message "Not a file visiting buffer!"))))
+;;  (setq ibuffer-default-sorting-mode 'recency)
+;;  (add-hook 'ibuffer-mode-hook
+;;           (lambda ()
+;;             (ibuffer-auto-mode 1)
+;;             (ibuffer-switch-to-saved-filter-groups "default"))))
 
 ;; Show event history and command history of some or all buffers.
-(use-package command-log-mode)
+(use-package command-log-mode
+  :ensure t)
 
 ;; what does scratch do?
 ;;(use-package scratch)
@@ -203,6 +218,34 @@
 ;;                   week))
 ;;       (message "%s" file)
 ;;       (delete-file file))))
+
+;;; No littering
+;; Many packages leave crumbs in user-emacs-directory or even
+;; $HOME. Finding and configuring them individually is a hassle, so we
+;; rely on the community configuration of no-littering. Run this
+;; early, because many of the crumb droppers are configured below!
+(use-package no-littering
+  :ensure (:wait t)
+  :init
+  (setq no-littering-etc-directory "~/.cache/emacs/etc/"
+	no-littering-var-directory "~/.cache/emacs/var/"))
+
+(use-package recentf
+  :hook (after-init . recentf-mode)
+  :defines (recentf-exclude)
+  :custom
+  (recentf-max-menu-items 100)
+  (recentf-max-saved-items 100)
+  :config
+  (add-to-list 'recentf-exclude "\\.gpg\\")
+  (dolist (dir (list (locate-user-emacs-file ".cache/")
+                     (locate-user-emacs-file "workspace/.cache/")))
+    (add-to-list 'recentf-exclude (concat (regexp-quote dir) ".*"))
+    (add-to-list 'recentf-exclude
+	         (recentf-expand-file-name no-littering-var-directory))
+    (add-to-list 'recentf-exclude
+	         (recentf-expand-file-name no-littering-etc-directory))))
+
 
 (provide 'init-files-buffers)
 ;;; init-files.el ends here

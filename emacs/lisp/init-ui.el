@@ -1,13 +1,43 @@
 ;;; my-lisp/init-ui.el --- Emacs UI -*- lexical-binding: t -*-
+
+;;; Load envvar file
+;; 'doom env' generates an envvar file. This is a snapshot of your shell
+;; environment, which Doom loads here. This is helpful in scenarios where Emacs
+;; is launched from an environment detached from the user's shell environment.
+(when (and (or initial-window-system
+               (daemonp))
+           doom-env-file)
+  (doom-load-envvars-file doom-env-file 'noerror))
+
+;; We also want to “delight” most minor-mode indicators on the mode
+;; line. They’re only interesting if they’re in an unexpected state.
+(use-package delight
+  :ensure t
+  :doc "A feature that removes certain minor-modes from mode-line."
+  :config
+  (delight '((abbrev-mode " Abv" abbrev)
+           (auto-fill-function " AF")
+           (visual-line-mode)
+           (smart-tab-mode " \\t" smart-tab)
+           (eldoc-mode nil "eldoc")
+           (rainbow-mode)
+           (clojure-mode "clj")
+           (overwrite-mode " Ov" t)
+           (emacs-lisp-mode "Ɛlisp" :major)))
+  :delight)
+
+;; utility hooks and functions from Doom Emacs
+(use-package on
+  :ensure (:type github :repo "ajgrf/on.el"))
+
 (use-package ui-defaults
-  :straight nil
   :no-require
   :custom
   (inhibit-splash-screen t)
   :preface
   (setq-default
    ;; Emacs "updates" its ui more often than it needs to, so slow it down slightly
-   idle-update-delay 1.0              ; default is 0.5.
+   idle-update-delay 1.0                ; default is 0.5.
 
    indent-tabs-mode nil
    load-prefer-newer t
@@ -15,11 +45,11 @@
    bidi-paragraph-direction 'left-to-right
    frame-title-format  '(buffer-file-name "Ɛmacs: %b (%f)" "Ɛmacs: %b") ; name of the file I am editing as the name of the window.
 
-   mouse-yank-at-point t             ; Mouse yank commands yank at point instead of at click.
-   make-pointer-invisible t          ; hide cursor when writing.
+   mouse-yank-at-point t ; Mouse yank commands yank at point instead of at click.
+   make-pointer-invisible t             ; hide cursor when writing.
 
-   ad-redefinition-action 'accept     ; Silence warnings for redefinition.
-   confirm-kill-emacs 'yes-or-no-p    ; Confirm before exiting Emacs.
+   ad-redefinition-action 'accept ; Silence warnings for redefinition.
+   confirm-kill-emacs 'yes-or-no-p     ; Confirm before exiting Emacs.
    cursor-in-non-selected-windows nil ; Hide the cursor in inactive windows.
    speedbar t                         ; Quick file access with bar.
    frame-resize-pixelwise window-system
@@ -50,8 +80,8 @@
    ;; the documentation can get bent imo
    use-short-answers t
 
-
    display-line-numbers-type 'relative
+
    speedbar-show-unknown-files t ; browse source tree with Speedbar file browser
    mode-line-percent-position nil
    enable-recursive-minibuffers t)
@@ -85,7 +115,6 @@
 
 
 (use-package functions
-  :straight nil
   :no-require
   :preface
   (require 'subr-x)
@@ -143,7 +172,6 @@ If LOCAL-PORT is nil, PORT is used as local port."
   (provide 'functions))
 
 (use-package local-config
-  :straight nil
   :no-require
   :preface
   (defgroup local-config ()
@@ -167,24 +195,6 @@ If LOCAL-PORT is nil, PORT is used as local port."
     :group 'local-config)
   (provide 'local-config))
 
-;; window selection with ace-window
-(use-package ace-window
-  :ensure t
-  :bind ("M-o" . ace-window)
-  :custom
-  (aw-scope 'frame)
-  (aw-minibuffer-flag t)
-  (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
-  :config
-  (set-face-attribute
-   'aw-leading-char-face nil
-   ;; :foreground "deep sky blue"
-   :weight 'bold
-   :height 3.0)
-  (ace-window-display-mode 1))
-
-(winner-mode +1)
-
 (use-package face-remap
   :hook (text-scale-mode . text-scale-adjust-latex-previews)
   :preface
@@ -204,7 +214,6 @@ If LOCAL-PORT is nil, PORT is used as local port."
                 :scale (+ 1.0 (* 0.25 text-scale-mode-amount)))))))))
 
 (use-package font
-  :straight nil
   :no-require
   :hook (after-init . setup-fonts)
   :preface
@@ -280,11 +289,16 @@ If LOCAL-PORT is nil, PORT is used as local port."
     (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
   (provide 'font))
 
+(defvar gas/toggles-map (make-sparse-keymap)
+  "Keymap for toggle commands.")
+
 (use-package frame
-  :straight nil
   :requires seq
-  :bind (:map gas/toggles-map
-              ("t" . toggle-transparency))
+  :bind   ((:map gas/toggles-map
+                ("t" . toggle-transparency)
+
+                ("C-z" . ignore)
+                ("C-x C-z" . ignore)))
   :config
   (set-frame-parameter (selected-frame) 'alpha '(85 . 50))
   (add-to-list 'default-frame-alist '(alpha . (85 . 50)))
@@ -326,92 +340,17 @@ If LOCAL-PORT is nil, PORT is used as local port."
   (load-theme theme t)))
 
 (use-package menu-bar
-  :straight nil
+  :ensure nil
   :unless (display-graphic-p)
   :config
   (menu-bar-mode -1))
 
-;; (use-package mouse
-;;   :straight nil
-;;   :bind (("<mode-line> <mouse-2>" . nil)
-;;          ("<mode-line> <mouse-3>" . nil)))
-
-;; (use-package mwheel
-;;   :straight nil
-;;   :bind (("S-<down-mouse-1>" . nil)
-;;          ("S-<mouse-3>" . nil)
-;;          ("<mouse-4>" . mwheel-scroll)
-;;          ("<mouse-5>" . mwheel-scroll))
-;;   :custom
-;;   (mouse-wheel-flip-direction (not (featurep 'pgtk)))
-;;   (mouse-wheel-tilt-scroll t)
-;;   (mouse-wheel-progressive-speed nil)
-;;   :preface
-;;   (defun truncated-lines-p ()
-;;     "Non-nil if any line is longer than `window-width' + `window-hscroll'.
-
-;; Returns t if any line exceeds the right border of the window.
-;; Used for stopping scroll from going beyond the longest line.
-;; Based on `so-long-detected-long-line-p'."
-;;     (let ((buffer (current-buffer))
-;;           (tabwidth tab-width))
-;;       (or (> (buffer-size buffer) 1000000) ; avoid searching in huge buffers
-;;           (with-temp-buffer
-;;             (insert-buffer-substring buffer)
-;;             (setq-local tab-width tabwidth)
-;;             (untabify (point-min) (point-max))
-;;             (goto-char (point-min))
-;;             (let* ((window-width
-;;                     ;; this computes a more accurate width rather than `window-width', and respects
-;;                     ;; `text-scale-mode' font width.
-;;                     (/ (window-body-width nil t) (window-font-width)))
-;;                    (hscroll-offset
-;;                     ;; `window-hscroll' returns columns that are not affected by
-;;                     ;; `text-scale-mode'.  Because of that, we have to recompute the correct
-;;                     ;; `window-hscroll' by multiplying it with a non-scaled value and
-;;                     ;; dividing it with a scaled width value, rounding it to the upper
-;;                     ;; boundary.  Since there's no way to get unscaled value, we have to get
-;;                     ;; a width of a face that is not scaled by `text-scale-mode', such as
-;;                     ;; `window-divider' face.
-;;                     (ceiling (/ (* (window-hscroll) (window-font-width nil 'window-divider))
-;;                                 (float (window-font-width)))))
-;;                    (line-number-width
-;;                     ;; compensate line numbers width
-;;                     (if (bound-and-true-p display-line-numbers-mode)
-;;                         (- display-line-numbers-width)
-;;                       0))
-;;                    (threshold (+ window-width hscroll-offset line-number-width
-;;                                  -2))) ; compensate imprecise calculations
-;;               (catch 'excessive
-;;                 (while (not (eobp))
-;;                   (let ((start (point)))
-;;                     (save-restriction
-;;                       (narrow-to-region start (min (+ start 1 threshold)
-;;                                                    (point-max)))
-;;                       (forward-line 1))
-;;                     (unless (or (bolp)
-;;                                 (and (eobp) (<= (- (point) start)
-;;                                                 threshold)))
-;;                       (throw 'excessive t))))))))))
-;;   (define-advice scroll-left (:before-while (&rest _) prevent-overscroll)
-;;     (and truncate-lines
-;;          (not (memq major-mode no-hscroll-modes))
-;;          (truncated-lines-p)))
-;;   :init
-;;   (if (fboundp #'context-menu-mode)
-;;       (context-menu-mode 1)
-;;     (global-set-key (kbd "<mouse-3>") menu-bar-edit-menu))
-;;   (unless (display-graphic-p)
-;;     (xterm-mouse-mode t)))
-
 (use-package doom-modeline
+  :ensure t
   :init
   (setq doom-modeline-buffer-file-name-style 'truncate-upto-project
         doom-modeline-modal-icon nil
         doom-modeline-height 26)
-  ;; (when window-system
-  ;;   (if (not (x-list-fonts "Symbols Nerd Font Mono"))
-  ;;       (nerd-icons-install-fonts)))
   (doom-modeline-mode)
   :config
   (setq doom-modeline-persp-name t
@@ -419,6 +358,7 @@ If LOCAL-PORT is nil, PORT is used as local port."
         doom-modeline-window-width-limit (- fill-column 10)))
 
 (use-package modus-themes
+  :ensure t
   :requires (local-config)
   :custom
   (modus-themes-org-blocks nil)
@@ -436,47 +376,130 @@ If LOCAL-PORT is nil, PORT is used as local port."
   :custom-face
   (region ((t :extend nil))))
 
-(use-package modus-themes
-  :straight nil
-  :after modus-themes
-  :no-require
-  :custom
-  (modus-themes-common-palette-overrides
-   `(;; syntax
-     (builtin magenta-faint)
-     (keyword cyan-faint)
-     (comment fg-dim)
-     (constant blue-faint)
-     (docstring fg-dim)
-     (docmarkup fg-dim)
-     (fnname magenta-faint)
-     (preprocessor cyan-faint)
-     (string red-faint)
-     (type magenta-cooler)
-     (variable blue-faint)
-     (rx-construct magenta-faint)
-     (rx-backslash blue-faint)
-     ;; misc
-     (bg-paren-match bg-ochre)
-     (bg-region bg-inactive)
-     (fg-region unspecified)
-     ;; line-numbers
-     (fg-line-number-active fg-main)
-     (bg-line-number-inactive bg-main)
-     (fg-line-number-inactive fg-dim)
-     ;; modeline
-     (border-mode-line-active unspecified)
-     (border-mode-line-inactive unspecified)
-     ;; links
-     (underline-link unspecified)
-     (underline-link-visited unspecified)
-     (underline-link-symbolic unspecified)
-     ,@modus-themes-preset-overrides-faint))
+;; (use-package modus-themes
+;;   :after modus-themes
+;;   :custom
+;;   (modus-themes-common-palette-overrides
+;;    `(;; syntax
+;;      (builtin magenta-faint)
+;;      (keyword cyan-faint)
+;;      (comment fg-dim)
+;;      (constant blue-faint)
+;;      (docstring fg-dim)
+;;      (docmarkup fg-dim)
+;;      (fnname magenta-faint)
+;;      (preprocessor cyan-faint)
+;;      (string red-faint)
+;;      (type magenta-cooler)
+;;      (variable blue-faint)
+;;      (rx-construct magenta-faint)
+;;      (rx-backslash blue-faint)
+;;      ;; misc
+;;      (bg-paren-match bg-ochre)
+;;      (bg-region bg-inactive)
+;;      (fg-region unspecified)
+;;      ;; line-numbers
+;;      (fg-line-number-active fg-main)
+;;      (bg-line-number-inactive bg-main)
+;;      (fg-line-number-inactive fg-dim)
+;;      ;; modeline
+;;      (border-mode-line-active unspecified)
+;;      (border-mode-line-inactive unspecified)
+;;      ;; links
+;;      (underline-link unspecified)
+;;      (underline-link-visited unspecified)
+;;      (underline-link-symbolic unspecified)
+;;      ,@modus-themes-preset-overrides-faint))
+;;   :config
+;;   (load-theme local-config-light-theme t))
+
+(use-package doom-themes
+  :ensure t)
+
+(use-package mouse
+  :bind (("<mode-line> <mouse-2>" . nil)
+         ("<mode-line> <mouse-3>" . nil))
   :config
-  (load-theme local-config-light-theme t))
+  (setq
+   mac-right-command-modifier 'nil
+   mac-command-modifier 'super
+   mac-option-modifier 'meta
+   mac-right-option-modifier 'nil
+
+   ))
+
+(use-package mwheel
+  :bind (("S-<down-mouse-1>" . nil)
+         ("S-<mouse-3>" . nil)
+         ("<mouse-4>" . mwheel-scroll)
+         ("<mouse-5>" . mwheel-scroll))
+  :custom
+  (mouse-wheel-flip-direction (not (featurep 'pgtk)))
+  (mouse-wheel-tilt-scroll t)
+  (mouse-wheel-progressive-speed nil)
+  :preface
+  (defun window-font-width-unscaled ()
+    (let (face-remapping-alist)
+      (window-font-width)))
+  (defun truncated-lines-p ()
+    "Non-nil if any line is longer than `window-width' + `window-hscroll'.
+
+Returns t if any line exceeds the right border of the window.
+Used for stopping scroll from going beyond the longest line.
+Based on `so-long-detected-long-line-p'."
+    (let ((buffer (current-buffer))
+          (tabwidth tab-width)
+          (start (window-start))
+          (end (window-end)))
+      (let* ((window-width
+              ;; this computes a more accurate width rather than `window-width', and
+              ;; respects `text-scale-mode' font width.
+              (/ (window-body-width nil t) (window-font-width)))
+             (hscroll-offset
+              ;; `window-hscroll' returns columns that are not affected by
+              ;; `text-scale-mode'.  Because of that, we have to recompute the correct
+              ;; `window-hscroll' by multiplying it with a non-scaled value and
+              ;; dividing it with a scaled width value, rounding it to the upper
+              ;; boundary.
+              (ceiling (/ (* (window-hscroll) (window-font-width-unscaled))
+                          (float (window-font-width)))))
+             (line-number-width
+              ;; compensate line numbers width
+              (if (bound-and-true-p display-line-numbers-mode)
+                  (- display-line-numbers-width)
+                0))
+             (threshold (+ window-width hscroll-offset line-number-width
+                           -2)))   ; compensate imprecise calculations
+        (with-temp-buffer
+          (insert-buffer-substring buffer start end)
+          (let ((tab-width tabwidth))
+            (untabify (point-min) (point-max)))
+          (goto-char (point-min))
+          (catch 'excessive
+            (while (not (eobp))
+              (let ((start (point)))
+                (save-restriction
+                  (narrow-to-region start (min (+ start 1 threshold)
+                                               (point-max)))
+                  (forward-line 1))
+                (unless (or (bolp)
+                            (and (eobp) (<= (- (point) start)
+                                            threshold)))
+                  (throw 'excessive t)))))))))
+  (define-advice scroll-left (:before-while (&rest _) prevent-overscroll)
+    (and truncate-lines
+         (not (memq major-mode no-hscroll-modes))
+         (truncated-lines-p)))
+  :init
+  (if (fboundp #'context-menu-mode)
+      (context-menu-mode 1)
+    (global-set-key (kbd "<mouse-3>") menu-bar-edit-menu))
+  (unless (display-graphic-p)
+    (xterm-mouse-mode t)))
 
 ;; doom-modeline dropped all-the-icons support in favor of nerd-icons
 (use-package nerd-icons
+  :ensure t
   :init
   (when window-system
     (if (not (x-list-fonts "Symbols Nerd Font Mono"))
@@ -486,11 +509,13 @@ If LOCAL-PORT is nil, PORT is used as local port."
   ;; "Symbols Nerd Font Mono" is the default and is recommended
   ;; but you can use any other Nerd Font if you want
   ;; (nerd-icons-font-family "Symbols Nerd Font Mono")
- (use-package nerd-icons-ibuffer
+(use-package nerd-icons-ibuffer
+  :ensure t
   :hook
   (ibuffer-mode . nerd-icons-ibuffer-mode))
 
 (use-package nerd-icons-completion
+  :ensure t
   :after marginalia
   :config
   (nerd-icons-completion-mode 1)
@@ -513,7 +538,6 @@ PROPERTIES is a list of face property-value pairs."
   (+customize-faces-by-prefix "nerd-icons-" :weight regular))
 
 (use-package pixel-scroll
-  :straight nil
   :when (fboundp #'pixel-scroll-precision-mode)
   :hook (after-init . pixel-scroll-precision-mode)
   :custom
@@ -531,8 +555,93 @@ PROPERTIES is a list of face property-value pairs."
 ;;      (border-width . 1)
 ;;      (no-special-glyphs . t))))
 
+;;; windows
+
 (use-package window
-  :straight nil
+  :unless (fboundp 'switchy-window-minor-mode)
+  :bind (("M-o" . my/other-window)
+         ("M-O" . my/other-window-prev)
+         :map other-window-repeat-map
+         ("o" . my/other-window)
+         ("O" . my/other-window-prev))
+  :config
+  (defalias 'my/other-window
+    (let ((direction 1))
+      (lambda (&optional arg)
+        "Call `other-window', switching directions each time."
+        (interactive)
+        (if (equal last-command 'my/other-window)
+            (other-window (* direction (or arg 1)))
+          (setq direction (- direction))
+          (other-window (* direction (or arg 1)))))))
+  (defun my/other-window-prev (&optional arg all-frames)
+    (interactive "p")
+    (other-window (if arg (- arg) -1) all-frames))
+  (put 'my/other-window 'repeat-map 'other-window-repeat-map)
+  (put 'my/other-window-prev 'repeat-map 'other-window-repeat-map))
+
+(use-package ace-window
+  :ensure t
+  :bind
+  (("C-x o" . ace-window)
+   ("H-o"   . ace-window)
+   ("C-M-0" . ace-window-prefix)
+   :map ctl-x-4-map
+   ("o" . ace-window-prefix))
+  ;; :custom-face
+  ;; (aw-leading-char-face ((t (:height 2.5 :weight normal))))
+  :defer 2
+  :init (ace-window-display-mode 1)
+  :custom-face (aw-mode-line-face ((t (:inherit (bold mode-line-emphasis)))))
+  :config
+  (defun my/aw-take-over-window (window)
+    "Move from current window to WINDOW.
+
+Delete current window in the process."
+    (let ((buf (current-buffer)))
+      (if (one-window-p)
+          (delete-frame)
+        (delete-window))
+      (aw-switch-to-window window)
+      (switch-to-buffer buf)))
+  (defun ace-window-prefix ()
+    "Use `ace-window' to display the buffer of the next command.
+The next buffer is the buffer displayed by the next command invoked
+immediately after this command (ignoring reading from the minibuffer).
+Creates a new window before displaying the buffer.
+When `switch-to-buffer-obey-display-actions' is non-nil,
+`switch-to-buffer' commands are also supported."
+    (interactive)
+    (display-buffer-override-next-command
+     (lambda (buffer _)
+       (let (window type)
+         (setq
+          window (aw-select (propertize " ACE" 'face 'mode-line-highlight))
+          type 'reuse)
+         (cons window type)))
+     nil "[ace-window]")
+    (message "Use `ace-window' to display next command buffer..."))
+  (setq aw-swap-invert t)
+  (setq aw-dispatch-always t
+        aw-scope 'global
+        aw-background nil
+        aw-display-mode-overlay nil
+        aw-keys '(?q ?w ?e ?r ?t ?y ?u ?i ?p))
+  (setq aw-dispatch-alist
+        '((?k aw-delete-window "Delete Window")
+          (?x aw-swap-window "Swap Windows")
+          (?m my/aw-take-over-window "Move Window")
+          (?c aw-copy-window "Copy Window")
+          (?j aw-switch-buffer-in-window "Select Buffer")
+          (?o aw-flip-window)
+          (?b aw-switch-buffer-other-window "Switch Buffer Other Window")
+          (?c aw-split-window-fair "Split Fair Window")
+          (?s aw-split-window-vert "Split Vert Window")
+          (?v aw-split-window-horz "Split Horz Window")
+          (?o delete-other-windows "Delete Other Windows")
+          (?? aw-show-dispatch-help))))
+
+(use-package window
   :config
   (add-to-list 'display-buffer-alist
                '("\\*Calendar*"
@@ -542,70 +651,71 @@ PROPERTIES is a list of face property-value pairs."
 (when (and (not (display-graphic-p))
            (executable-find "xclip"))
   (use-package xclip
+    :ensure t
     :config
     (when (executable-find xclip-program)
       (with-no-warnings
         (xclip-mode t)))))
 
 ;;;; ligature
-(use-package ligature
-  :config
-  ;; Enable the "www" ligature in every possible major mode
-  (ligature-set-ligatures 't '("www"))
-  ;; Enable traditional ligature support in eww-mode, if the
-  ;; `variable-pitch' face supports it
-  (ligature-set-ligatures 'eww-mode '("ff" "fi" "ffi"))
-  ;; Enable all Cascadia Code ligatures in programming modes
-  (ligature-set-ligatures 'prog-mode '("|||>" "<|||" "<==>" "<!--" "####" "~~>" "***" "||=" "||>"
-                                       ":::" "::=" "=:=" "===" "==>" "=!=" "=>>" "=<<" "=/=" "!=="
-                                       "!!." ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->" "---" "-<<"
-                                       "<~~" "<~>" "<*>" "<||" "<|>" "<$>" "<==" "<=>" "<=<" "<->"
-                                       "<--" "<-<" "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_(" "..<"
-                                       "..." "+++" "/==" "///" "_|_" "www" "&&" "^=" "~~" "~@" "~="
-                                       "~>" "~-" "**" "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-" "{|"
-                                       "[|" "]#" "::" ":=" ":>" ":<" "$>" "==" "=>" "!=" "!!" ">:"
-                                       ">=" ">>" ">-" "-~" "-|" "->" "--" "-<" "<~" "<*" "<|" "<:"
-                                       "<$" "<=" "<>" "<-" "<<" "<+" "</" "#{" "#[" "#:" "#=" "#!"
-                                       "##" "#(" "#?" "#_" "%%" ".=" ".-" ".." ".?" "+>" "++" "?:"
-                                       "?=" "?." "??" ";;" "/*" "/=" "/>" "//" "__" "~~" "(*" "*)"
-                                       "\\\\" "://"))
-  ;; Enables ligature checks globally in all buffers. You can also do it
-  ;; per mode with `ligature-mode'.
-  (global-ligature-mode t))
+;; (use-package ligature
+;;   :config
+;;   ;; Enable the "www" ligature in every possible major mode
+;;   (ligature-set-ligatures 't '("www"))
+;;   ;; Enable traditional ligature support in eww-mode, if the
+;;   ;; `variable-pitch' face supports it
+;;   (ligature-set-ligatures 'eww-mode '("ff" "fi" "ffi"))
+;;   ;; Enable all Cascadia Code ligatures in programming modes
+;;   (ligature-set-ligatures 'prog-mode '("|||>" "<|||" "<==>" "<!--" "####" "~~>" "***" "||=" "||>"
+;;                                        ":::" "::=" "=:=" "===" "==>" "=!=" "=>>" "=<<" "=/=" "!=="
+;;                                        "!!." ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->" "---" "-<<"
+;;                                        "<~~" "<~>" "<*>" "<||" "<|>" "<$>" "<==" "<=>" "<=<" "<->"
+;;                                        "<--" "<-<" "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_(" "..<"
+;;                                        "..." "+++" "/==" "///" "_|_" "www" "&&" "^=" "~~" "~@" "~="
+;;                                        "~>" "~-" "**" "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-" "{|"
+;;                                        "[|" "]#" "::" ":=" ":>" ":<" "$>" "==" "=>" "!=" "!!" ">:"
+;;                                        ">=" ">>" ">-" "-~" "-|" "->" "--" "-<" "<~" "<*" "<|" "<:"
+;;                                        "<$" "<=" "<>" "<-" "<<" "<+" "</" "#{" "#[" "#:" "#=" "#!"
+;;                                        "##" "#(" "#?" "#_" "%%" ".=" ".-" ".." ".?" "+>" "++" "?:"
+;;                                        "?=" "?." "??" ";;" "/*" "/=" "/>" "//" "__" "~~" "(*" "*)"
+;;                                        "\\\\" "://"))
+;;   ;; Enables ligature checks globally in all buffers. You can also do it
+;;   ;; per mode with `ligature-mode'.
+;;   (global-ligature-mode t))
 
 ;;;;; ligature-for-jetbrain
-(when (font-installed-p "JetBrainsMono")
-  (dolist (char/ligature-re
-           `((?-  ,(rx (or (or "-->" "-<<" "->>" "-|" "-~" "-<" "->") (+ "-"))))
-             (?/  ,(rx (or (or "/==" "/=" "/>" "/**" "/*") (+ "/"))))
-             (?*  ,(rx (or (or "*>" "*/") (+ "*"))))
-             (?<  ,(rx (or (or "<<=" "<<-" "<|||" "<==>" "<!--" "<=>" "<||" "<|>" "<-<"
-                               "<==" "<=<" "<-|" "<~>" "<=|" "<~~" "<$>" "<+>" "</>" "<*>"
-                               "<->" "<=" "<|" "<:" "<>"  "<$" "<-" "<~" "<+" "</" "<*")
-                           (+ "<"))))
-             (?:  ,(rx (or (or ":?>" "::=" ":>" ":<" ":?" ":=") (+ ":"))))
-             (?=  ,(rx (or (or "=>>" "==>" "=/=" "=!=" "=>" "=:=") (+ "="))))
-             (?!  ,(rx (or (or "!==" "!=") (+ "!"))))
-             (?>  ,(rx (or (or ">>-" ">>=" ">=>" ">]" ">:" ">-" ">=") (+ ">"))))
-             (?&  ,(rx (+ "&")))
-             (?|  ,(rx (or (or "|->" "|||>" "||>" "|=>" "||-" "||=" "|-" "|>" "|]" "|}" "|=")
-                           (+ "|"))))
-             (?.  ,(rx (or (or ".?" ".=" ".-" "..<") (+ "."))))
-             (?+  ,(rx (or "+>" (+ "+"))))
-             (?\[ ,(rx (or "[<" "[|")))
-             (?\{ ,(rx "{|"))
-             (?\? ,(rx (or (or "?." "?=" "?:") (+ "?"))))
-             (?#  ,(rx (or (or "#_(" "#[" "#{" "#=" "#!" "#:" "#_" "#?" "#(") (+ "#"))))
-             (?\; ,(rx (+ ";")))
-             (?_  ,(rx (or "_|_" "__")))
-             (?~  ,(rx (or "~~>" "~~" "~>" "~-" "~@")))
-             (?$  ,(rx "$>"))
-             (?^  ,(rx "^="))
-             (?\] ,(rx "]#"))))
-    (apply (lambda (char ligature-re)
-             (set-char-table-range composition-function-table char
-                                   `([,ligature-re 0 font-shape-gstring])))
-           char/ligature-re)))
+;; (when (font-installed-p "JetBrainsMono")
+;;   (dolist (char/ligature-re
+;;            `((?-  ,(rx (or (or "-->" "-<<" "->>" "-|" "-~" "-<" "->") (+ "-"))))
+;;              (?/  ,(rx (or (or "/==" "/=" "/>" "/**" "/*") (+ "/"))))
+;;              (?*  ,(rx (or (or "*>" "*/") (+ "*"))))
+;;              (?<  ,(rx (or (or "<<=" "<<-" "<|||" "<==>" "<!--" "<=>" "<||" "<|>" "<-<"
+;;                                "<==" "<=<" "<-|" "<~>" "<=|" "<~~" "<$>" "<+>" "</>" "<*>"
+;;                                "<->" "<=" "<|" "<:" "<>"  "<$" "<-" "<~" "<+" "</" "<*")
+;;                            (+ "<"))))
+;;              (?:  ,(rx (or (or ":?>" "::=" ":>" ":<" ":?" ":=") (+ ":"))))
+;;              (?=  ,(rx (or (or "=>>" "==>" "=/=" "=!=" "=>" "=:=") (+ "="))))
+;;              (?!  ,(rx (or (or "!==" "!=") (+ "!"))))
+;;              (?>  ,(rx (or (or ">>-" ">>=" ">=>" ">]" ">:" ">-" ">=") (+ ">"))))
+;;              (?&  ,(rx (+ "&")))
+;;              (?|  ,(rx (or (or "|->" "|||>" "||>" "|=>" "||-" "||=" "|-" "|>" "|]" "|}" "|=")
+;;                            (+ "|"))))
+;;              (?.  ,(rx (or (or ".?" ".=" ".-" "..<") (+ "."))))
+;;              (?+  ,(rx (or "+>" (+ "+"))))
+;;              (?\[ ,(rx (or "[<" "[|")))
+;;              (?\{ ,(rx "{|"))
+;;              (?\? ,(rx (or (or "?." "?=" "?:") (+ "?"))))
+;;              (?#  ,(rx (or (or "#_(" "#[" "#{" "#=" "#!" "#:" "#_" "#?" "#(") (+ "#"))))
+;;              (?\; ,(rx (+ ";")))
+;;              (?_  ,(rx (or "_|_" "__")))
+;;              (?~  ,(rx (or "~~>" "~~" "~>" "~-" "~@")))
+;;              (?$  ,(rx "$>"))
+;;              (?^  ,(rx "^="))
+;;              (?\] ,(rx "]#"))))
+;;     (apply (lambda (char ligature-re)
+;;              (set-char-table-range composition-function-table char
+;;                                    `([,ligature-re 0 font-shape-gstring])))
+;;            char/ligature-re)))
 
 
 ;;________________________________________________________________
