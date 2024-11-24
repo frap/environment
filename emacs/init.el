@@ -71,8 +71,7 @@ If you experience stuttering, increase this.")
 ;;; Editor
 (require 'init-editor)
 
-;;; Minibuffer
-(require 'setup-ibuffer)
+;;; Minibuffer & Navigation
 (require 'setup-minibuffer)
 
 ;;; Org mode
@@ -90,7 +89,7 @@ If you experience stuttering, increase this.")
 ;;; Languages
 
 (load (expand-file-name "lisp/init-coding" user-emacs-directory))
-
+(load (expand-file-name "lisp/init-copilot" user-emacs-directory))
 
 (provide 'init)
 ;;; init.el ends here
