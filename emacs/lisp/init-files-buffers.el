@@ -123,82 +123,157 @@
         auto-revert-verbose nil))
 
 ;; Use human readable Size column instead of original one
-(eval-after-load 'ibuffer
-  '(progn
-     (define-ibuffer-column size-h
-       (:name "Size" :inline t)
-       (cond
-        ((> (buffer-size) 1000000) (format "%7.1fM" (/ (buffer-size) 1000000.0)))
-        ((> (buffer-size) 100000) (format "%7.0fk" (/ (buffer-size) 1000.0)))
-        ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
-        (t (format "%8d" (buffer-size)))))))
+;; (eval-after-load 'ibuffer
+;;   '(progn
+;;      (define-ibuffer-column size-h
+;;        (:name "Size" :inline t)
+;;        (cond
+;;         ((> (buffer-size) 1000000) (format "%7.1fM" (/ (buffer-size) 1000000.0)))
+;;         ((> (buffer-size) 100000) (format "%7.0fk" (/ (buffer-size) 1000.0)))
+;;         ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
+;;         (t (format "%8d" (buffer-size)))))))
 
-;; (use-package ibuffer
-;;   :bind (("C-x C-b" . ibuffer)
-;;          :map ibuffer-mode-map
-;;          ("M-n" . nil)
-;;         ;; ("M-o" . nil)
-;;          ("M-p" . nil))
-;; ;;  :delight
-;;   :config
-;;   ;; modify the default ibuffer-formats
-;;   (setq ibuffer-formats
-;;         '((mark modified read-only " "
-;;                 (name 18 18 :left :elide)
-;;                 " "
-;;                 (size-h 9 -1 :right)
-;;                 " "
-;;                 (mode 16 16 :left :elide)
-;;                 " "
-;;                 filename-and-process)))
-;;   ;; Don't show filter groups if there are no buffers in that group
-;;   (setq ibuffer-show-empty-filter-groups nil)
-;;   ;; Don't ask for confirmation to delete marked buffers
-;;   (setq ibuffer-expert t)
-;;   (setq ibuffer-saved-filter-groups
-;;       (quote (("default"
-;;                ("dired" (mode . dired-mode))
-;;                ("org" (name . "^.*org$"))
-;;                ("web" (or (mode . web-mode) (mode . js2-mode)))
-;;                ("shell" (or (mode . eshell-mode) (mode . shell-mode)))
-;;                ("mu4e" (name . "\*mu4e\*"))
-;;                ("coding" (or
-;;                                (mode . python-mode)
-;;                                (mode . clojure-mode)
-;;                                (name . "^\\*scratch-clj\\*$")))
-;;                ("emacs" (or
-;;                          (name . "^\\*scratch\\*$")
-;;                          (name . "^\\*Messages\\*$")))
-;;                ))))
+(use-package ibuffer
+  :bind (("C-x C-b" . ibuffer)
+         ("M-s b" . my/buffers-major-mode)
+         ("M-s v" . my/buffers-vc-root)
+         :map ibuffer-mode-map
+         ;;("M-n" . nil)
+         ("M-o" . nil)
+         ;; ("M-p" . nil)
+         )
+  ;;  :delight
+    :hook ((ibuffer-mode . hl-line-mode)
+           (ibuffer-mode . my/ibuffer-project-generate-filter-groups)
+           (ibuffer-mode . ibuffer-vc-set-filter-groups-by-vc-root)
+         )
+    :config
+  (setq ibuffer-formats
+        '((mark modified read-only " "
+                (name 18 18 :left :elide)
+                " "
+                (size-h 9 -1 :right)
+                " "
+                (mode 16 16 :left :elide)
+                " "
+                filename-and-process)))
+  ;; Don't show filter groups if there are no buffers in that group
+  (setq ibuffer-show-empty-filter-groups nil)
+  ;; Don't ask for confirmation to delete marked buffers
+  (setq ibuffer-expert t)
+  (setq ibuffer-saved-filter-groups
+        (quote (("default"
+                 ("dired" (mode . dired-mode))
+                 ("org" (name . "^.*org$"))
+                 ("web" (or (mode . web-mode) (mode . js2-mode)))
+                 ("shell" (or (mode . eshell-mode) (mode . shell-mode)))
+                 ("mu4e" (name . "\*mu4e\*"))
+                 ("coding" (or
+                            (mode . python-mode)
+                            (mode . clojure-mode)
+                            (name . "^\\*scratch-clj\\*$")))
+                 ("emacs" (or
+                           (name . "^\\*scratch\\*$")
+                           (name . "^\\*Messages\\*$")))
+                 ))))
 
-;;   ;; Switching to ibuffer puts the cursor on the most recent buffer
-;;  (define-advice ibuffer
-;;      (:around ibuffer-point-to-most-recent) ()
-;;      "Open ibuffer with cursor pointed to most recent buffer name.
-;;    This advice sets the cursor position to the name of the most recently
-;;    visited buffer when ibuffer is called. This makes it easier to quickly
-;;    switch back to a recent buffer without having to search for it in the list."
-;;      (let ((recent-buffer-name (buffer-name)))
-;;        ad-do-it
-;;        (ibuffer-jump-to-buffer recent-buffer-name)))
-;;  ;; ─────────────────────── Delete current file and buffer ──────────────────────
-;;  ;; based on http://emacsredux.com/blog/2013/04/03/delete-file-and-buffer/
-;;  (defun delete-current-file-and-buffer ()
-;;    "Kill the current buffer and deletes the file it is visiting."
-;;    (interactive)
-;;    (let ((filename (buffer-file-name)))
-;;      (if filename
-;;          (if (y-or-n-p (concat "Do you really want to delete file " filename " ?"))
-;;              (progn
-;;                (delete-file filename)
-;;                (message "Deleted file %s." filename)
-;;                (kill-buffer)))
-;;        (message "Not a file visiting buffer!"))))
-;;  (setq ibuffer-default-sorting-mode 'recency)
-;;  (add-hook 'ibuffer-mode-hook
-;;           (lambda ()
-;;             (ibuffer-auto-mode 1)
-;;             (ibuffer-switch-to-saved-filter-groups "default"))))
+ (defun ibuffer-visit-buffer-other-window (&optional noselect)
+  "In ibuffer, visit this buffer. If `ace-window' is available, use
+it to select window for visiting this buffer.`"
+  (interactive "P")
+  (let ((buf (ibuffer-current-buffer t))
+        (window
+         (if (fboundp 'aw-select)
+             (aw-select "Select Window")
+           (next-window))))
+    (bury-buffer (current-buffer))
+    (if noselect
+        (save-window-excursion (select-window window)
+                               (switch-to-buffer buf))
+      (select-window window) (switch-to-buffer buf))))
+
+  (defun my/buffers-major-mode (&optional arg)
+    "Select buffers that match the current buffer's major mode.
+With \\[universal-argument] produce an `ibuffer' filtered
+accordingly.  Else use standard completion."
+    (interactive "P")
+    (let* ((major major-mode)
+           (prompt "Buffers for ")
+           (mode-string (format "%s" major))
+           (mode-string-pretty (propertize mode-string 'face 'success)))
+      (if arg
+          (ibuffer t (concat "*" prompt mode-string "*")
+                   (list (cons 'used-mode major)))
+        (switch-to-buffer
+         (read-buffer
+          (concat prompt mode-string-pretty ": ") nil t
+          (lambda (pair) ; pair is (name-string . buffer-object)
+            (with-current-buffer (cdr pair) (derived-mode-p major))))))))
+
+  (defun my/buffers-vc-root (&optional arg)
+    "Select buffers that match the present `vc-root-dir'.
+With \\[universal-argument] produce an `ibuffer' filtered
+accordingly.  Else use standard completion.
+
+When no VC root is available, use standard `switch-to-buffer'."
+    (interactive "P")
+    (let* ((root (vc-root-dir))
+           (prompt "Buffers for VC ")
+           (vc-string (format "%s" root))
+           (vc-string-pretty (propertize vc-string 'face 'success)))
+      (if root
+          (if arg
+              (ibuffer t (concat "*" prompt vc-string "*")
+                       (list (cons 'filename (expand-file-name root))))
+            (switch-to-buffer
+             (read-buffer
+              (concat prompt vc-string-pretty ": ") nil t
+              (lambda (pair) ; pair is (name-string . buffer-object)
+                (with-current-buffer (cdr pair) (string= (vc-root-dir) root))))))
+        (call-interactively 'switch-to-buffer))))
+
+  ;; Switching to ibuffer puts the cursor on the most recent buffer
+  (define-advice ibuffer
+      (:around ibuffer-point-to-most-recent) ()
+      "Open ibuffer with cursor pointed to most recent buffer name.
+   This advice sets the cursor position to the name of the most recently
+   visited buffer when ibuffer is called. This makes it easier to quickly
+   switch back to a recent buffer without having to search for it in the list."
+      (let ((recent-buffer-name (buffer-name)))
+        ad-do-it
+        (ibuffer-jump-to-buffer recent-buffer-name)))
+  ;; ─────────────────────── Delete current file and buffer ──────────────────────
+  ;; based on http://emacsredux.com/blog/2013/04/03/delete-file-and-buffer/
+  (defun delete-current-file-and-buffer ()
+    "Kill the current buffer and deletes the file it is visiting."
+    (interactive)
+    (let ((filename (buffer-file-name)))
+      (if filename
+          (if (y-or-n-p (concat "Do you really want to delete file " filename " ?"))
+              (progn
+                (delete-file filename)
+                (message "Deleted file %s." filename)
+                (kill-buffer)))
+        (message "Not a file visiting buffer!"))))
+  (setq ibuffer-default-sorting-mode 'recency)
+  ;; (add-hook 'ibuffer-mode-hook
+  ;;           (lambda ()
+  ;;             (ibuffer-auto-mode 1)
+  ;;             (ibuffer-switch-to-saved-filter-groups "default")))
+  )
+
+(use-package ibuffer-project
+  :ensure t
+  :after (ibuffer project)
+  :hook ((ibuffer ibuffer-mode) . my/ibuffer-project-generate-filter-groups)
+  :config
+  (setq ibuffer-project-use-cache t
+        ibuffer-project-root-functions
+        '(((lambda (dir)
+             (project-root (project-current nil dir))) . "Projet")))
+  (defun my/ibuffer-project-generate-filter-groups ()
+    (setq ibuffer-filter-groups
+          (ibuffer-project-generate-filter-groups))))
 
 ;; Show event history and command history of some or all buffers.
 (use-package command-log-mode
