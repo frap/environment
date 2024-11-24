@@ -52,25 +52,30 @@
 
 
 (use-package common-lisp-modes
-   :ensure (:host gitlab
-	    :repo "andreyorst/common-lisp-modes.el"
-            :branch "main"
-            :rev :newest)
-  :delight common-lisp-modes-mode
-  :preface
-  (defun indent-sexp-or-fill ()
-    "Indent an s-expression or fill string/comment."
-    (interactive)
-    (let ((ppss (syntax-ppss)))
-      (if (or (nth 3 ppss)
-              (nth 4 ppss))
-          (fill-paragraph)
-        (save-excursion
-          (mark-sexp)
-          (indent-region (point) (mark))))))
-  :bind ( :map common-lisp-modes-mode-map
-          ("M-q" . indent-sexp-or-fill)))
-
+   :ensure (:host github
+	    :repo "andreyorst/common-lisp-modes.el")
+  ;; :delight common-lisp-modes-mode
+  ;; :preface
+  ;; (defun indent-sexp-or-fill ()
+  ;;   "Indent an s-expression or fill string/comment."
+  ;;   (interactive)
+  ;;   (let ((ppss (syntax-ppss)))
+  ;;     (if (or (nth 3 ppss)
+  ;;             (nth 4 ppss))
+  ;;         (fill-paragraph)
+  ;;       (save-excursion
+  ;;         (mark-sexp)
+  ;;         (indent-region (point) (mark))))))
+  ;; :bind ( :map common-lisp-modes-mode-map
+  ;;         ("M-q" . indent-sexp-or-fill))
+  )
+(dolist (hook '(common-lisp-mode-hook
+                clojure-mode-hook
+                cider-repl-mode
+                racket-mode-hook
+                eshell-mode-hook
+                eval-expression-minibuffer-setup-hook))
+  (add-hook hook 'common-lisp-modes-mode))
 
 ;;; Coding helpers
 
@@ -97,16 +102,14 @@
 
 (use-package region-bindings
   :ensure ( :host gitlab
-            :repo "andreyorst/region-bindings.el"
-            :branch "main"
-            :rev :newest)
+            :repo "andreyorst/region-bindings.el")
   :commands (region-bindings-mode)
   :preface
   (defun region-bindings-off ()
     (region-bindings-mode -1))
-  :hook ((after-init . global-region-bindings-mode)
-         ((elfeed-search-mode magit-mode mu4e-headers-mode)
-          . region-bindings-off)))
+  :hook (((elfeed-search-mode magit-mode mu4e-headers-mode)
+          . region-bindings-off))
+  :config (global-region-bindings-mode 1))
 
 (use-package flymake
   :preface
@@ -145,9 +148,14 @@
 (use-package puni
   :ensure t
   :defer t
-  :hook ((prog-mode common-lisp-modes-mode nxml-mode eval-expression-minibuffer-setup) . puni-mode)
-  ;;        (puni-mode . electric-pair-mode))
-  :config
+  :delight "⦅⦆"
+  :hook (((prog-mode common-lisp-modes-mode nxml-mode eval-expression-minibuffer-setup) . puni-mode)
+         (puni-mode . electric-pair-local-mode))
+  :init
+  ; The autoloads of Puni are set up so you can enable `puni-mode` or
+  ;; `puni-global-mode` before `puni` is actually loaded. Only after you press
+  ;; any key that calls Puni commands, it's loaded.
+  (puni-global-mode)
   (add-hook 'term-mode-hook #'puni-disable-puni-mode)
   (add-hook 'eshell-mode-hook #'puni-disable-puni-mode)
   ;; paredit-like keys
@@ -159,8 +167,8 @@
         ("<" . puni-wrap-angle)
         ;; paredit-like keys
         :map puni-mode-map
-        ("C-=" . chee/puni-unwrap-sexp)
-        ("C-." . chee/puni-rewrap-sexp)
+        ;; ("C-=" . chee/puni-unwrap-sexp)
+        ;; ("C-." . chee/puni-rewrap-sexp)
         ("C-M-f" . puni-forward-sexp-or-up-list)
         ("C-M-b" . puni-backward-sexp-or-up-list)
         ("C-M-t" . puni-transpose)
@@ -920,7 +928,7 @@ created with `json-hs-extra-create-overlays'."
   :when (treesit-p)
   :preface
   (defun treesit-p ()
-    "Check if Emacs was built with treesiter in a protable way."
+    "Check if Emacs was built with treesiter in a portable way."
     (and (fboundp 'treesit-available-p)
          (treesit-available-p)))
   (cl-defun treesit-install-and-remap
