@@ -1,4 +1,6 @@
 ;; -*- lexical-binding: t; -*-
+;; avy is a GNU Emacs package for jumping to visible text using a
+;; char-based decision tree
 
 (use-package avy
   :ensure t
@@ -352,7 +354,7 @@ This differs from Avy's goto-char-timer in how it processes parens."
       (avy-with avy-goto-char-timer
         (setq avy--old-cands (avy--read-candidates
                               (lambda (str) (my/avy-replace-syntax-class
-                                             (regexp-quote str)))))
+                                        (regexp-quote str)))))
         (avy-process avy--old-cands))))
   :bind (("C-M-'"   . avy-resume)
          ("C-'"     . my/avy-goto-char-this-window)

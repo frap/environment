@@ -119,7 +119,8 @@
 (use-package avy
   :ensure t
   :commands (avy-goto-char avy-goto-word-0 avy-goto-line avy-goto-char-time)
-  :bind (("C-M-s"  . #'isearch-forward-other-window)
+  :bind (("M-j"    . avy-goto-char-time)
+         ("C-M-s"  . #'isearch-forward-other-window)
          ("C-M-r" . #'isearch-backward-other-window )
          :map isearch-mode-map
          ("C-`" . avy-isearch)
