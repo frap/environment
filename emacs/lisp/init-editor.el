@@ -473,14 +473,16 @@
    ("l" . mc/edit-ends-of-lines))
   :config
   ;; Remember `er/expand-region' is bound to M-2!
-(global-set-key (kbd "M-3") #'mc/mark-next-like-this)
-(global-set-key (kbd "M-4") #'mc/mark-previous-like-this)
-;;(global-set-key (kbd "C-c m") 'mc/mark-all-dwim)
-  ;; (global-set-key (kbd "C-c C-c") 'mc/edit-lines)
-  ;; (global-set-key (kbd "C->") 'mc/mark-next-like-this)
-  ;; (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-  ;; (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
-(add-hook 'multiple-cursors-mode-hook '/mc/bind))
+  (global-set-key (kbd "M-3") #'mc/mark-next-like-this)
+  (global-set-key (kbd "M-#") #'mc/unmark-next-like-this)
+  (global-set-key (kbd "M-4") #'mc/mark-previous-like-this)
+  (global-set-key (kbd "M-$") #'mc/mark-previous-like-this)
+   ;;(global-set-key (kbd "C-c m") 'mc/mark-all-dwim)
+   ;; (global-set-key (kbd "C-c C-c") 'mc/edit-lines)
+   ;; (global-set-key (kbd "C->") 'mc/mark-next-like-this)
+   ;; (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+   ;; (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+   (add-hook 'multiple-cursors-mode-hook '/mc/bind))
 
 (use-package expand-region
   :ensure t

@@ -2,4 +2,14 @@
 ;; Automatically written history of CIDER REPL session
 ;; Edit at your own risk
 
-("1" "(println 1)" "1" "(prn (into {} (System/getenv)))" "(aws/doc waf :ListWebACLs)")
+(" (let [dev (.getElementById js/document \"dev\")
+        table (.getElementById js/document \"deploy\")
+        cell (.closest dev \"th,td\")
+        col-index (inc (.-cellIndex cell))
+        selector (str \"tr > *:nth-child(\" col-index \")\")
+        _  (log \"selector: \" selector)
+        col (js/document.querySelector table selector)
+        _ (log \"column:\" col)
+        ]
+    (set! (.-style col) \"display: flex\")
+    )" "1" "(println 1)" "1" "(prn (into {} (System/getenv)))" "(aws/doc waf :ListWebACLs)")
