@@ -160,43 +160,45 @@
   (add-hook 'eshell-mode-hook #'puni-disable-puni-mode)
   ;; paredit-like keys
   :bind
-  (:map region-bindings-mode-map
-        ("(" . puni-wrap-round)
-        ("[" . puni-wrap-square)
-        ("{" . puni-wrap-curly)
-        ("<" . puni-wrap-angle)
-        ;; paredit-like keys
-        :map puni-mode-map
-        ;; ("C-=" . chee/puni-unwrap-sexp)
-        ;; ("C-." . chee/puni-rewrap-sexp)
-        ("C-M-f" . puni-forward-sexp-or-up-list)
-        ("C-M-b" . puni-backward-sexp-or-up-list)
-        ("C-M-t" . puni-transpose)
-        ;; slurping & barfing
-        ("C-<left>" . puni-barf-forward)
-        ("C-}" . puni-barf-forward)
-        ("C-<right>" . puni-slurp-forward)
-        ("C-)" . puni-slurp-forward)
-        ("C-(" . puni-slurp-backward)
-        ("C-M-<left>" . puni-slurp-backward)
-        ("C-{" . puni-barf-backward)
-        ("C-M-<right>" . puni-barf-backward)
-        ("C-(" . puni-slurp-backward)
-        ("M-(" . puni-barf-backward)
-        ("C-)" . puni-slurp-forward)
-        ("M-)" . puni-barf-forward)
-        ;; depth chaining
-        ("M-r" . puni-raise)
-        ("M-s" . puni-splice)
-        ;; ("M-<up>" . puni-splice-killing-backward)
-        ;; ("M-<down>" . puni-splice-killing-forward)
-        ("M-(" . puni-wrap-round)
-        ("M-{" . puni-wrap-curly)
-        ("M-?" . puni-convolute)
-        ("M-S" . puni-split)
-        ;; moving
-        ("M-<up>" . puni-beginning-of-sexp)
-        ("M-<down>" . puni-end-of-sexp))
+  (("M-9"  . backward-sexp)
+   ("M-0"  . forward-sexp)
+   :map region-bindings-mode-map
+    ("(" . puni-wrap-round)
+    ("[" . puni-wrap-square)
+    ("{" . puni-wrap-curly)
+    ("<" . puni-wrap-angle)
+    ;; paredit-like keys
+    :map puni-mode-map
+    ;; ("C-=" . chee/puni-unwrap-sexp)
+    ;; ("C-." . chee/puni-rewrap-sexp)
+    ("C-M-f" . puni-forward-sexp-or-up-list)
+    ("C-M-b" . puni-backward-sexp-or-up-list)
+    ("C-M-t" . puni-transpose)
+    ;; slurping & barfing
+    ("C-<left>" . puni-barf-forward)
+    ("C-}" . puni-barf-forward)
+    ("C-<right>" . puni-slurp-forward)
+    ("C-)" . puni-slurp-forward)
+    ("C-(" . puni-slurp-backward)
+    ("C-M-<left>" . puni-slurp-backward)
+    ("C-{" . puni-barf-backward)
+    ("C-M-<right>" . puni-barf-backward)
+    ("C-(" . puni-slurp-backward)
+    ("M-(" . puni-barf-backward)
+    ("C-)" . puni-slurp-forward)
+    ("M-)" . puni-barf-forward)
+    ;; depth chaining
+    ("M-r" . puni-raise)
+    ("M-s" . puni-splice)
+    ;; ("M-<up>" . puni-splice-killing-backward)
+    ;; ("M-<down>" . puni-splice-killing-forward)
+    ("M-(" . puni-wrap-round)
+    ("M-{" . puni-wrap-curly)
+    ("M-?" . puni-convolute)
+    ("M-S" . puni-split)
+    ;; moving
+    ("M-<up>" . puni-beginning-of-sexp)
+    ("M-<down>" . puni-end-of-sexp))
   :preface
   (define-advice puni-kill-line (:before (&rest _) back-to-indentation)
     "Go back to indentation before killing the line if it makes sense to."
