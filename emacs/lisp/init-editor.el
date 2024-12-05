@@ -416,6 +416,7 @@
    ("M-#" . mc/unmark-next-like-this)
    ("s-d" . mc/mark-next-like-this)
    ("C-<" .  mc/mark-previous-like-this)
+   ;; Remember `er/expand-region' is bound to M-2!
    ("M-4" .  mc/mark-previous-like-this)
    ("M-$" .  mc/unmark-previous-like-this)
    ("C-*" .  mc/mark-all-like-this)
@@ -456,9 +457,7 @@
    ("C-e" . mc/edit-ends-of-lines)
    ("<down-mouse-1>" . mc/keyboard-quit)
    ("<mouse-1>" . mc/keyboard-quit)
-   )
-  ;; Remember `er/expand-region' is bound to M-2!
-  )
+   ))
 
 (use-package expand-region
   :ensure t
