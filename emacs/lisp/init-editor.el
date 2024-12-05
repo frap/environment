@@ -261,11 +261,16 @@
 (global-set-key (kbd "M-j") 'avy-goto-char-timer)
 
 (use-package bindings
-  :bind ( :map ctl-x-map
+  :bind (("M-1" . delete-other-window)
+         :map ctl-x-map
           ("DEL" . nil)
           ("C-d" . dired-jump))
   :init
   (setq mode-line-end-spaces nil))
+
+(global-set-key "\M-9" 'backward-sexp)
+(global-set-key "\M-0" 'forward-sexp)
+(global-set-key "\M-1" 'delete-other-windows)
 
 (use-package breadcrumb
   :ensure t
@@ -373,33 +378,6 @@
 (setf kill-do-not-save-duplicates t)
 (setq-default indent-tabs-mode nil)
 
-
-(use-package indirect-narrow
-  :bind ( :map narrow-map
-          ("i n" . indirect-narrow-to-region)
-          ("i d" . indirect-narrow-to-defun)
-          ("i p" . indirect-narrow-to-page))
-  :preface
-  (defun indirect-narrow-to-region (start end)
-    (interactive "r")
-    (deactivate-mark)
-    (with-current-buffer (clone-indirect-buffer nil nil)
-      (narrow-to-region start end)
-      (pop-to-buffer (current-buffer))))
-  (defun indirect-narrow-to-page (&optional arg)
-    (interactive "P")
-    (deactivate-mark)
-    (with-current-buffer (clone-indirect-buffer nil nil)
-      (narrow-to-page arg)
-      (pop-to-buffer (current-buffer))))
-  (defun indirect-narrow-to-defun (&optional include-comments)
-    (interactive (list narrow-to-defun-include-comments))
-    (deactivate-mark)
-    (with-current-buffer (clone-indirect-buffer nil nil)
-      (narrow-to-defun include-comments)
-      (pop-to-buffer (current-buffer))))
-  (provide 'indirect-narrow))
-
 ;;; Searching
 (use-package isearch
   :bind ( :map isearch-mode-map
@@ -412,9 +390,9 @@
   :custom
   (isearch-lazy-highlight t))
 
-(use-package phi-search
-  :ensure t
-  :defer t)
+;; (use-package phi-search
+;;   :ensure t
+;;   :defer t)
 
 ;;; Messaging
 
@@ -423,101 +401,76 @@
 ;;   :hook (gnus-part-display . message-view-patch-highlight))
 
 ;;; Multi Cursor
-(defun /mc/bind nil
-  (bind-keys
-   :map mc/keymap
-   ("s-u" . mc/unmark-next-like-this)
-   ("s-D" . mc/mark-previous-like-this)
-   ("s-U" . mc/unmark-previous-like-this)
-   ("s-F" . mc/mark-next-like-this)
-   ("<down-mouse-1>" . mc/keyboard-quit)
-   ("<mouse-1>" . mc/keyboard-quit)
-   ("s-k" . mc/skip-to-next-like-this)
-   ("s-K" . mc/skip-to-previous-like-this)
-   ("s-n" . mc/mark-next-like-this)
-   ("s-p" . mc/mark-previous-like-this)
-   ("<RET>" . newline)
-   ("<return>" . newline)
-   ;; ("<return>" . nil)
-   ("C-&" . mc/vertical-align-with-space)
-   ("C-#" . mc/insert-numbers)
-   :prefix-map chee/multiple-cursors-map
-   :prefix "s-m"
-   ("S" . mc/mark-next-symbol-like-this)
-   ("s" . mc/mark-all-symbols-like-this)
-   ("W" . mc/mark-next-word-like-this)
-   ("w" . mc/mark-all-words-like-this)
-   ("d" . mc/mark-all-words-like-this-in-defun)
-   ("<down-mouse-1>" . mc/keyboard-quit))
-  (remove-hook 'multiple-cursors-mode-hook '/mc/bind))
-
 (use-package multiple-cursors
   :ensure t
+  :preface
+  (defvar gas/mc-map (make-sparse-keymap))
+  (fset 'gas/mc-map gas/mc-map)
   :bind
   (("S-<mouse-1>" . mc/add-cursor-on-click)
    ("C-M->" . mc/mark-next-symbol-like-this)
    ("C-M-<" . mc/mark-previous-symbol-like-this)
    ("C-M-*" . mc/mark-all-symbols-like-this)
    ("C->" .  mc/mark-next-like-this)
+   ("M-3" . mc/mark-next-like-this)
+   ("M-#" . mc/unmark-next-like-this)
    ("s-d" . mc/mark-next-like-this)
    ("C-<" .  mc/mark-previous-like-this)
+   ("M-4" .  mc/mark-previous-like-this)
+   ("M-$" .  mc/unmark-previous-like-this)
    ("C-*" .  mc/mark-all-like-this)
+   ("C-c m" . mc/mark-all-dwim)
+   ("s-m"   . gas/mc-map)
+   :map ctl-x
+   ("C-m"  . gas/mc-map)
    :map region-bindings-mode-map
+   ("m" . mc/mark-all-dwim)
+   ("i" . mc/insert-numbers)
+   ("h" . mc/hide-unmatched-lines-mode)
+   ("a" . mc/mark-all-like-this)
+   ;; ocassionaly useful
+   ("d" . mc/mark-all-symbols-like-this-in-defun)
+   ("r" . mc/reverse-regions)
+   ("s" . mc/sort-regions)
    ("n" . mc/mark-next-symbol-like-this)
    ("N" . mc/mark-next-like-this)
    ("p" . mc/mark-previous-symbol-like-this)
    ("P" . mc/mark-previous-like-this)
-   ("a" . mc/mark-all-symbols-like-this)
-   ("A" . mc/mark-all-like-this)
-   ("s" . mc/mark-all-in-region-regexp)
-   ("l" . mc/edit-ends-of-lines))
-  :config
+   ("S" . mc/mark-all-symbols-like-this)
+   ("g" . mc/mark-all-in-region-regexp)
+   ("l" . mc/edit-ends-of-lines)
+   ("C-&" . mc/vertical-align-with-space)
+   ("<down-mouse-1>" . mc/keyboard-quit)
+   ("<mouse-1>" . mc/keyboard-quit)
+   :map gas/mc-map
+   ("m" . mc/mark-all-dwim)
+   ("i" . mc/insert-numbers)
+   ("h" . mc/hide-unmatched-lines-mode)
+   ("a" . mc/mark-all-like-this)
+   ;; ocassionaly useful
+   ("d" . mc/mark-all-symbols-like-this-in-defun)
+   ("r" . mc/reverse-regions)
+   ("s" . mc/sort-regions)
+   ("l" . mc/edit-lines)
+   ("C-a" . mc/edit-beginnings-of-lines)
+   ("C-e" . mc/edit-ends-of-lines)
+   ("<down-mouse-1>" . mc/keyboard-quit)
+   ("<mouse-1>" . mc/keyboard-quit)
+   )
   ;; Remember `er/expand-region' is bound to M-2!
-(global-set-key (kbd "M-3") #'mc/mark-next-like-this)
-(global-set-key (kbd "M-4") #'mc/mark-previous-like-this)
-;;(global-set-key (kbd "C-c m") 'mc/mark-all-dwim)
-  ;; (global-set-key (kbd "C-c C-c") 'mc/edit-lines)
-  ;; (global-set-key (kbd "C->") 'mc/mark-next-like-this)
-  ;; (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-  ;; (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
-(add-hook 'multiple-cursors-mode-hook '/mc/bind))
+  )
 
 (use-package expand-region
   :ensure t
   :bind ("M-2" . er/expand-region))
 
-(global-set-key "\M-9" 'backward-sexp)
-(global-set-key "\M-0" 'forward-sexp)
-(global-set-key "\M-1" 'delete-other-windows)
-
-(bind-keys :map ctl-x-map
-           :prefix "m"
-           :prefix-map endless/mc-map
-           ("i" . mc/insert-numbers)
-           ("h" . mc/hide-unmatched-lines-mode)
-           ("a" . mc/mark-all-like-this)
-;;; ocassionaly useful
-           ("d" . mc/mark-all-symbols-like-this-in-defun)
-           ("r" . mc/reverse-regions)
-           ("s" . mc/sort-regions)
-           ("l" . mc/edit-lines)
-           ("C-a" . mc/edit-beginnings-of-lines)
-           ("C-e" . mc/edit-ends-of-lines)
-           )
-
-(use-package multiple-cursors-core
-  :bind
-  (( :map mc/keymap
-     ("<return>" . nil)
-     ("C-&" . mc/vertical-align-with-space)
-     ("C-#" . mc/insert-numbers))
-   ( :map ctl-x-map
-     ("C-m" . mc/mark-all-dwim))))
-
 (use-package page
-  :bind ( :map narrow-map
-          ("]" . narrow-forward-page)
-          ("[" . narrow-backward-page))
+  :bind (;; I often input C-x C-p instead of C-x p followed by project
+         ;; key, deleting contents of whole buffer as a result.
+         "C-x C-p" . nil
+         :map narrow-map
+         ("]" . narrow-forward-page)
+         ("[" . narrow-backward-page))
   :preface
   (defun narrow-forward-page (&optional count)
     (interactive "p")
@@ -529,13 +482,9 @@
     (interactive "p")
     (or count (setq count 1))
     (widen)
-    (forward-page (- (1+ count))) ; 1+ needed to actually cross page boundary
+    (forward-page (- (1+ count)))    ; 1+ needed to actually cross page boundary
     (narrow-to-page)))
 
-;; (use-package page
-;;   :bind ( ;; I often input C-x C-p instead of C-x p followed by project
-;;           ;; key, deleting contents of whole buffer as a result.
-;;           "C-x C-p" . nil))
 
 (use-package rect
   :bind (("C-x r C-y" . rectangle-yank-add-lines))

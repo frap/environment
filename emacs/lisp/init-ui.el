@@ -300,8 +300,8 @@ If LOCAL-PORT is nil, PORT is used as local port."
                 ("C-z" . ignore)
                 ("C-x C-z" . ignore)))
   :config
-  (set-frame-parameter (selected-frame) 'alpha '(85 . 50))
-  (add-to-list 'default-frame-alist '(alpha . (85 . 50)))
+  (set-frame-parameter (selected-frame) 'alpha '(90 . 70))
+  (add-to-list 'default-frame-alist '(alpha . (90 . 70)))
   (define-advice toggle-frame-fullscreen
       (:before (&optional frame) hide-menu-bar)
     "Hide menu bar when FRAME goes full screen."
@@ -327,7 +327,7 @@ If LOCAL-PORT is nil, PORT is used as local port."
                     ;; Also handle undocumented (<active> <inactive>) form.
                     ((numberp (cadr alpha)) (cadr alpha)))
               100)
-         '(85 . 50) '(100 . 100)))))
+         '(90 . 60) '(100 . 100)))))
 (defun switch-theme (theme)
   "Disable any currently active themes and load THEME."
   ;; This interactive call is taken from `load-theme'
@@ -658,64 +658,65 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
         (xclip-mode t)))))
 
 ;;;; ligature
-;; (use-package ligature
-;;   :config
-;;   ;; Enable the "www" ligature in every possible major mode
-;;   (ligature-set-ligatures 't '("www"))
-;;   ;; Enable traditional ligature support in eww-mode, if the
-;;   ;; `variable-pitch' face supports it
-;;   (ligature-set-ligatures 'eww-mode '("ff" "fi" "ffi"))
-;;   ;; Enable all Cascadia Code ligatures in programming modes
-;;   (ligature-set-ligatures 'prog-mode '("|||>" "<|||" "<==>" "<!--" "####" "~~>" "***" "||=" "||>"
-;;                                        ":::" "::=" "=:=" "===" "==>" "=!=" "=>>" "=<<" "=/=" "!=="
-;;                                        "!!." ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->" "---" "-<<"
-;;                                        "<~~" "<~>" "<*>" "<||" "<|>" "<$>" "<==" "<=>" "<=<" "<->"
-;;                                        "<--" "<-<" "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_(" "..<"
-;;                                        "..." "+++" "/==" "///" "_|_" "www" "&&" "^=" "~~" "~@" "~="
-;;                                        "~>" "~-" "**" "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-" "{|"
-;;                                        "[|" "]#" "::" ":=" ":>" ":<" "$>" "==" "=>" "!=" "!!" ">:"
-;;                                        ">=" ">>" ">-" "-~" "-|" "->" "--" "-<" "<~" "<*" "<|" "<:"
-;;                                        "<$" "<=" "<>" "<-" "<<" "<+" "</" "#{" "#[" "#:" "#=" "#!"
-;;                                        "##" "#(" "#?" "#_" "%%" ".=" ".-" ".." ".?" "+>" "++" "?:"
-;;                                        "?=" "?." "??" ";;" "/*" "/=" "/>" "//" "__" "~~" "(*" "*)"
-;;                                        "\\\\" "://"))
-;;   ;; Enables ligature checks globally in all buffers. You can also do it
-;;   ;; per mode with `ligature-mode'.
-;;   (global-ligature-mode t))
+(use-package ligature
+  :ensure t
+  :config
+  ;; Enable the "www" ligature in every possible major mode
+  (ligature-set-ligatures 't '("www"))
+  ;; Enable traditional ligature support in eww-mode, if the
+  ;; `variable-pitch' face supports it
+  (ligature-set-ligatures 'eww-mode '("ff" "fi" "ffi"))
+  ;; Enable all Cascadia Code ligatures in programming modes
+  (ligature-set-ligatures 'prog-mode '("|||>" "<|||" "<==>" "<!--" "####" "~~>" "***" "||=" "||>"
+                                       ":::" "::=" "=:=" "===" "==>" "=!=" "=>>" "=<<" "=/=" "!=="
+                                       "!!." ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->" "---" "-<<"
+                                       "<~~" "<~>" "<*>" "<||" "<|>" "<$>" "<==" "<=>" "<=<" "<->"
+                                       "<--" "<-<" "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_(" "..<"
+                                       "..." "+++" "/==" "///" "_|_" "www" "&&" "^=" "~~" "~@" "~="
+                                       "~>" "~-" "**" "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-" "{|"
+                                       "[|" "]#" "::" ":=" ":>" ":<" "$>" "==" "=>" "!=" "!!" ">:"
+                                       ">=" ">>" ">-" "-~" "-|" "->" "--" "-<" "<~" "<*" "<|" "<:"
+                                       "<$" "<=" "<>" "<-" "<<" "<+" "</" "#{" "#[" "#:" "#=" "#!"
+                                       "##" "#(" "#?" "#_" "%%" ".=" ".-" ".." ".?" "+>" "++" "?:"
+                                       "?=" "?." "??" ";;" "/*" "/=" "/>" "//" "__" "~~" "(*" "*)"
+                                       "\\\\" "://"))
+  ;; Enables ligature checks globally in all buffers. You can also do it
+  ;; per mode with `ligature-mode'.
+  (global-ligature-mode t))
 
 ;;;;; ligature-for-jetbrain
-;; (when (font-installed-p "JetBrainsMono")
-;;   (dolist (char/ligature-re
-;;            `((?-  ,(rx (or (or "-->" "-<<" "->>" "-|" "-~" "-<" "->") (+ "-"))))
-;;              (?/  ,(rx (or (or "/==" "/=" "/>" "/**" "/*") (+ "/"))))
-;;              (?*  ,(rx (or (or "*>" "*/") (+ "*"))))
-;;              (?<  ,(rx (or (or "<<=" "<<-" "<|||" "<==>" "<!--" "<=>" "<||" "<|>" "<-<"
-;;                                "<==" "<=<" "<-|" "<~>" "<=|" "<~~" "<$>" "<+>" "</>" "<*>"
-;;                                "<->" "<=" "<|" "<:" "<>"  "<$" "<-" "<~" "<+" "</" "<*")
-;;                            (+ "<"))))
-;;              (?:  ,(rx (or (or ":?>" "::=" ":>" ":<" ":?" ":=") (+ ":"))))
-;;              (?=  ,(rx (or (or "=>>" "==>" "=/=" "=!=" "=>" "=:=") (+ "="))))
-;;              (?!  ,(rx (or (or "!==" "!=") (+ "!"))))
-;;              (?>  ,(rx (or (or ">>-" ">>=" ">=>" ">]" ">:" ">-" ">=") (+ ">"))))
-;;              (?&  ,(rx (+ "&")))
-;;              (?|  ,(rx (or (or "|->" "|||>" "||>" "|=>" "||-" "||=" "|-" "|>" "|]" "|}" "|=")
-;;                            (+ "|"))))
-;;              (?.  ,(rx (or (or ".?" ".=" ".-" "..<") (+ "."))))
-;;              (?+  ,(rx (or "+>" (+ "+"))))
-;;              (?\[ ,(rx (or "[<" "[|")))
-;;              (?\{ ,(rx "{|"))
-;;              (?\? ,(rx (or (or "?." "?=" "?:") (+ "?"))))
-;;              (?#  ,(rx (or (or "#_(" "#[" "#{" "#=" "#!" "#:" "#_" "#?" "#(") (+ "#"))))
-;;              (?\; ,(rx (+ ";")))
-;;              (?_  ,(rx (or "_|_" "__")))
-;;              (?~  ,(rx (or "~~>" "~~" "~>" "~-" "~@")))
-;;              (?$  ,(rx "$>"))
-;;              (?^  ,(rx "^="))
-;;              (?\] ,(rx "]#"))))
-;;     (apply (lambda (char ligature-re)
-;;              (set-char-table-range composition-function-table char
-;;                                    `([,ligature-re 0 font-shape-gstring])))
-;;            char/ligature-re)))
+(when (font-installed-p "JetBrainsMono")
+  (dolist (char/ligature-re
+           `((?-  ,(rx (or (or "-->" "-<<" "->>" "-|" "-~" "-<" "->") (+ "-"))))
+             (?/  ,(rx (or (or "/==" "/=" "/>" "/**" "/*") (+ "/"))))
+             (?*  ,(rx (or (or "*>" "*/") (+ "*"))))
+             (?<  ,(rx (or (or "<<=" "<<-" "<|||" "<==>" "<!--" "<=>" "<||" "<|>" "<-<"
+                               "<==" "<=<" "<-|" "<~>" "<=|" "<~~" "<$>" "<+>" "</>" "<*>"
+                               "<->" "<=" "<|" "<:" "<>"  "<$" "<-" "<~" "<+" "</" "<*")
+                           (+ "<"))))
+             (?:  ,(rx (or (or ":?>" "::=" ":>" ":<" ":?" ":=") (+ ":"))))
+             (?=  ,(rx (or (or "=>>" "==>" "=/=" "=!=" "=>" "=:=") (+ "="))))
+             (?!  ,(rx (or (or "!==" "!=") (+ "!"))))
+             (?>  ,(rx (or (or ">>-" ">>=" ">=>" ">]" ">:" ">-" ">=") (+ ">"))))
+             (?&  ,(rx (+ "&")))
+             (?|  ,(rx (or (or "|->" "|||>" "||>" "|=>" "||-" "||=" "|-" "|>" "|]" "|}" "|=")
+                           (+ "|"))))
+             (?.  ,(rx (or (or ".?" ".=" ".-" "..<") (+ "."))))
+             (?+  ,(rx (or "+>" (+ "+"))))
+             (?\[ ,(rx (or "[<" "[|")))
+             (?\{ ,(rx "{|"))
+             (?\? ,(rx (or (or "?." "?=" "?:") (+ "?"))))
+             (?#  ,(rx (or (or "#_(" "#[" "#{" "#=" "#!" "#:" "#_" "#?" "#(") (+ "#"))))
+             (?\; ,(rx (+ ";")))
+             (?_  ,(rx (or "_|_" "__")))
+             (?~  ,(rx (or "~~>" "~~" "~>" "~-" "~@")))
+             (?$  ,(rx "$>"))
+             (?^  ,(rx "^="))
+             (?\] ,(rx "]#"))))
+    (apply (lambda (char ligature-re)
+             (set-char-table-range composition-function-table char
+                                   `([,ligature-re 0 font-shape-gstring])))
+           char/ligature-re)))
 
 
 ;;________________________________________________________________
