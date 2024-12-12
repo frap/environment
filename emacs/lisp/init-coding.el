@@ -50,33 +50,6 @@
   (defun toggle-hl-line ()
     (hl-line-mode (if display-line-numbers-mode 1 -1))))
 
-
-(use-package common-lisp-modes
-   :ensure (:host github
-	    :repo "andreyorst/common-lisp-modes.el")
-  ;; :delight common-lisp-modes-mode
-  ;; :preface
-  ;; (defun indent-sexp-or-fill ()
-  ;;   "Indent an s-expression or fill string/comment."
-  ;;   (interactive)
-  ;;   (let ((ppss (syntax-ppss)))
-  ;;     (if (or (nth 3 ppss)
-  ;;             (nth 4 ppss))
-  ;;         (fill-paragraph)
-  ;;       (save-excursion
-  ;;         (mark-sexp)
-  ;;         (indent-region (point) (mark))))))
-  ;; :bind ( :map common-lisp-modes-mode-map
-  ;;         ("M-q" . indent-sexp-or-fill))
-  )
-(dolist (hook '(common-lisp-mode-hook
-                clojure-mode-hook
-                cider-repl-mode
-                racket-mode-hook
-                eshell-mode-hook
-                eval-expression-minibuffer-setup-hook))
-  (add-hook hook 'common-lisp-modes-mode))
-
 ;;; Coding helpers
 
 (use-package dumb-jump
@@ -99,17 +72,6 @@
   (eldoc-add-command-completions "paredit-")
   ;;(eldoc-add-command-completions "combobulate-")
   )
-
-(use-package region-bindings
-  :ensure ( :host gitlab
-            :repo "andreyorst/region-bindings.el")
-  :commands (region-bindings-mode)
-  :preface
-  (defun region-bindings-off ()
-    (region-bindings-mode -1))
-  :hook (((elfeed-search-mode magit-mode mu4e-headers-mode)
-          . region-bindings-off))
-  :config (global-region-bindings-mode 1))
 
 (use-package flymake
   :preface
@@ -160,8 +122,10 @@
   (add-hook 'eshell-mode-hook #'puni-disable-puni-mode)
   ;; paredit-like keys
   :bind
-  (("M-9"  . backward-sexp)
-   ("M-0"  . forward-sexp)
+  (("C-b"  . backword-word)
+   ("C-f"  . forward-word)
+   ("M-b"  . puni-backward-sexp-or-up-list)
+   ("M-f"  . puni-forward-sexp-or-up-list)
    :map region-bindings-mode-map
     ("(" . puni-wrap-round)
     ("[" . puni-wrap-square)
