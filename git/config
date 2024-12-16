@@ -8,7 +8,7 @@ path = ~/work/.gitconfig
 
 [core]
 #	autocrlf = input
-editor = emact
+editor = emacsclient
 whitespace = fix,trailing-space,cr-at-eol
 excludesfile = ~/.ignore
 commitGraph = true
