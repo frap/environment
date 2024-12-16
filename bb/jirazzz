@@ -1,0 +1,593 @@
+#!/usr/bin/env bb
+;; Source: https://github.com/rwstauner/jirazzz
+
+(ns jirazzz
+  {:clj-kondo/config '{:linters
+                       {:unresolved-symbol
+                        {:exclude [(jirazzz/make-req-cmd)]}}}}
+  (:require
+    [clojure.pprint :as pprint]
+    [babashka.fs :as fs]
+    [cheshire.core :as json]
+    [clojure.edn :as edn]
+    [clojure.string :as string]
+    [clojure.tools.cli :as cli]
+    [org.httpkit.client :as http]
+    [selmer.parser :as selmer]
+    [selmer.util :as selmer-util])
+  (:import [java.net URLEncoder]))
+
+
+; cli utils
+(defn warn
+  [& args]
+  (binding [*out* *err*]
+    (println (apply str args))))
+
+
+(defn exit
+  [n]
+  (System/exit n))
+
+
+; config
+(defn env
+  [k]
+  (-> k
+      str
+      System/getenv))
+
+
+(def HOME (env "HOME"))
+
+
+(def config-file
+  (or (env "JIRAZZZ_CONFIG_FILE")
+      (fs/path HOME ".jirazzz.edn")))
+
+
+(def config-dir
+  (-> config-file
+      fs/parent
+      str
+      (as-> s
+        (if (string/blank? s)
+          "."
+          s))))
+
+
+(defn relative-to-config
+  [p]
+  (cond->> p
+    (fs/relative? p) (fs/path config-dir)))
+
+
+(def read-file
+  (comp string/trim slurp str relative-to-config))
+
+
+(def read-edn
+  (partial edn/read-string {:readers {'env env
+                                      'file read-file}}))
+
+(def default-config
+  {:aliases
+   {'mine {:doc "List open issues assigned to me"
+           :args ["search" "--jql" "assignee = currentuser() AND statusCategory != Done"]}}})
+
+(def merge-deep (partial merge-with (fn [o n] (if (map? o) (merge o n) n))))
+
+(def config
+  (merge-deep
+    default-config
+    (when (fs/exists? config-file)
+      (-> config-file str slurp read-edn))))
+
+(defn maybe-string
+  [s]
+  (when-not (string/blank? s)
+    s))
+
+
+(defn parse-json
+  [json]
+  (when json
+    (json/parse-string json true)))
+
+
+(def ->json json/generate-string)
+
+
+(defn parse-string
+  [opts s]
+  (let [f (case (:input-format opts)
+            :json parse-json
+            edn/read-string)]
+    (f s)))
+
+
+(defn ->string
+  [opts v]
+  (if (string? v)
+    v
+    (let [f (case (:output-format opts)
+              :json ->json
+              pr-str)]
+      (f v))))
+
+
+(def ->nil (constantly nil))
+
+(defn url-encode
+  [s]
+  (URLEncoder/encode (str s)))
+
+
+(defn render-template
+  [opts template]
+  (-> (selmer-util/without-escaping
+        (selmer/render template opts))
+      (string/trim)))
+
+(defn show-errors
+  [opts]
+  (if (:errors opts)
+    (do
+      (run! warn (:errors opts))
+      (exit 1))
+    opts))
+
+
+(defn custom-fields
+  [opts]
+  (some->> (:custom-fields opts)
+           (map (fn [[fname ffield]]
+                  [ffield (get opts fname)]))
+           (into {})))
+
+
+(defn jira-url
+  [opts path]
+  (str (:url opts) path))
+
+(defn jira-req
+  "Send a request to jira
+
+  `req-opts` is a map that may contain:
+  - `:json <value>` the body to post
+  - `:headers {..}`"
+  [opts method path & [req-opts]]
+  (let [json (some-> req-opts
+                     :json
+                     ->json)
+        headers (cond-> (:headers opts)
+                  json (assoc "Content-type" "application/json; charset=utf-8"))
+        req (merge {:as :text
+                    :url (jira-url opts path)
+                    :method method
+                    :headers headers
+                    :body json}
+                   (dissoc req-opts :json))
+        response @(http/request req)
+        is-json? (some-> response
+                         (get-in [:headers :content-type])
+                         (->> (re-find #"/json")))]
+    (when (= 401 (:status response))
+      (throw (ex-info "401 Unauthorized; Check the headers in your config."
+                      (select-keys response [:status]))))
+    ; TODO: parse body but always include body/status for consistency
+    (-> response
+        :body
+        maybe-string
+        (cond->
+          is-json? parse-json)
+        ; if there is no body return the whole response
+        (or (dissoc response :opts :headers)))))
+
+(defn sprint-pattern
+  [opts]
+  (re-pattern (or (:sprint-pattern opts)
+                  ".")))
+
+
+(defn get-sprint-id
+  [opts]
+  (when (:rapid-view opts)
+    (let [sprints (-> (jira-req opts :get (str "/rest/greenhopper/1.0/sprintquery/" (:rapid-view opts)))
+                      :sprints
+                      (->> (remove #(= (:state %) "CLOSED"))))
+          sprint-id (-> (or (-> sprints
+                                (->> (filter #(= (:state %) "ACTIVE"))
+                                     (filter #(re-find (sprint-pattern opts) (:name %))))
+                                first)
+                            (-> sprints
+                                first))
+                        :id)]
+      sprint-id)))
+
+
+(defn get-meta
+  [{:keys [project issue-type] :as opts}]
+  (let [issue-meta (jira-req opts :get "/rest/api/2/issue/createmeta" {:query-params {:projectKeys project}})
+        proj (-> issue-meta
+                 :projects
+                 (->> (filter #(= (:key %) project)))
+                 first)
+        result {:project-id (:id proj)
+                :type-id (-> proj
+                             :issuetypes
+                             (->> (filter #(= (:name %) issue-type)))
+                             first
+                             :id)}]
+    (cond-> result
+      (not (:backlog opts)) (assoc :sprint-id (get-sprint-id opts)))))
+
+
+(defn jira-user
+  [opts typ]
+  (get opts typ "-1"))
+
+
+(defn add-error
+  [opts error]
+  (-> opts
+      (update :errors (fnil conj []) error)))
+
+
+(defn transition
+  [opts]
+  (if (string/blank? (:transition opts))
+    opts
+    (let [issue (:issue opts)
+          path (str "/rest/api/2/issue/" issue "/transitions")
+          response (jira-req opts :get path)
+          to (string/lower-case (:transition opts))
+          t-id (-> response
+                   :transitions
+                   (->> (filter #(= (-> % :name string/lower-case)
+                                    to)))
+                   first
+                   :id)]
+      (if-not t-id
+        (-> opts
+            (add-error (str "transition '" to "' not found")))
+        (do
+          (jira-req opts
+                    :post
+                    path
+                    {:json {:transition {:id t-id}}})
+          opts)))))
+
+(defn add-comment
+  [opts]
+  (jira-req opts
+            :post
+            (str "/rest/api/2/issue/" (:issue opts) "/comment")
+            {:json {:body (:comment opts)}})
+  opts)
+
+(defn create-issue
+  [opts]
+  (let [opts (merge (get-meta opts) opts)
+        response (jira-req
+                   opts
+                   :post
+                   "/rest/api/2/issue"
+                   {:json {:fields (merge
+                                     (select-keys opts [:summary
+                                                        :description])
+                                     {:project {:id (:project-id opts)}
+                                      :issuetype {:id (:type-id opts)}
+                                      :assignee {:name (jira-user opts :assignee)}}
+                                     (custom-fields opts))}})
+        ky (:key response)
+        opts (-> opts
+                 (assoc :issue ky)
+                 (cond->
+                   (not ky) (add-error response)))]
+    (when (:comment opts)
+      (add-comment opts))
+    (transition opts)))
+
+; commands
+(defmacro make-req-cmd
+  [verb & [weight]]
+  `(defn ~(symbol (str "$" verb))
+     {:command (quote ~verb)
+      :doc ~(format "Send %-6s request: jirazzz %-6s /rest/api/x/y/z …"
+                    (string/upper-case (str verb))
+                    (str verb))
+      :sort ~(or weight 2)}
+     [opts path & data]
+     (let [argmap (or (some->> data first (parse-string opts))
+                      {})
+           response (jira-req opts ~(keyword verb) path argmap)
+           is-json? (some-> response
+                            (get-in [:headers :content-type])
+                            (->> (re-find #"/json")))]
+       (-> response
+           (cond->
+             is-json? (update :body parse-json))))))
+
+
+(make-req-cmd get)
+(make-req-cmd post)
+(make-req-cmd put)
+(make-req-cmd delete 3)
+
+
+(defn assign
+  {:command 'assign
+   :doc "Set assignee on issue: jirazzz assign --issue ABC-123 username"}
+  [opts & [assignee]]
+  (let [opts (cond-> opts
+               assignee (assoc :assignee assignee))
+        response (jira-req opts
+                           :put
+                           (str "/rest/api/2/issue/" (:issue opts) "/assignee")
+                           {:json {:name (:assignee opts)}})
+        opts (or (-> response
+                     :errors
+                     vals
+                     (->> (reduce add-error opts)))
+                 opts)]
+    (-> opts
+        (show-errors)
+        (render-template "{{issue}} {% if assignee = \"-1\" %}unassigned{% else %}assigned to {{assignee}}{% endif %}"))))
+
+(defn $transition
+  {:command 'transition
+   :doc "Transition issue: jirazzz transition --issue ABC-123 --transition 'done'"}
+  [opts & [to]]
+  (-> opts
+      (cond->
+        to (assoc :transition to))
+      transition
+      show-errors
+      (render-template "{{issue}} moved to {{transition}}")))
+
+
+(defn create
+  {:command 'create
+   :doc "Create issue: jirazzz create --summary … --description …"}
+  [opts]
+  (let [opts (-> opts create-issue)]
+    (or (:issue opts)
+        (show-errors opts))))
+
+
+(defn issue
+  {:command 'issue
+   :doc "Get issue: jirazzz issue KEY"}
+  [opts & [ky]]
+  (-> opts
+      (jira-req :get (str "/rest/api/2/issue/" (or ky
+                                                   (:issue opts))))))
+
+(defn $comment
+  {:command 'comment
+   :doc "Add comment to issue: jirazzz comment --issue ABC-123 --comment 'Something to say'"}
+  [opts & [comment-body]]
+  (-> opts
+      (cond->
+        comment-body (assoc :comment comment-body))
+      add-comment
+      show-errors
+      (render-template "Comment added to {{issue}}")))
+
+
+(defn issue-pattern
+  [opts]
+  (-> opts
+      :issue-pattern
+      (or "([A-Z]+-[0-9]+)")
+      re-pattern))
+
+
+(defn commit-msg
+  {:command 'commit-msg
+   :doc "Create issue from commit msg if no reference exists"}
+  [opts path]
+  (let [contents (slurp path)]
+    (when-not (re-find (issue-pattern opts) contents)
+      (let [lines (string/split-lines contents)
+            summary (first lines)
+            description (string/join "\n" (drop-while string/blank? (rest lines)))
+            opts (-> opts
+                     (assoc :summary summary :description description))
+            opts (create-issue opts)
+            template (-> opts
+                         :commit-template
+                         (or "{{summary}}\n\ncloses {{issue}}\n\n{{description}}\n"))]
+        (if-not (:issue opts)
+          (warn (:errors opts))
+          (spit path
+                (render-template opts template)))))
+    ""))
+
+
+(defn parse-log
+  {:command 'parse-log
+   :doc "Parse commit log and transition referenced issues"}
+  [opts]
+  (-> *in*
+      slurp
+      (->> (re-seq (issue-pattern opts))
+           (map second)
+           set
+           (map #(-> opts
+                     (assoc :issue %)
+                     transition
+                     :issue)))
+      (as-> xs
+        (if (seq xs)
+          (string/join
+            "\n"
+            (map #(-> opts
+                      (assoc :issue %)
+                      (render-template "{{issue}} transitioned to {{transition}}"))
+                 xs))
+          ""))))
+
+; https://support.atlassian.com/jira-software-cloud/docs/advanced-search-reference-jql-fields/
+(defn search
+  {:command 'search
+   :doc "Search issues: jirazzz search \"some jql fragment\""}
+  [opts & [jql]]
+  (let [{:keys [issues] error-msgs :errorMessages}
+        (jira-req opts
+                  :get (str "/rest/api/2/search?jql=" (url-encode (or jql
+                                                                      (:jql opts)))))]
+    (if error-msgs
+      (run! println error-msgs)
+      (->> issues
+           (map (fn [{key :key, {:keys [status summary]} :fields}]
+                  {"key" key
+                   "status" (:name status)
+                   "summary" (subs summary 0 (min (count summary) 40))
+                   "browse url" (jira-url opts (str "/browse/" key))}))
+           (pprint/print-table)))
+    ""))
+
+(def cli-options
+  (concat
+    [["-h" "--help" "Show usage"]
+
+     [nil  "--assignee USERNAME" "Assign issue to username (-1 for unassigned)"]
+     [nil  "--backlog" "Put isue in backlog instead of current sprint"]
+     [nil  "--comment BODY" "Comment body to add to issue"]
+     [nil  "--commit-template TEMPLATE" "Selmer template for adding issue to commit message"]
+     [nil  "--description DESC" "Issue description"]
+     ["-i" "--issue KEY" "Issue Key"]
+     [nil  "--issue-pattern PATTERN" "Regular Expression to find issue in commit message"]
+     [nil  "--issue-type TYPE" "Issue Type"]
+     [nil  "--jql SEARCH" "JQL fragment used for search"]
+     ["-p" "--project PROJECT" "Project for issue creation"]
+     [nil  "--rapid-view ID" "RapidView id"]
+     [nil  "--sprint-pattern PATTERN" "Regular Expression to find current sprint"]
+     [nil  "--summary SUMMARY" "Issue summary"]
+     [nil  "--transition NAME" "Transition issue to this state"]
+     [nil  "--unassigned" "Set issue as Unassigned"
+      :assoc-fn (fn [o & _] (assoc o :assignee "-1"))]
+     [nil  "--url URL" "Jira URL"]
+
+     [nil  "--input-format FORMAT" "Set input format (can be 'json', default is 'edn')"
+      :parse-fn keyword]
+     [nil  "--output-format FORMAT" "Set output format (can be 'json', default is 'edn')"
+      :parse-fn keyword]]
+    (-> config
+        :custom-fields
+        (or {})
+        (->> (map (fn [[k v]]
+                    (let [k (name k)]
+                      [nil
+                       (str "--" k " VALUE")
+                       (str "Set custom field for " k " (" (name v) ")")])))))))
+
+
+(defn commands
+  []
+  (-> (ns-publics *ns*)
+      vals
+      (->> (map #(vector (-> % meta :command) %))
+           (filter first)
+           (into {}))))
+
+(defn aliases
+  [config]
+  (-> (:aliases config)
+      (->> (map (fn [[k v]] [k (with-meta v (select-keys v [:doc]))]))
+           (into {}))))
+
+
+(defn usage
+  [{:keys [errors summary]}]
+  (->> [errors
+        "Usage: jirazzz command [options]"
+        ""
+        "Commands:"
+        ""
+        (let [cmds (sort-by (juxt #(-> % second meta :sort) first) (merge (commands) (aliases config)))
+              max-len (apply max (map (comp count str first) cmds))]
+          (for [[cmd v] cmds]
+            (format (str "  %-" max-len "s %s") cmd (-> v meta :doc))))
+        ""
+        (str "Options can be specified on the command line or in " config-file)
+        "Any aliases defined in {:custom-fields {:your-name :customfield_00000}}"
+        "can also be set in the config file or on the command line (see below)."
+        ""
+        "Options:"
+        summary]
+       (flatten)
+       (filter identity)
+       (string/join "\n")))
+
+(defn parsed-opts-merger
+  [old-val new-val]
+  ((condp #(%1 %2) new-val
+    map? merge
+    seq? concat
+    (fn [_ov nv] nv)) old-val new-val))
+
+(def merge-parsed-cli (partial merge-with parsed-opts-merger))
+
+(defn parse-cli-opts
+  [config args]
+  (loop [acc {}
+         config config
+         args args]
+    (let [parsed (cli/parse-opts args cli-options :in-order true)
+          args (:arguments parsed)
+          cmdname (some-> args first symbol)
+          result (merge-parsed-cli acc parsed)]
+      (if-let [a (get-in config [:aliases cmdname])]
+        (recur result config (concat (:args a) (rest args)))
+        (merge-parsed-cli result (cli/parse-opts args cli-options))))))
+
+
+; main
+(defn parse-args
+  [args]
+  (let [parsed (parse-cli-opts config args)
+        args (-> parsed :arguments)
+        cmdname (some-> args first symbol)
+        cmd (get (commands) cmdname)
+        args (rest args)]
+    (when (-> parsed :options :help)
+      (warn (usage parsed))
+      (exit 0))
+    (when-not (empty? (:errors parsed))
+      (warn (usage parsed))
+      (exit 1))
+    (when-not cmd
+      (when cmdname
+        (warn "Unknown command: " cmdname))
+      (warn (usage parsed))
+      (exit 1))
+    (let [opts (merge config (:options parsed))]
+      [cmd opts args])))
+
+
+(defn -main
+  [args]
+  (try
+    (let [[cmd opts args] (parse-args args)]
+      (->> (apply cmd opts args)
+           (->string opts)
+           println))
+    ; ArityException likely means too many args passed to command fn.
+    (catch clojure.lang.ArityException _
+      (warn "Invalid arguments: " args)
+      (warn (usage (cli/parse-opts args cli-options)))
+      (exit 1))
+    (catch Exception e
+      (if (-> e
+              ex-data
+              :status)
+        (do
+          (warn (.getMessage e))
+          (exit 1))
+        (throw e)))))
+
+(when (= *file* (System/getProperty "babashka.file"))
+  (-main *command-line-args*))
