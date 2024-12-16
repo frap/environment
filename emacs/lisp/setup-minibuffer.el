@@ -1,5 +1,35 @@
 ;; setup-minibuffer  -*- lexical-binding: t; -*-
 
+
+(use-package common-lisp-modes
+  :ensure (:host github
+	   :repo "andreyorst/common-lisp-modes.el")
+   ;; :delight common-lisp-modes-mode
+  :delight "clm"
+  :preface
+  (defun indent-sexp-or-fill ()
+    "Indent an s-expression or fill string/comment."
+    (interactive)
+    (let ((ppss (syntax-ppss)))
+      (if (or (nth 3 ppss)
+              (nth 4 ppss))
+          (fill-paragraph)
+        (save-excursion
+          (mark-sexp)
+          (indent-region (point) (mark))))))
+  :bind ( :map common-lisp-modes-mode-map
+          ("M-q" . indent-sexp-or-fill))
+  :config
+  (dolist (hook '(common-lisp-mode-hook
+                  clojure-mode-hook
+                  cider-repl-mode
+                  racket-mode-hook
+                  eshell-mode-hook
+                  eval-expression-minibuffer-setup-hook))
+    (add-hook hook 'common-lisp-modes-mode))
+)
+
+
 ;; Add unique buffer names in the minibuffer where there are many
 ;; identical files. This is super useful if you rely on folders for
 ;; organisation and have lots of files with the same name,
@@ -34,39 +64,91 @@
 
 (use-package minibuffer
   :hook (eval-expression-minibuffer-setup . common-lisp-modes-mode)
+  ;;   :hook (minibuffer-setup .  cursor-intangible-mode)
   :bind ( :map minibuffer-inactive-mode-map
           ("<mouse-1>" . ignore))
+  :preface
+  (unless (fboundp 'minibuffer-keyboard-quit)
+    (autoload #'minibuffer-keyboard-quit "delsel" nil t))
+  (define-advice keyboard-quit
+      (:around (quit) quit-current-context)
+    "Quit the current context.
+
+  When there is an active minibuffer and we are not inside it close
+  it.  When we are inside the minibuffer use the regular
+  `minibuffer-keyboard-quit' which quits any active region before
+  exiting.  When there is no minibuffer `keyboard-quit' unless we
+  are defining or executing a macro."
+    (if (active-minibuffer-window)
+        (if (minibufferp)
+            (minibuffer-keyboard-quit)
+          (abort-recursive-edit))
+      (unless (or defining-kbd-macro
+                  executing-kbd-macro)
+        (funcall-interactively quit))))
+    :init
+  ;; Enable indentation+completion using the TAB key.
+  ;; `completion-at-point' is often bound to M-TAB.
+  ;; should be configured in the `indent' package, but `indent.el'
+  ;; doesn't provide the `indent' feature.
+  (setq tab-always-indent 'complete)
+  ;; Add prompt indicator to `completing-read-multiple'.
+  ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
+  (defun crm-indicator (args)
+    (cons
+     (format "[CRM%s] %s"
+             (replace-regexp-in-string
+              "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" "" crm-separator)
+             (car args))
+     (cdr args)))
+  (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+  ;; Do not allow the cursor in the minibuffer prompt
+  (setq minibuffer-prompt-properties
+        '(read-only t cursor-intangible t face minibuffer-prompt))
+  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+
+  ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
+  ;; Vertico commands are hidden in normal buffers.
+  (setq read-extended-command-predicate
+        #'command-completion-default-include-p)
+
+  ;; Enable recursive minibuffers
+  (setq enable-recursive-minibuffers t)
+
   :custom
   (completion-styles '(partial-completion basic))
   (read-buffer-completion-ignore-case t)
   (read-file-name-completion-ignore-case t)
   :custom-face
-  (completions-first-difference ((t (:inherit unspecified)))))
+  (completions-first-difference ((t (:inherit unspecified))))
+  :config
+  ;; ;; Minibuffer completion
+  (setq completion-cycle-threshold 2
+        completion-flex-nospace nil
+        completion-pcm-complete-word-inserts-delimiters nil
+        ;;completion-pcm-word-delimiters "-_./:| "
+        completion-show-help nil
+        completion-ignore-case nil
+        read-buffer-completion-ignore-case t
+        read-file-name-completion-ignore-case t
+        completions-format 'vertical    ; *Completions* buffer
+        enable-recursive-minibuffers t
+        read-minibuffer-restore-windows t
+        read-answer-short t
+        resize-mini-windows 'grow-only
+        completion-styles '(partial-completion substring initials)
+        completion-category-overrides ;;'((file (styles basic partial-completion initials)))
+        '((file (styles basic partial-completion initials))
+          (buffer (styles basic flex substring)))
+        )
+  )
 ;; (use-package minibuffer
 ;;   :hook (eval-expression-minibuffer-setup . common-lisp-modes-mode)
-;;   :hook (minibuffer-setup .  cursor-intangible-mode)
+
 ;;   :bind ( :map minibuffer-inactive-mode-map
 ;;           ("<mouse-1>" . ignore))
 ;;   :config
-;; ;; Minibuffer completion
-;;   (setq completion-cycle-threshold 2
-;;       completion-flex-nospace nil
-;;       completion-pcm-complete-word-inserts-delimiters nil
-;;       ;;completion-pcm-word-delimiters "-_./:| "
-;;       completion-show-help nil
-;;       completion-ignore-case nil
-;;       read-buffer-completion-ignore-case t
-;;       read-file-name-completion-ignore-case t
-;;       completions-format 'vertical   ; *Completions* buffer
-;;       enable-recursive-minibuffers t
-;;       read-minibuffer-restore-windows t
-;;       read-answer-short t
-;;       resize-mini-windows 'grow-only
-;;       completion-styles '(partial-completion substring initials)
-;;       completion-category-overrides '((file (styles basic-remote partial-completion initials)))
-;;       ;; '((file (styles basic flex substring))
-;;       ;;   (buffer (styles basic flex substring)))
-;; )
+
 
 ;;   (defun minibuffer-replace-input (&optional arg)
 ;;     "Replace original minibuffer input.
@@ -137,66 +219,8 @@
 ;;   ;; portion of the minibuffer.
 ;;   (setq minibuffer-prompt-properties
 ;;         '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
-;;     :preface
-;;     (unless (fboundp 'minibuffer-keyboard-quit)
-;;       (autoload #'minibuffer-keyboard-quit "delsel" nil t))
-;;     (define-advice keyboard-quit
-;;         (:around (quit) quit-current-context)
-;;       "Quit the current context.
 
-;;   When there is an active minibuffer and we are not inside it close
-;;   it.  When we are inside the minibuffer use the regular
-;;   `minibuffer-keyboard-quit' which quits any active region before
-;;   exiting.  When there is no minibuffer `keyboard-quit' unless we
-;;   are defining or executing a macro."
-;;       (if (active-minibuffer-window)
-;;           (if (minibufferp)
-;;               (minibuffer-keyboard-quit)
-;;             (abort-recursive-edit))
-;;         (unless (or defining-kbd-macro
-;;                     executing-kbd-macro)
-;;           (funcall-interactively quit)))))
 
-;; (use-package minibuffer
-;;   :straight nil
-;;   ;;  :hook (eval-expression-minibuffer-setup . common-lisp-modes-mode)
-;;   :bind ( :map minibuffer-inactive-mode-map
-;;           ("<mouse-1>" . ignore))
-;;   :init
-;; ;;   ;; Enable indentation+completion using the TAB key.
-;; ;;   ;; `completion-at-point' is often bound to M-TAB.
-;; ;;   ;; should be configured in the `indent' package, but `indent.el'
-;; ;;   ;; doesn't provide the `indent' feature.
-;; ;;   (setq tab-always-indent 'complete)
-;;   ;; Add prompt indicator to `completing-read-multiple'.
-;;   ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
-;;   (defun crm-indicator (args)
-;;     (cons
-;;      (format "[CRM%s] %s"
-;;              (replace-regexp-in-string
-;;               "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" "" crm-separator)
-;;              (car args))
-;;      (cdr args)))
-;;   (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
-;;   ;; Do not allow the cursor in the minibuffer prompt
-;;   (setq minibuffer-prompt-properties
-;;        '(read-only t cursor-intangible t face minibuffer-prompt))
-;;   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
-
-;;   ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
-;;   ;; Vertico commands are hidden in normal buffers.
-;;   ;; (setq read-extended-command-predicate
-;;   ;;       #'command-completion-default-include-p)
-
-;;   ;; Enable recursive minibuffers
-;;   (setq enable-recursive-minibuffers t)
-;;  ;; :custom
-;;   ;;(completion-styles '(partial-completion basic))
-;;  ;; (read-buffer-completion-ignore-case t)
-;;  ;; (read-file-name-completion-ignore-case t)
-;;  ;; :custom-face
-;;  ;; (completions-first-difference ((t (:inherit unspecified))))
-;;   )
 
 (use-package which-key
   :ensure t
@@ -206,45 +230,43 @@
         ("h" . which-key-show-major-mode))
   :hook (after-init . which-key-mode)
   :init
-  (setq which-key-sort-order #'which-key-description-order
-        ;; which-key-sort-order #'which-key-prefix-then-key-order
-        which-key-idle-delay 0.8
-        which-key-idle-secondary-delay 0.1
-        which-key-sort-uppercase-first nil
-        which-key-add-column-padding 0
-        which-key-max-display-columns nil
-        which-key-min-display-lines 8
-        which-key-side-window-slot -10
-        which-key-show-transient-maps nil)
+  (setq ;;which-key-sort-order #'which-key-description-order
+   which-key-sort-order #'which-key-prefix-then-key-order
+   which-key-idle-delay 0.3
+   which-key-idle-secondary-delay 0.1
+   which-key-sort-uppercase-first nil
+   which-key-add-column-padding 0
+   which-key-max-display-columns nil
+   which-key-min-display-lines 8
+   which-key-side-window-slot -10
+   ;; which-key-show-transient-maps nil
+   )
   :config
-  (push '(("^[0-9-]\\|kp-[0-9]\\|kp-subtract\\|C-u$" . nil) . ignore)
-        which-key-replacement-alist)
-  (with-eval-after-load 'general
-    (which-key-add-key-based-replacements general-localleader "major-mode")
-    (which-key-add-key-based-replacements general-localleader-alt "major-mode"))
-
+  ;; (push '(("^[0-9-]\\|kp-[0-9]\\|kp-subtract\\|C-u$" . nil) . ignore)
+  ;;       which-key-replacement-alist)
   (set-face-attribute 'which-key-local-map-description-face nil :weight 'bold)
   (which-key-setup-side-window-bottom)
   ;; (which-key-setup-side-window-right-bottom)
   (add-hook 'which-key-init-buffer-hook
             (lambda () (setq-local line-spacing 3)))
-  ;; (setq which-key-replacement-alist
-  ;;       '((("<left>") . ("⬅️"))
-  ;;         (("<right>") . ("➡️"))
-  ;;         (("<up>") . ("⬆️"))
-  ;;         (("<down>") . ("⬇️"))
-  ;;         (("delete") . ("DEL"))
-  ;;         (("\\`DEL\\'") . ("BKSP"))
-  ;;         (("RET") . ("⏎"))
-  ;;         (("next") . ("PgDn"))
-  ;;         (("prior") . ("PgUp"))))
-  ;; (advice-add 'which-key-mode :after
-  ;;             (lambda (_arg)
-  ;;               (when (featurep 'embark)
-  ;;                 (setq prefix-help-command
-  ;;                       #'embark-prefix-help-command)))
-  ;;             )
-  :delight "")
+  (setq which-key-replacement-alist
+        '((("<left>") . ("⬅️"))
+          (("<right>") . ("➡️"))
+          (("<up>") . ("⬆️"))
+          (("<down>") . ("⬇️"))
+          (("delete") . ("DEL"))
+          (("\\`DEL\\'") . ("BKSP"))
+          (("RET") . ("⏎"))
+          (("next") . ("PgDn"))
+          (("prior") . ("PgUp"))))
+  (advice-add 'which-key-mode :after
+              (lambda (_arg)
+                (when (featurep 'embark)
+                  (setq prefix-help-command
+                        #'embark-prefix-help-command)))
+              )
+  ;; :delight ""
+  )
 
 ;;; Completion
 

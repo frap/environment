@@ -262,15 +262,12 @@
 (global-set-key (kbd "M-j") 'avy-goto-char-timer)
 
 (use-package bindings
-  :bind (("M-1" . delete-other-window)
-         :map ctl-x-map
+  :bind (:map ctl-x-map
           ("DEL" . nil)
           ("C-d" . dired-jump))
   :init
   (setq mode-line-end-spaces nil))
 
-(global-set-key "\M-9" 'backward-sexp)
-(global-set-key "\M-0" 'forward-sexp)
 (global-set-key "\M-1" 'delete-other-windows)
 
 (use-package breadcrumb
@@ -402,6 +399,15 @@
 ;;   :hook (gnus-part-display . message-view-patch-highlight))
 
 ;;; Multi Cursor
+
+;; This is globally useful, so it goes under `C-x', and `m'
+;; for "multiple-cursors" is easy to remember.
+;;(define-key ctl-x-map "\C-m" #'mc/mark-all-dwim)
+;; Usually, both `C-x C-m' and `C-x RET' invoke the
+;; `mule-keymap', but that's a waste of keys. Here we put it
+;; _just_ under `C-x RET'.
+;;(define-key ctl-x-map (kbd "<return>") mule-keymap)
+
 (use-package multiple-cursors
   :ensure t
   :preface
@@ -413,52 +419,60 @@
    ("C-M-<" . mc/mark-previous-symbol-like-this)
    ("C-M-*" . mc/mark-all-symbols-like-this)
    ("C->" .  mc/mark-next-like-this)
+   ;; Remember `er/expand-region' is bound to M-2!
    ("M-3" . mc/mark-next-like-this)
    ("M-#" . mc/unmark-next-like-this)
    ("s-d" . mc/mark-next-like-this)
    ("C-<" .  mc/mark-previous-like-this)
-   ;; Remember `er/expand-region' is bound to M-2!
    ("M-4" .  mc/mark-previous-like-this)
    ("M-$" .  mc/unmark-previous-like-this)
    ("C-*" .  mc/mark-all-like-this)
-   ("C-c m" . mc/mark-all-dwim)
+   ("C-c m" . gas/mc-map)
+   ("C-x m" . mc/mark-all-dwim)
    ("s-m"   . gas/mc-map)
-   :map ctl-x
-   ("C-m"  . gas/mc-map)
    :map region-bindings-mode-map
+   ("a" . mc/mark-all-symbols-like-this)
+   ("A" . mc/mark-all-like-this)
+   ("l" . mc/edit-ends-of-lines)
    ("m" . mc/mark-all-dwim)
-   ("i" . mc/insert-numbers)
-   ("h" . mc/hide-unmatched-lines-mode)
-   ("a" . mc/mark-all-like-this)
-   ;; ocassionaly useful
-   ("d" . mc/mark-all-symbols-like-this-in-defun)
-   ("r" . mc/reverse-regions)
-   ("s" . mc/sort-regions)
    ("n" . mc/mark-next-symbol-like-this)
    ("N" . mc/mark-next-like-this)
    ("p" . mc/mark-previous-symbol-like-this)
    ("P" . mc/mark-previous-like-this)
-   ("S" . mc/mark-all-symbols-like-this)
-   ("g" . mc/mark-all-in-region-regexp)
-   ("l" . mc/edit-ends-of-lines)
-   ("C-&" . mc/vertical-align-with-space)
-   ("<down-mouse-1>" . mc/keyboard-quit)
-   ("<mouse-1>" . mc/keyboard-quit)
-   :map gas/mc-map
-   ("m" . mc/mark-all-dwim)
-   ("i" . mc/insert-numbers)
-   ("h" . mc/hide-unmatched-lines-mode)
-   ("a" . mc/mark-all-like-this)
+   ("s" . mc/mark-all-in-region-regexp)
    ;; ocassionaly useful
    ("d" . mc/mark-all-symbols-like-this-in-defun)
-   ("r" . mc/reverse-regions)
-   ("s" . mc/sort-regions)
-   ("l" . mc/edit-lines)
+   ("<" . mc/reverse-regions)
+   ("i" . mc/insert-numbers)
+   ("h" . mc/hide-unmatched-lines-mode)
+   ("^" . mc/sort-regions)
+   ("C-&" . mc/vertical-align-with-space)
    ("C-a" . mc/edit-beginnings-of-lines)
    ("C-e" . mc/edit-ends-of-lines)
    ("<down-mouse-1>" . mc/keyboard-quit)
    ("<mouse-1>" . mc/keyboard-quit)
-   ))
+   :map gas/mc-map
+   ("a" . mc/mark-all-symbols-like-this)
+   ("A" . mc/mark-all-like-this)
+   ("l" . mc/edit-ends-of-lines)
+   ("m" . mc/mark-all-dwim)
+   ("n" . mc/mark-next-symbol-like-this)
+   ("N" . mc/mark-next-like-this)
+   ("p" . mc/mark-previous-symbol-like-this)
+   ("P" . mc/mark-previous-like-this)
+   ("s" . mc/mark-all-in-region-regexp)
+   ;; ocassionaly useful
+   ("d" . mc/mark-all-symbols-like-this-in-defun)
+   ("<" . mc/reverse-regions)
+   ("i" . mc/insert-numbers)
+   ("h" . mc/hide-unmatched-lines-mode)
+   ("^" . mc/sort-regions)
+   ("C-&" . mc/vertical-align-with-space)
+   ("C-a" . mc/edit-beginnings-of-lines)
+   ("C-e" . mc/edit-ends-of-lines)
+   ("<down-mouse-1>" . mc/keyboard-quit)
+   ("<mouse-1>" . mc/keyboard-quit))
+)
 
 (use-package expand-region
   :ensure t
@@ -467,7 +481,7 @@
 (use-package page
   :bind (;; I often input C-x C-p instead of C-x p followed by project
          ;; key, deleting contents of whole buffer as a result.
-         "C-x C-p" . nil
+         ("C-x C-p" . nil)
          :map narrow-map
          ("]" . narrow-forward-page)
          ("[" . narrow-backward-page))
@@ -485,7 +499,6 @@
     (forward-page (- (1+ count)))    ; 1+ needed to actually cross page boundary
     (narrow-to-page)))
 
-
 (use-package rect
   :bind (("C-x r C-y" . rectangle-yank-add-lines))
   :preface
@@ -496,6 +509,18 @@
     (save-restriction
       (narrow-to-region (point) (point))
       (yank-rectangle))))
+
+(use-package region-bindings
+  :ensure ( :host gitlab
+            :repo "andreyorst/region-bindings.el")
+  :commands (region-bindings-mode)
+  :preface
+  (defun region-bindings-off ()
+    (region-bindings-mode -1))
+  :hook (((elfeed-search-mode magit-mode mu4e-headers-mode)
+          . region-bindings-off))
+  :init (global-region-bindings-mode 1))
+
 
 (use-package repeat-mode
   :hook (after-init . repeat-mode))
@@ -571,31 +596,49 @@ are defining or executing a macro."
       (unless (or defining-kbd-macro
                   executing-kbd-macro)
         (funcall-interactively quit))))
-  (define-advice exchange-point-and-mark
-      (:around (fn &optional arg) tmm)
-    "Conditionally exchange point and mark.
+;;   (define-advice exchange-point-and-mark
+;;       (:around (fn &optional arg) tmm)
+;;     "Conditionally exchange point and mark.
 
-Only exchange point and mark when `transient-mark-mode' is either
-disabled, or enabled and the mark is active."
-    (when (or (and transient-mark-mode
-                   mark-active)
-              (not transient-mark-mode))
-      (funcall fn arg))))
+;; Only exchange point and mark when `transient-mark-mode' is either
+;; disabled, or enabled and the mark is active."
+;;     (when (or (and transient-mark-mode
+;;                    mark-active)
+;;               (not transient-mark-mode))
+;;       (funcall fn arg)))
+  )
 
+;;;; unbind-key
+(global-unset-key (kbd "C-z")) ; unbind (suspend-frame)
+(global-unset-key (kbd "C-x C-z")) ; also this
 ;; (use-package undo-tree
-;;   :commands undo-tree-undo undo-tree-redo
-;;   :config (global-undo-tree-mode t)
-;;   (setq undo-tree-auto-save-history nil)
-;;   (setq undo-tree-history-directory-alist '(("." . "~/.config/undo")))
+;;   :ensure t
+;;   ;; :commands undo-tree-undo undo-tree-redo
+;;   :init
+;;   (global-undo-tree-mode t)
+;;   :config
+;;   (setq undo-tree-auto-save-history t)
+;;   (setq undo-tree-history-directory-alist
+;;         `(("." . ,(expand-file-name "undo-tree-history" user-cache-directory))))
 ;;   :bind
-;;   (("C-_" . 'undo-tree-undo)
-;;    ("M-_" . 'undo-tree-undo)
-;;    ("s-z" . 'undo-tree-undo)
-;;    ("s-Z" . 'undo-tree-redo)
-;;    ("s-y" . 'undo-tree-redo)))
+;;   (("C-z"  . undo-only)
+;;    ("C-S-z" . undo-tree-redo)
+;;    ("C-c u" . undo-tree-visualize)
+;;    ("C-x u" . undo-tree-visualize)
+;;    ("C-_" . undo-tree-undo)
+;;    ("M-_" . undo-tree-undo)
+;;    ("s-z" . undo-tree-undo)
+;;    ("s-Z" . undo-tree-redo)
+;;    ))
+
 
 (use-package vundo
-  :bind (("C-c u" . vundo))
+  :ensure t
+  :bind (("C-c u" . vundo)
+         ("C-x u" . vundo)
+         ("C-z"   . vundo)
+         ("s-z"   . vundo)
+         )
   :custom
   (vundo-roll-back-on-quit nil)
   (vundo--window-max-height 10)
@@ -604,8 +647,12 @@ disabled, or enabled and the mark is active."
   ;;(vundo--window-max-height 20)
   :config
   ;; Take less on-screen space.
-  (setq vundo-compact-display t)
-  (global-set-key (kbd "C-x u") #'vundo))
+  (setq vundo-compact-display t))
+
+(use-package undo-hl
+  :hook ((text-mode org-mode) . undo-hl-mode)
+  :ensure ( :host github
+            :repo "casouri/undo-hl"))
 
 ;; The =undo-fu-session= package saves and restores the undo states of buffers
 ;; across Emacs sessions.

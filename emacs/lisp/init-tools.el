@@ -277,17 +277,16 @@ mode.")
 ;;when I do a git-pull I'd like to see what's new
 (global-auto-revert-mode t)
 
-(use-package transient
-  :ensure t)
-
 (use-package magit
-  :ensure t
+ :ensure t
   ;; :hook ((git-commit-mode . flyspell-mode)
   ;;        (git-commit-mode . magit-git-commit-insert-branch))
   :bind
   (("C-c g" . magit-status)
+   ("C-x g" . magit-status)
    :map project-prefix-map
    ("m" . magit-project-status))
+
   :defines (magit-status-mode-map
             magit-revision-show-gravatars
             magit-display-buffer-function
@@ -340,7 +339,7 @@ mode.")
      (when-let ((tag (magit-extract-jira-tag (magit-get-current-branch))))
        (insert tag)
        (forward-char -1)))
-   (global-set-key (kbd "C-x g") 'magit-status))
+   )
 
 (use-package magit
   :after project
@@ -348,17 +347,20 @@ mode.")
   (add-to-list 'project-switch-commands
                '(magit-project-status "Magit") t))
 
+;; (use-package transient
+;;   :ensure t)
+
 (use-package ghub
   :ensure t
   :defer t)
 
-(use-package forge
-  :ensure t
-  :commands forge-create-pullreq forge-create-issue
-  :init
-  (setq-default forge-database-file
-                (expand-file-name "forge/forge-database.sqlite"
-                                  user-cache-directory)))
+;; (use-package forge
+;;   :ensure t
+;;   :commands forge-create-pullreq forge-create-issue
+;;   :init
+;;   (setq-default forge-database-file
+;;                 (expand-file-name "forge/forge-database.sqlite"
+;;                                   user-cache-directory)))
 
 ;;;;; gutter
 (use-package git-gutter
@@ -373,7 +375,7 @@ mode.")
   :hook ((prog-mode org-mode) . git-gutter-mode )
   :config
   (setq git-gutter:update-interval 2)
-  (setq git-gutter:modified-sign "†") ; ✘
+  (setq git-gutter:modified-sign "†")   ; ✘
   (setq git-gutter:added-sign "†")
   ;; (setq git-gutter:deleted-sign "†")
   ;; (set-face-foreground 'git-gutter:added "Green")
@@ -699,7 +701,6 @@ Set automatically by the `" (symbol-name compilation-mode-name) "'."))
 ;;    :line 2 :col 3 :level 'warn :hyperlink 1 :highlight 1))
 
 ;; (use-package fennel-compilation-mode
-;;   :straight nil
 ;;   :no-require
 ;;   :preface
 ;;   (define-project-compilation-mode fennel-compilation)

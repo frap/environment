@@ -67,29 +67,25 @@ If you experience stuttering, increase this.")
 (require 'init-files-buffers)
 (require 'init-ui)
 
-
 ;;; Editor
 (require 'init-editor)
 
 ;;; Minibuffer & Navigation
 (require 'setup-minibuffer)
 
-;;; Org mode
-(require 'init-org)
+;;; LSP
+(require 'init-lsp)
+;;; Languages
+(require 'init-coding)
+(require 'init-copilot)
 
 ;;; Tools - git, project, shell
-
+(require 'setup-shells)
 (load (expand-file-name "lisp/init-tools" user-emacs-directory))
-(load (expand-file-name "lisp/setup-shells" user-emacs-directory))
+;;(require 'init-tools)
 
-;;;; LSP
-
-(load (expand-file-name "lisp/init-lsp" user-emacs-directory))
-
-;;; Languages
-
-(load (expand-file-name "lisp/init-coding" user-emacs-directory))
-(load (expand-file-name "lisp/init-copilot" user-emacs-directory))
+;;; Org mode
+(require 'init-org)
 
 (provide 'init)
 ;;; init.el ends here

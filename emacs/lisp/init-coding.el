@@ -674,9 +674,9 @@ buffer with it."
         (jet (when (executable-find "jet")
                "jet --pretty --keywordize keyword --from json --to edn")))
     (if jet
-      (let ((p (point)))
-        (shell-command-on-region b e jet (current-buffer) t)
-        (goto-char p))
+        (let ((p (point)))
+          (shell-command-on-region b e jet (current-buffer) t)
+          (goto-char p))
       (user-error "Il n'a pas pu trouver de jet installé"))))
 
 (use-package json-hs-extra
@@ -888,7 +888,33 @@ created with `json-hs-extra-create-overlays'."
   :config
   (add-to-list 'completion-at-point-functions #'yasnippet-capf))
 
+;; (use-package web-mode
+;;   :ensure t
+;;   :custom
+;;   (web-mode-markup-indent-offset 2)
+;;   (web-mode-css-indent-offset 2)
+;;   (web-mode-code-indent-offset 2)
+;;   :mode
+;;   (("\\.phtml\\'" . web-mode)
+;;    ("\\.php\\'" . web-mode)
+;;    ("\\.tpl\\'" . web-mode)
+;;    ("\\.[agj]sp\\'" . web-mode)
+;;    ("\\.as[cp]x\\'" . web-mode)
+;;    ("\\.erb\\'" . web-mode)
+;;    ("\\.mustache\\'" . web-mode)
+;;    ("\\.djhtml\\'" . web-mode)
+;;    ("\\.j2\\'" . web-mode))
+;;   :config
+;;   (setq web-mode-engines-alist '(("django" . "\\.j2\\'"))))
+
 ;;;; tree-sitter modes
+;; (use-package treesit-auto
+;;   :custom
+;;   (treesit-auto-install 'prompt)
+;;   :config
+;;   (setq treesit-auto-langs '(python typescript))
+;;   ;; (treesit-auto-add-to-auto-mode-alist 'all)
+;;   (global-treesit-auto-mode))
 
 (use-package treesit
   :when (treesit-p)
@@ -924,8 +950,34 @@ name and a corresponding major mode."
         (eval-after-load 'org
           (lambda ()
             (add-to-list 'org-src-lang-modes org-src))))))
+
+  ;; You can remap major modes with `major-mode-remap-alist'. Note
+  ;; that this does *not* extend to hooks! Make sure you migrate them
+  ;; also
+  ;; (dolist (mapping
+  ;;          '((python-mode . python-ts-mode)
+  ;;            (css-mode . css-ts-mode)
+  ;;            (typescript-mode . typescript-ts-mode)
+  ;;            (js2-mode . js-ts-mode)
+  ;;            (bash-mode . bash-ts-mode)
+  ;;            (conf-toml-mode . toml-ts-mode)
+  ;;            (go-mode . go-ts-mode)
+  ;;            (css-mode . css-ts-mode)
+  ;;            (json-mode . json-ts-mode)
+  ;;            (js-json-mode . json-ts-mode)))
+  ;;   (add-to-list 'major-mode-remap-alist mapping))
   :custom
   (treesit-font-lock-level 2))
+
+
+(use-package combobulate
+  :ensure (:host github :repo "mickeynp/combobulate")
+  :custom
+    ;; You can customize Combobulate's key prefix here.
+    ;; Note that you may have to restart Emacs for this to take effect!
+    (combobulate-key-prefix "C-c o")
+    :hook ((prog-mode . combobulate-mode))
+)
 
 (use-package js
   :defer t
@@ -937,6 +989,27 @@ name and a corresponding major mode."
    :modes '(js-mode javascript-mode js2-mode)
    :remap 'js-ts-mode
    :org-src '("js" . js-ts)))
+
+(use-package typescript-ts-mode
+  :when (treesit-p)
+  :mode   ("\\.ts\\'" "\\.tsx\\'" "\\.cjs\\'" "\\.mjs\\'")
+  :init
+  (treesit-install-and-remap
+   'typescript "https://github.com/tree-sitter/tree-sitter-typescript"
+   :revision "master"
+   :source-dir "typescript/src"
+   :modes '(typescript-mode)
+   :remap 'typescript-ts-mode
+   :org-src '("ts" . ts-ts))
+  ;; :hook (typescript-ts-base-mode . (lambda ()
+  ;;                                    (setq js-indent-level 2)
+  ;;                                    (electric-pair-local-mode)
+  ;;                                    (lsp-deferred)
+  ;;                                    (lsp-lens-mode)
+  ;;                                    (dolist (h '(lsp-format-buffer
+  ;;                                                 lsp-organize-imports))
+  ;;                                      (add-hook 'before-save-hook h nil t))))
+  )
 
 (use-package json-ts-mode
   :defer t
@@ -1045,31 +1118,12 @@ Abbrevs that normally don't expand via abbrev-mode are handled manually."
    'elixir "https://github.com/elixir-lang/tree-sitter-elixir"
    :org-src '("elixir" . elixir-ts)))
 
-(use-package heex-ts-mode
-  :defer t
-  :when (treesit-p)
-  :init
-  (treesit-install-and-remap
-   'heex "https://github.com/phoenixframework/tree-sitter-heex"))
-
-
-;;(use-package awk-ts-mode)
-
-(use-package typescript-mode
- :after tree-sitter
-  :mode   ("\\.js\\'" "\\.jsx\\'" "\\.ts\\'" "\\.tsx\\'" "\\.cjs\\'" "\\.mjs\\'"))
-
-;; (use-package typescript-ts-mode
-;;   :hook (typescript-ts-base-mode . (lambda ()
-;;                                      (setq js-indent-level 2)
-;;                                      (electric-pair-local-mode)
-;;                                      (lsp-deferred)
-;;                                      (lsp-lens-mode)
-;;                                      (dolist (h '(lsp-format-buffer
-;;                                                   lsp-organize-imports))
-;;                                        (add-hook 'before-save-hook h nil t)))))
-
-
+;; (use-package heex-ts-mode
+;;   :defer t
+;;   :when (treesit-p)
+;;   :init
+;;   (treesit-install-and-remap
+;;    'heex "https://github.com/phoenixframework/tree-sitter-heex"))
 
 
 (provide 'init-coding)

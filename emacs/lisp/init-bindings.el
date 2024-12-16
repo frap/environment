@@ -1,4 +1,4 @@
-;;; lsip/init-bindings.el --- Gas Global keybindings -*- lexical-binding: t; -*-
+;;; lisp/init-bindings.el --- Gas Global keybindings -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2023 Andrés Gasson
 ;;
@@ -19,13 +19,13 @@
 ;;
 ;;; Code:
 
-  (when (equal system-type 'darwin)
-    ;; Configure mac modifiers to be what I expect
-    (with-no-warnings
-      (setq  ns-command-modifier 'super
-             ns-option-modifier 'meta
-             ns-right-option-modifier 'nil
-             ns-right-command-modifier 'nil)))
+(when (equal system-type 'darwin)
+  ;; Configure mac modifiers to be what I expect
+  (with-no-warnings
+    (setq  ns-command-modifier 'super
+           ns-option-modifier 'meta
+           ns-right-option-modifier 'nil
+           ns-right-command-modifier 'nil)))
 
 ;;The most useful Emacs command is ~execute-extended-command~. It should be painless to access from the home row. (~bind-key*~ ensures that this setting is propagated through all major modes, which saves us a bunch of ~unbind-key~ calls in ~use-package~ stanzas.)
 (bind-key* "C-c ;" #'execute-extended-command)
@@ -131,6 +131,8 @@
   :custom
   (counsel-describe-function-function #'helpful-callable)
   (counsel-describe-variable-function #'helpful-variable)
+  :custom-face
+  (avy-lead-face ((t (:background "#51afef" :foreground "#870000" :weight bold))))
   :bind
   (("C-h f" . #'helpful-callable)
          ("C-h v" . #'helpful-variable)
@@ -143,8 +145,7 @@
          ([remap describe-command]  . helpful-command)
          ([remap describe-variable] . helpful-variable)
          ([remap describe-function] . helpful-callable)))
-;; :custom-face
-;; (avy-lead-face ((t (:background "#51afef" :foreground "#870000" :weight bold)))))
+
 
 
 ;; ───────────────────────── Generic Modified Functions ────────────────────────
@@ -226,12 +227,6 @@ With a prefix argument ARG, insert the next ARG characters literally."
           (backward-word)
           (insert word-to-duplicate))
       (message "No word found before point"))))
-
-;; (defun duplicate-current-word()
-;;   "Duplicate a word before point."
-;;   (interactive)
-;;   (beginning-of-sexp)
-;;   (insert (word-at-point)))
 
 ;;----------------------------------------------------------------------
 ;;;; copy-current-line
@@ -548,7 +543,6 @@ point reaches the beginning or end of the buffer, stop there."
       (occur (if isearch-regexp isearch-string (regexp-quote isearch-string))))))
 
 (use-package bindings-x
-  :straight nil
   :bind ( :map ctl-x-map
           ("C-d" . dired-jump))
   :preface

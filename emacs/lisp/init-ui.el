@@ -522,7 +522,7 @@ Based on `so-long-detected-long-line-p'."
   (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
 
 (defmacro +customize-faces-by-prefix (prefix &rest properties)
-  "Customize faces in FACE-LIST with names starting with PREFIX.
+  "Customise faces in FACE-LIST with names starting with PREFIX.
 PROPERTIES is a list of face property-value pairs."
   (let* ((faces (seq-filter (lambda (face)
                               (string-prefix-p prefix (symbol-name face)))
@@ -556,6 +556,16 @@ PROPERTIES is a list of face property-value pairs."
 ;;      (no-special-glyphs . t))))
 
 ;;; windows
+(use-package window
+  ;; :bind
+  ;; ("M-o" . other-window)
+  :config
+  (add-to-list
+   'display-buffer-alist
+   '("\\*Calendar*" (display-buffer-at-bottom)))
+  )
+
+;; (keymap-global-set "M-o" 'other-window-mru)
 
 (use-package window
   :unless (fboundp 'switchy-window-minor-mode)
@@ -584,12 +594,12 @@ PROPERTIES is a list of face property-value pairs."
   :ensure t
   :bind
   (("C-x o" . ace-window)
-   ("H-o"   . ace-window)
+   ("s-o"   . ace-window)
    ("C-M-0" . ace-window-prefix)
    :map ctl-x-4-map
    ("o" . ace-window-prefix))
-  ;; :custom-face
-  ;; (aw-leading-char-face ((t (:height 2.5 :weight normal))))
+  :custom-face
+  (aw-leading-char-face ((t (:height 2.5 :weight normal))))
   :defer 2
   :init (ace-window-display-mode 1)
   :custom-face (aw-mode-line-face ((t (:inherit (bold mode-line-emphasis)))))
@@ -641,11 +651,12 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
           (?o delete-other-windows "Delete Other Windows")
           (?? aw-show-dispatch-help))))
 
-(use-package window
-  :config
-  (add-to-list 'display-buffer-alist
-               '("\\*Calendar*"
-                 (display-buffer-at-bottom))))
+
+;; (use-package window
+;;   :config
+;;   (add-to-list 'display-buffer-alist
+;;                '("\\*Calendar*"
+;;                  (display-buffer-at-bottom))))
 
 ;; paste in text terminalform gui
 (when (and (not (display-graphic-p))
