@@ -71,15 +71,16 @@ alias lt='du -sh * | sort -h'
 # +----+
 
 if quiet_which eza; then
-    alias la="eza -la"
-    alias laa="eza -laa"
-    alias ld="eza -lD"
-    alias lf="eza -lf --color=always | grep -v /"
-    alias lh="eza -dl .* --group-directories-first"
-    alias ll='eza -al --group-directories-first'
-    alias ls='eza -alf --color=always --sort=size| grep -v /'
-    alias lt="eza -al --sort-modified"
-    alias l="lf"
+    alias l="eza -lf -all --sort=modified"
+    alias ld="eza -l -all --sort=modified --group-directories-first"
+    alias lr="eza -lf -all --sort=modified --reverse"
+    alias lrd="eza -l -all --sort=modified --reverse --group-directories-first"
+    alias lg="eza --git-ignore -lf --sort=modified" # list git file sorted with last modified at bottom
+    alias lgd="eza --git-ignore -l --sort=modified --group-directories-first"
+    alias lrg="eza --git-ignore -lf --sort=modified --reverse" # list git file sorted with last modified at top
+    alias lrgd="eza --git-ignore -l --sort=modified --reverse --group-directories-first"
+    alias ls='eza -alf --color=always --sort=size/'
+    alias lf="l"
 elif [ "$MACOS" ] && quiet_which gls; then
     alias ls="gls --color  -sAF"
     alias la="gls --color -Atr"
