@@ -14,7 +14,8 @@
 
 
 ;; * PATHS
-
+;; (setenv "PATH" (concat "/opt/homebrew/bin:~/.local/bin:/bin:/usr/sbin:/sbin:") (getenv "PATH"))
+;; (setq exec-path (append exec-path '("/opt/homebrew/bin:~/.local/bin")))
 ;; I avoid defining too many custom helpers, =dir-concat= is an exception. Emacs
 ;; 28 provides =file-name-concat=, but I'm on 27.2 some of the time.
 (use-package emacs
@@ -77,15 +78,16 @@ If you experience stuttering, increase this.")
 (require 'init-lsp)
 ;;; Languages
 (require 'init-coding)
-(require 'init-copilot)
+
 
 ;;; Tools - git, project, shell
 (require 'setup-shells)
-(load (expand-file-name "lisp/init-tools" user-emacs-directory))
-;;(require 'init-tools)
+;;(load (expand-file-name "lisp/init-tools" user-emacs-directory))
+(require 'init-tools)
 
 ;;; Org mode
 (require 'init-org)
 
+;; (require 'init-copilot)
 (provide 'init)
 ;;; init.el ends here
