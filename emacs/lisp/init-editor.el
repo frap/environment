@@ -50,8 +50,8 @@
 
    save-place-forget-unreadable-files nil
 
-   blink-matching-paren t             ; Blinking parenthesis.
-  )
+   blink-matching-paren t               ; Blinking parenthesis.
+   )
   ;; Never mix tabs and spaces. Never use tabs, period.
   ;; We need the setq-default here because this becomes
   ;; a buffer-local variable when set.
@@ -73,10 +73,10 @@
   (require 'hl-line)
   (add-hook 'prog-mode-hook #'hl-line-mode)
   (add-hook 'text-mode-hook #'hl-line-mode)
-   ;; excellent way to cause aggravation when the variable you keep trying to modify is being set in some ~custom-set-variables~ invocation
-   (setq custom-file (make-temp-name "/tmp/"))
-   ;;  Emacs stores theme-safety information in that file, we have to disable the warnings entirely
-   (setq custom-safe-themes t))
+  ;; excellent way to cause aggravation when the variable you keep trying to modify is being set in some ~custom-set-variables~ invocation
+  (setq custom-file (make-temp-name "/tmp/"))
+  ;;  Emacs stores theme-safety information in that file, we have to disable the warnings entirely
+  (setq custom-safe-themes t))
 ;;________________________________________________________________
 ;;;;    Custom settings
 ;;________________________________________________________________

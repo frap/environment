@@ -277,8 +277,9 @@ mode.")
 ;;when I do a git-pull I'd like to see what's new
 (global-auto-revert-mode t)
 
+
 (use-package magit
- :ensure t
+  :ensure t
   ;; :hook ((git-commit-mode . flyspell-mode)
   ;;        (git-commit-mode . magit-git-commit-insert-branch))
   :bind

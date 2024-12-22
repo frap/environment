@@ -5,7 +5,7 @@
   :ensure (:host github
 	   :repo "andreyorst/common-lisp-modes.el")
    ;; :delight common-lisp-modes-mode
-  :delight "clm"
+  :delight "δ"
   :preface
   (defun indent-sexp-or-fill ()
     "Indent an s-expression or fill string/comment."
@@ -18,16 +18,7 @@
           (mark-sexp)
           (indent-region (point) (mark))))))
   :bind ( :map common-lisp-modes-mode-map
-          ("M-q" . indent-sexp-or-fill))
-  :config
-  (dolist (hook '(common-lisp-mode-hook
-                  clojure-mode-hook
-                  cider-repl-mode
-                  racket-mode-hook
-                  eshell-mode-hook
-                  eval-expression-minibuffer-setup-hook))
-    (add-hook hook 'common-lisp-modes-mode))
-)
+          ("M-q" . indent-sexp-or-fill)))
 
 
 ;; Add unique buffer names in the minibuffer where there are many
