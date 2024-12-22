@@ -5,7 +5,22 @@
 (use-package lsp-mode
   :ensure t
   :hook ((lsp-mode . lsp-diagnostics-mode))
-  :custom
+  ;; use &lt;tab&gt; for completion
+  :bind (;;("&lt;tab&gt;" . company-indent-or-complete-common)
+         ("M-." . lsp-ui-peek-find-defintions)
+         ("M-?" . lsp-ui-peek-find-references))
+  :hook ((clojure-mode . lsp)
+	 (clojurec-mode . lsp)
+	 (clojurescript-mode . lsp)
+	 ;; integration with which-key
+	 (lsp-mode . (lambda ()
+		       (let ((lsp-keymap-prefix "C-c l"))
+			 (lsp-enable-which-key-integration)
+			 ;; hide auto-complete modal if
+			 ;; auto-complete package was installed
+			 ;; like we do before
+			 (auto-complete-mode -1)))))
+    :custom
   (lsp-keymap-prefix "C-c l")
   (lsp-auto-configure nil)
   (lsp-diagnostics-provider :flymake)
@@ -15,7 +30,18 @@
   (lsp-keep-workspace-alive nil)
   (lsp-idle-delay 0.5)
   (lsp-enable-xref t)
-  (lsp-signature-doc-lines 1))
+  (lsp-signature-doc-lines 1)
+  :config
+  ;; Using custom keybind for lsp
+  (define-key lsp-mode-map (kbd "C-c l") lsp-command-map)
+  ;; hide breadcrumb line on top of the buffer
+  (setq lsp-headerline-breadcrumb-enable nil)
+  ;; (dolist (m '(clojure-mode
+  ;;              clojurec-mode
+  ;;              clojurescript-mode
+  ;;              clojurex-mode))
+  ;;   (add-to-list 'lsp-language-id-configuration `(,m . "clojure")))
+  )
 
 ;; (use-package lsp-mode
 ;;   :init
@@ -39,6 +65,8 @@
 ;;          ;;                                           (alist-get 'lsp-capf completion-category-defaults))
 ;;          ;;                                '(orderless))))
 ;;          (dired-mode . lsp-dired-mode)
+     ;; :bind (("M-." . lsp-ui-peek-find-defintions)
+;;            ("M-?" . lsp-ui-peek-find-references))
 ;;    :custom
 ;;     ;;(lsp-ui-sideline-enable t) ;; "a little info over there")
 ;;     (lsp-prefer-capf t)
@@ -86,15 +114,15 @@
 
 ;;   (add-hook 'lsp-mode-hook #'lsp:setup-completion-for-corfu))
 
-;; (use-package lsp-ui
-;;   :demand t
-;;   :commands lsp-ui-mode
-;;   :bind (:map lsp-ui-mode-map
-;;               ("M-<mouse-1>" . lsp-find-definition-mouse)
-;;               ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
-;;               ([remap xref-find-references]  . lsp-ui-peek-find-references ))
-;;   :custom-face
-;;   (lsp-ui-doc-background ((t (:background "#ffffee")))))
+(use-package lsp-ui
+  :no-require
+  :commands lsp-ui-mode
+  :bind (:map lsp-ui-mode-map
+              ("M-<mouse-1>" . lsp-find-definition-mouse)
+              ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+              ([remap xref-find-references]  . lsp-ui-peek-find-references ))
+  :custom-face
+  (lsp-ui-doc-background ((t (:background "#ffffee")))))
 
 ;; (use-package consult-lsp
 ;;   :after lsp-mode
@@ -138,18 +166,14 @@
     (lsp-completion-mode (if (bound-and-true-p cider-mode) -1 1)))
   :config
   (setq lsp-file-watch-threshold 10000
+        lsp-headerline-breadcrumb-enable nil
         lsp-signature-auto-activate nil
         ;; I use clj-kondo from master
         lsp-diagnostics-provider :none
         lsp-enable-indentation nil ;; uncomment to use cider indentation instead of lsp
-        ))
+        )
+  )
 
-(use-package lsp-clojure
-  :no-require
-  :hook ((clojure-mode
-          clojurec-mode
-          clojurescript-mode)
-         . lsp))
 
 ;; (use-package lsp-java
 ;;   :ensure t
