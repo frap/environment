@@ -40,7 +40,7 @@
   (editorconfig-mode 1))
 
 (use-package display-line-numbers
-;;  :hook (display-line-numbers-mode . toggle-hl-line)
+  :hook (display-line-numbers-mode . toggle-hl-line)
   :hook prog-mode
   :custom
   (display-line-numbers-width 2)
@@ -110,8 +110,8 @@
 (use-package puni
   :ensure t
   :defer t
-  :delight "⦅⦆"
-  :hook (((prog-mode common-lisp-modes-mode nxml-mode eval-expression-minibuffer-setup) . puni-mode)
+  ;; :delight ""
+  :hook (((common-lisp-modes-mode nxml-mode) . puni-mode)
          (puni-mode . electric-pair-local-mode))
   :init
   ; The autoloads of Puni are set up so you can enable `puni-mode` or
@@ -239,11 +239,7 @@
 (use-package rainbow-delimiters
   :ensure t
   :delight t
-  :hook ((cider-repl-mode
-          clojurex-mode
-          clojurescript-mode
-          clojurec-mode
-          clojure-mode
+  :hook ((common-lisp-modes-mode
           emacs-lisp-mode
           lisp-data-mode
           sly-mrepl-mode
@@ -254,7 +250,7 @@
 ;; (use-package combobulate
 ;;   ;; :after treesit
 ;;   :custom
-;;   ;; You can customize Combobulate's key prefix here.
+;;   ;; You can customise Combobulate's key prefix here.
 ;;   ;; Note that you may have to restart Emacs for this to take effect!
 ;;   (setq combobulate-key-prefix "C-c o")
 ;;  ;; :config
@@ -311,12 +307,47 @@
   :custom
   (csv-align-max-width most-positive-fixnum))
 
+(use-package flycheck-clj-kondo
+  :ensure t)
+
+(defun clojure-lisp-pretty-symbols ()
+  "Make some word or string show as pretty Unicode symbols"
+  (setq prettify-symbols-alist
+	'(;; ("lambda" . ?λ)
+	  ("fn" . ?λ)
+	  ;; Ƒ Ɣ ƒ Ƭ Ʃ Ƴ ƴ ɀ ℎ ℰ ℱ Ⅎ ℳ ℓ ⊂ ⊃ ⋂ ⋃ ∩ ∪ ∈ ∊ ∋ ∍ ∘ ⇩ ⇘ ⯆ ⯅ 🭶 ⯇ ⯈
+	  ;; Greek alphabet
+	  ;; Α α, Β β, Γ γ, Δ δ, Ε ε, Ζ ζ, Η η, Θ θ, Ι ι, Κ κ, Λ λ, Μ μ, Ν ν,
+	  ;; Ξ ξ, Ο ο, Π π, Ρ ρ, Σ σ/ς, Τ τ, Υ υ, Φ φ, Χ χ, Ψ ψ, Ω ω
+	  ;; ("->" . ?→)
+	  ;; ("->>" . ?↠)
+	  ;; ("=>" . ?⇒)
+	  ("defmulti" . ?Ƒ)
+	  ("defmethod" . ?ƒ)
+	  ("/=" . ?≠)   ("!=" . ?≠)
+	  ("==" . ?≡)   ("not" . ?!)
+	  ("&lt;=" . ?≤)   (">=" . ?≥)
+	  ("comp" . ?υ) ("partial" . ?ρ))))
+
+(defun clojure-mode-hook ()
+  (clojure-lisp-pretty-symbols)
+  ;; --
+  ;;  These couple of lines are optional if you
+  ;; want to use linter in EVERY Clojure buffer.
+  ;;  You also can set (flycheck-mode nil) and
+  ;; enable it only in buffer you need following
+  ;; the next steps:
+  ;;   M-x flycheck-mode
+  (add-to-list 'flycheck-checkers 'clj-kondo-clj)
+  (flycheck-mode t)
+  ;; --
+  (clojure-set-compile-command))
+
 (use-package clojure-mode
+  :delight "λ clj"
   :ensure t
-  :hook ((clojure-mode
-          clojurec-mode
-          clojurescript-mode)
-         . clojure-mode-setup)
+  :hook ((clojure-mode clojurec-mode clojurescript-mode) . common-lisp-modes-mode)
+  :hook ((clojure-mode clojurec-mode clojurescript-mode) . clojure-mode-hook)
   :commands (clojure-project-dir)
   :bind ( :map clojure-mode-map
           ("C-:" . nil))
@@ -329,10 +360,6 @@
             ((and (file-exists-p (expand-file-name "deps.edn" project-dir))
                   (executable-find "clojure"))
              (setq-local compile-command "clojure ")))))
-  (defun clojure-mode-setup ()
-    "Setup Clojure buffer."
-    (common-lisp-modes-mode 1)
-    (clojure-set-compile-command))
   ;; (setq clojure-toplevel-inside-comment-form t
   ;;       ;; Because of CIDER's insistence to send forms to all linked REPLs, we
   ;;       ;; *have* to be able to switch cljc buffer to clj/cljs mode without
@@ -544,6 +571,7 @@ specific project."
 ;;   :hook (cider-mode . clj-decompiler-setup))
 
 (use-package elisp-mode
+  :defer t
   :hook ((emacs-lisp-mode . eldoc-mode)
          (emacs-lisp-mode . common-lisp-modes-mode)))
 
@@ -654,7 +682,7 @@ buffer with it."
 
 (use-package isayt
   :ensure (:host gitlab :repo "andreyorst/isayt.el")
-  :delight isayt-mode
+  ;;  :delight isayt-mode
   :hook (common-lisp-modes-mode . isayt-mode))
 
 (use-package jet
@@ -826,12 +854,12 @@ created with `json-hs-extra-create-overlays'."
   :custom
   (yaml-indent-offset 2)
   :config
-  ;; (add-hook 'yaml-mode-hook
-  ;;           '(lambda ()
-  ;;              (setq indent-tabs-mode nil)
-  ;;              (setq tab-width 2)
-  ;;              (setq yaml-indent-offset 2)
-  ;;              (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
+  (add-hook 'yaml-mode-hook
+            '(lambda ()
+               (setq indent-tabs-mode nil)
+               (setq tab-width 2)
+               (setq yaml-indent-offset 2)
+               (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
   )
 
 (use-package yasnippet
@@ -970,14 +998,14 @@ name and a corresponding major mode."
   (treesit-font-lock-level 2))
 
 
-(use-package combobulate
-  :ensure (:host github :repo "mickeynp/combobulate")
-  :custom
-    ;; You can customize Combobulate's key prefix here.
-    ;; Note that you may have to restart Emacs for this to take effect!
-    (combobulate-key-prefix "C-c o")
-    :hook ((prog-mode . combobulate-mode))
-)
+;; (use-package combobulate
+;;   :ensure (:host github :repo "mickeynp/combobulate")
+;;   :custom
+;;     ;; You can customize Combobulate's key prefix here.
+;;     ;; Note that you may have to restart Emacs for this to take effect!
+;;     (combobulate-key-prefix "C-c o")
+;;     :hook ((prog-mode . combobulate-mode))
+;; )
 
 (use-package js
   :defer t
@@ -1117,13 +1145,5 @@ Abbrevs that normally don't expand via abbrev-mode are handled manually."
   (treesit-install-and-remap
    'elixir "https://github.com/elixir-lang/tree-sitter-elixir"
    :org-src '("elixir" . elixir-ts)))
-
-;; (use-package heex-ts-mode
-;;   :defer t
-;;   :when (treesit-p)
-;;   :init
-;;   (treesit-install-and-remap
-;;    'heex "https://github.com/phoenixframework/tree-sitter-heex"))
-
 
 (provide 'init-coding)
