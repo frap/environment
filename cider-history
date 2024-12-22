@@ -2,7 +2,7 @@
 ;; Automatically written history of CIDER REPL session
 ;; Edit at your own risk
 
-(" (let [dev (.getElementById js/document \"dev\")
+("(add-tap prn)" " (let [dev (.getElementById js/document \"dev\")
         table (.getElementById js/document \"deploy\")
         cell (.closest dev \"th,td\")
         col-index (inc (.-cellIndex cell))

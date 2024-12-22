@@ -2,7 +2,8 @@
 ;;; Org
 
 (use-package org
-  :hook ((org-babel-after-execute . org-redisplay-inline-images))
+   :delight (org-mode "🦄" :major)
+   :hook ((org-babel-after-execute . org-redisplay-inline-images))
   :bind ( :map org-mode-map
           ("C-c c" . org-capture)
           ("C-c a" . org-agenda)
@@ -309,7 +310,7 @@ ARG is taken as a number."
                          "\n"))
           )))
 
-  (use-package graphviz-dot-mode
+(use-package graphviz-dot-mode
   :ensure t
   :config
   (setq graphviz-dot-indent-width 4))
