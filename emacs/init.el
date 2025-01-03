@@ -88,6 +88,6 @@ If you experience stuttering, increase this.")
 ;;; Org mode
 (require 'init-org)
 
-;; (require 'init-copilot)
+(require 'init-copilot)
 (provide 'init)
 ;;; init.el ends here

@@ -466,6 +466,7 @@ mode.")
 (use-package server
   :commands (server-running-p)
   :init
+  (setq server-socket-dir (expand-file-name "~/.cache/emacs/server"))
   (unless (server-running-p)
     (server-start)))
 

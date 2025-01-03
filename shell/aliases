@@ -72,6 +72,8 @@ alias lt='du -sh * | sort -h'
 
 if quiet_which eza; then
     alias l="eza -lf -all --sort=modified"
+    alias la="eza -la --sort=modified"
+    alias ll="eza -la"
     alias ld="eza -l -all --sort=modified --group-directories-first"
     alias lr="eza -lf -all --sort=modified --reverse"
     alias lrd="eza -l -all --sort=modified --reverse --group-directories-first"
@@ -79,8 +81,8 @@ if quiet_which eza; then
     alias lgd="eza --git-ignore -l --sort=modified --group-directories-first"
     alias lrg="eza --git-ignore -lf --sort=modified --reverse" # list git file sorted with last modified at top
     alias lrgd="eza --git-ignore -l --sort=modified --reverse --group-directories-first"
-    alias ls='eza -alf --color=always --sort=size/'
-    alias lf="l"
+    alias ls='eza -al --color=always --sort=size'
+    alias lsa='eza -al --color=always --sort=size'
 elif [ "$MACOS" ] && quiet_which gls; then
     alias ls="gls --color  -sAF"
     alias la="gls --color -Atr"
@@ -119,14 +121,15 @@ alias pg='ping 8.8.8.8'
 # +-----+
 if quiet_which bat; then
     export BAT_THEME="gruvbox-light"
-    alias bd="bat -l diff"
+    alias bdl="bat -l diff"
     alias bj="bat -l json"
     alias bc="bat -l clojure"
     alias by="bat -l yaml"
     alias bm="bat -p -l man"
     alias bl='bat -p -l log'
-    #alias batp='bat --paging=always --pager="less -RFX" --style=plain'
-    bdiff() {
+    alias bp='bat --paging=always --pager="less -RFX" --style=plain'
+    alias cat=bp
+    bd() {
         git diff --name-only --relative --diff-filter=d | xargs bat --diff
     }
 fi

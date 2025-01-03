@@ -19,6 +19,7 @@ emacs/.dap-breakpoints
 emacs/custom.el
 emacs/history
 emacs/recentf
+emacs/.local
 .eldev/
 less/history
 zsh/.zsh_history
@@ -39,3 +40,4 @@ pip/
 bin/aws-list-subscription-filters.py
 zed/.tmp*
 zed/embeddings/
+.local/

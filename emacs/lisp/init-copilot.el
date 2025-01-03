@@ -10,25 +10,26 @@
   :custom
   (copilot-disable-predicates '(always))
   :bind
-  ("M-`" . copilot-complete)
-  :bind
-  (:map gas/toggles-map
-   ("`" . copilot-mode))
-  :bind
-  (:map copilot-completion-map
-        ("C-g" .  #'copilot-clear-overlay)
-        ("M-p" . #'copilot-previous-completion)
-        ("M-n" . #'copilot-next-completion)
-        ("<tab>" . 'copilot-accept-completion)
-        ("TAB" . 'copilot-accept-completion)
-        ("M-f" . #'copilot-accept-completion-by-word)
-        ("C-TAB" . 'copilot-accept-completion-by-word)
-        ("C-<tab>" . 'copilot-accept-completion-by-word)
-        ("M-<return>" . copilot-accept-completion-by-line))
+  (("M-`" . copilot-complete)
+   :map gas/toggles-map
+   ("`" . copilot-mode)
+   :map copilot-completion-map
+   ("C-g" .  #'copilot-clear-overlay)
+   ("M-p" . #'copilot-previous-completion)
+   ("M-n" . #'copilot-next-completion)
+   ("<tab>" . 'copilot-accept-completion)
+   ("TAB" . 'copilot-accept-completion)
+   ("M-f" . #'copilot-accept-completion-by-word)
+   ("C-TAB" . 'copilot-accept-completion-by-word)
+   ("C-<tab>" . 'copilot-accept-completion-by-word)
+   ("M-<return>" . copilot-accept-completion-by-line))
   :hook (prog-mode . copilot-mode)
   :hook (yaml-mode . copilot-mode)
   :config
   (setq copilot-max-char -1))
+
+(use-package gptel
+  :ensure t)
 
 (provide 'init-copilot)
 ;; init-copilot.el ends here
