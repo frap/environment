@@ -2,7 +2,7 @@
 ;; Automatically written history of CIDER REPL session
 ;; Edit at your own risk
 
-("(add-tap prn)" " (let [dev (.getElementById js/document \"dev\")
+("(clojure.repl/doc mapv)" "(first [\"eoo7\"])" "(add-tap prn)" " (let [dev (.getElementById js/document \"dev\")
         table (.getElementById js/document \"deploy\")
         cell (.closest dev \"th,td\")
         col-index (inc (.-cellIndex cell))

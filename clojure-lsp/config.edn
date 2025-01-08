@@ -1,4 +1,8 @@
-{:hover {:arity-on-same-line? true
+{:project-specs
+ [{:project-path "bb.edn"
+   :classpath-cmd ["echo" ""]}
+ ]
+ :hover {:arity-on-same-line? true
          :clojuredocs false}
  :semantic-tokens? false
  :use-metadata-for-privacy? true
