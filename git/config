@@ -6,16 +6,40 @@ email = 1204361+frap@users.noreply.github.com
 [includeIf "gitdir:~/work/"]
 path = ~/work/.gitconfig
 
+
+[gitlab]
+user = agasson
+
+[github]
+user = frap
+
 [core]
-#	autocrlf = input
-editor = emacsclient
-whitespace = fix,trailing-space,cr-at-eol
-excludesfile = ~/.ignore
-commitGraph = true
-pager = delta
+  # Exclude everything this file. Used for general exclusions.
+  excludesfile = ~/.config/.gitignore
+  # Set attributes on files. Used for general diff improvements.
+  attributesfile = ~/.config/.gitattributes
+  # Don't prompt for commit messages for merge commits.
+  mergeoptions = --no-edit
+  # Speed up some repositories.
+  commitGraph = true
+  # Output unicode characters (e.g. emoji).
+  quotepath = on
+
+  editor = emacsclient
+  # whitespace rm
+  whitespace = fix,trailing-space,cr-at-eol
+
+  pager = delta
 
 [credential]
 helper =
+
+[credential "https://github.com"]
+helper =
+helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+helper =
+helper = !/opt/homebrew/bin/gh auth git-credential
 
 [color]
 advice = true
@@ -74,6 +98,10 @@ localBranch = 2 bold
 remoteBranch = 1 bold
 unmerged = 9 bold reverse
 
+[checkout]
+  # If in doubt about the branch to checkout, pick origin.
+  defaultRemote = origin
+
 [commit]
 gpgsign = false
 status = true
@@ -87,11 +115,20 @@ line-numbers = true
 
 [diff]
 #	algorithm = myers
-colorMoved = default
-renames = copy
-mnemonicPrefix = true
-wsErrorHighlight = all
-statGraphWidth = 40
+# colorMoved = default
+# renames = copy
+# mnemonicPrefix = true
+# wsErrorHighlight = all
+# statGraphWidth = 40
+# Use the slower but better patience diff algorithm
+  algorithm = patience
+  # Use new diff algorithm to make e.g. function diffs look better.
+  compactionheuristic = true
+  # Use a different colour for moved lines than added/modified ones
+  colorMoved = default
+
+[diff "xml"]
+   textconv = xmllint --format --recover
 
 [diff "org"]
 xfuncname = "^(\\*+ +.*)$"
@@ -105,33 +142,53 @@ ff = false
 conflictstyle = diff3
 
 [mergetool "ediff"]
-             cmd = emacsclient -c -a \"\"  --eval \"(ediff-merge-files-with-ancestor \\\"$LOCAL\\\" \\\"$REMOTE\\\" \\\"$BASE\\\" nil \\\"$MERGED\\\")\"
+cmd = emacsclient -c -a \"\"  --eval \"(ediff-merge-files-with-ancestor \\\"$LOCAL\\\" \\\"$REMOTE\\\" \\\"$BASE\\\" nil \\\"$MERGED\\\")\"
 
 [mergetool]
-prompt = true
-keepBackup = false
-writeToTemp = true
+# Don't prompt before opening the merge tool.
+  prompt = false
+  # Don't keep backups of the merge tool inputs.
+  keepBackup = false
+  # Don't keep the merge tool temporary input/output files.
+  keepTemporaries = false
+[apply]
+  # Cleanup whitespace by default when apply patches.
+  whitespace = fix
 
 [rebase]
-missingCommitsCheck = warn
-abbreviateCommands = false
-instructionFormat = %<(60,trunc)%s   %cn <%ce>   [GPG: %G?% GK]
-untrackedCache = true
-autoSquash = true
-stat = true
+  # Run `git stash` if needed before a `git rebase`
+  autoStash = true
+  # Auto-add `--autosquash` to `git rebase`
+  autoSquash = true
+# missingCommitsCheck = warn
+# abbreviateCommands = false
+# instructionFormat = %<(60,trunc)%s   %cn <%ce>   [GPG: %G?% GK]
+# untrackedCache = true
+# autoSquash = true
+# stat = true
 
 [fetch]
-prune = false
-output = compact
+  # Always prune when fetching (and pulling).
+  prune = true
+  # Write commit graph to speed up some repositories.
+  writeCommitGraph = true
+
+[gc]
+  # Write commit graph to speed up some repositories.
+  writeCommitGraph = true
 
 [pull]
-rebase = interactive
+   # Default to rebasing on pulls
+   rebase = true
+   #rebase = interactive
 
 [push]
-default = current
-gpgSign = if-asked
-followTags = true
-pushFollowTags = matching
+# Push to the set upstream branch being tracked by default.
+   default = simple
+   #default = current
+   gpgSign = if-asked
+   followTags = true
+   pushFollowTags = matching
 
 [submodule]
 fetchJobs = 0
@@ -155,20 +212,32 @@ showStash = true
 submoduleSummary = true
 renames = copy
 
+[tag]
+  # Sort tags by newest first
+  sort = -version:refname
+
 [log]
-abbrevCommit = true
-decorate = short
-date = format:%a, %Y-%m-%d %R (%z)
-follow = true
-graphColors = 1,2,3,4,5,6,8,166,9,10,11,12,13,14,15,208
-showRoot = true
-mailmap = true
+  # Print more readable dates in `git log`
+  date = human
+  abbrevCommit = true
+  decorate = short
+#date = format:%a, %Y-%m-%d %R (%z)
+  follow = true
+  graphColors = 1,2,3,4,5,6,8,166,9,10,11,12,13,14,15,208
+  showRoot = true
+  mailmap = true
 
 [rerere]
-enabled = true
+  # Store and re-use manual conflict resolution changes.
+  enabled = true
 
 [protocol]
-version = 2
+  # Use Git v2 protocol for better performance
+  version = 2
+
+[help]
+  # Autocorrect mistyped command
+  autocorrect = 1
 
 [column]
 ui = auto,column
@@ -453,18 +522,5 @@ path = .gitconfig.local
 [includeIf "gitdir:~/money/"]
 path = ~/money/.gitconfig
 
-
-[gitlab]
-user = agasson
-
-[github]
-user = frap
-
-[credential "https://github.com"]
-helper =
-helper = !/opt/homebrew/bin/gh auth git-credential
-[credential "https://gist.github.com"]
-helper =
-helper = !/opt/homebrew/bin/gh auth git-credential
 [init]
-	defaultBranch = master
+defaultBranch = master
