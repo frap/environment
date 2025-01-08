@@ -12,10 +12,13 @@
 if [ -f $(brew --prefix)/etc/bash_completion ]; then
   . $(brew --prefix)/etc/bash_completion
 fi
-# function set_terminal_app_pwd() {
-#   # Tell Terminal.app about each directory change.
-#   printf '\e]7;%s\a' "$(echo "file://$HOST$PWD" | sed -e 's/ /%20/g')"
-# }
+
+if [[ $TERMINALAPP ]] && [[ -z "$INSIDE_EMACS" ]]; then
+    function set_terminal_app_pwd() {
+        # Tell Terminal.app about each directory change.
+        printf '\e]7;%s\a' "$(echo "file://$HOST$PWD" | sed -e 's/ /%20/g')"
+    }
+fi
 
 #   My favorite diff tool is the =ediff= tool in Emacs, and little
 #   function (taken from [[http://defunitive.wordpress.com/2011/07/23/invoking-emacs-ediff-from-the-command-line/][this blog post]]) allows me to use it from the

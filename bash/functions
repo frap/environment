@@ -220,20 +220,6 @@ function flf {
 function fld {
   du -h . | sort -n | tail −n 10
 }
-#-----------------------------------------------------------#
-function bdump {
-    if [ $ORACLE_SID = "orcl" ]
-    then
-    cd /u01/app/oracle/diag/rdbms/orcl/orcl/trace
-    elif [ $ORACLE_SID = "XE" ]
-    then
-    cd /u01/app/oracle/diag/rdbms/xe/XE/trace
-    elif [ $ORACLE_SID = "XEPDB1" ]
-    then
-    cd /opt/oracle/diag/rdbms/xe/XE/trace
-    fi
-    pwd
-}
 
 function ediff() {
       if [ -z "$2" ]

@@ -41,8 +41,8 @@ alias topm="ps -e -o pmem,pid,user,tty,args | sort -n -k 1 -r | head"
 
 if quiet_which rg; then
     export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/ripgreprc"
-    #    alias rgc="rg --colors 'match:style:nobold' --colors 'path:style:nobold'"
-    alias grep="rg"
+    alias rgc="rg --colors 'match:style:nobold' --colors 'path:style:nobold'"
+    alias grep="rgc"
 
 else
     alias grep='ggrep --color=auto'

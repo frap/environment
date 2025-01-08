@@ -2,10 +2,8 @@
 
 # Save directory changes
 cd() {
-  builtin cd "$@" || return
-  #  [ "$TERMINALAPP" ] && [ ! -z "$INSIDE_EMACS" ] && set_terminal_app_pwd
-  pwd >"${XDG_STATE_HOME}/lastpwd"
-  eza -lf
+    builtin cd "$@" || return
+     [[ -n "${TERMINALAPP}" ]] && [[ -z "$INSIDE_EMACS" ]] && command -v set_terminal_app_pwd >/dev/null && set_terminal_app_pwd
 }
 
 function cl() {
@@ -26,4 +24,5 @@ function md() {
 
 # state on last working dir
 [ -s ${XDG_STATE_HOME}/lastpwd ] && [ "$PWD" = "$HOME" ] && builtin cd "$(cat ${XDG_STATE_HOME}/lastpwd)" 2>/dev/null
-#[ $TERMINALAPP ] && [ ! -z "$INSIDE_EMACS" ] && set_terminal_app_pwd
+# if terminalapp & not emacs then update terminal icons
+[ $TERMINALAPP ] && [[ -z "$INSIDE_EMACS" ]] && set_terminal_app_pwd

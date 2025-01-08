@@ -26,8 +26,8 @@ if [ $MACOS ]; then
     force_append_to_path "/opt/homebrew/bin:/usr/local/bin"
   # Setup Homebrew
     eval $(brew shellenv) # exports HBREW PREFIX & PATH
-  # loadup any OSc specific Interactive shit
-  [ -z  "$INSIDE_EMACS" ] && ssource "${XDG_CONFIG_HOME}/shell/osx_interactive"
+  # loadup any OSX specific Interactive shit
+  [[ -z  "$INSIDE_EMACS" ]] && ssource "${XDG_CONFIG_HOME}/shell/osx_interactive"
   export CPUCOUNT="$(/usr/sbin/sysctl -n hw.ncpu)"
 elif [ $LINUX ]; then
   export CPUCOUNT="$(getconf _NPROCESSORS_ONLN)"
@@ -42,10 +42,10 @@ append_to_path "${HOME}/.local/bin"
 ssource ${XDG_CONFIG_HOME}/shell/env_coding
 
 # source shell interactive functions unless eshell
-[ -z "$INSIDE_EMACS" ] && ssource $XDG_CONFIG_HOME/shell/interactive_fns
+[[ -z "$INSIDE_EMACS" ]] && ssource $XDG_CONFIG_HOME/shell/interactive_fns
 
 # put your aliases here unless eshell
-[ -z "$INSIDE_EMACS" ] &&  ssource $XDG_CONFIG_HOME/shell/aliases
+[[ -z "$INSIDE_EMACS" ]] &&  ssource $XDG_CONFIG_HOME/shell/aliases
 
 # other users shouldn't be able to message by default
 mesg n
@@ -54,7 +54,7 @@ mesg n
 # | PROMPT     |
 # +------------+
 #if in a terminal
-if [ -t 0 ] && [ $TERMINALAPP ] && quiet_which starship; then
+if [ -t 0 ]  && quiet_which starship; then
   case "$TERM" in
   xterm* | screen*)
     eval "$(starship init bash)"
@@ -71,7 +71,8 @@ fi
 # +-------------+
 # |   TROVE     |
 # +-------------+
-if [ -z "$ESHELL" ] && dir_exists "${HOME}/work/tempo"; then
+# dont start up if eshell and no /work/tempo dir
+if [ -z "$INSIDE_EMACS" ] && dir_exists "${HOME}/work/tempo"; then
     export GITHUB_AUTH="$(gh auth token)"
     $HOME/work/tempo/trove-scripts/codeartifact/codeartifact_auth.py
     alias trove='poetry run trove'
