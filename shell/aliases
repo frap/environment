@@ -127,7 +127,7 @@ if quiet_which bat; then
     alias by="bat -l yaml"
     alias bm="bat -p -l man"
     alias bl='bat -p -l log'
-    alias bp='bat --paging=always --pager="less -RFX" --style=plain'
+    alias bp='bat --paging=always --pager="less -RFXK" --style=plain' # K initialisation is properly celan up when process interupted
     alias cat=bp
     bd() {
         git diff --name-only --relative --diff-filter=d | xargs bat --diff
