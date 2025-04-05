@@ -995,8 +995,16 @@ name and a corresponding major mode."
   ;;            (js-json-mode . json-ts-mode)))
   ;;   (add-to-list 'major-mode-remap-alist mapping))
   :custom
-  (treesit-font-lock-level 2))
-
+  (treesit-font-lock-level 2)
+  :config
+  ;;  (treesit-install-and-remap
+  ;; 'yaml
+  ;; "https://github.com/ikatyang/tree-sitter-yaml"
+  ;; nil ;; revision
+  ;; "src"
+  ;; '(yaml-mode)
+  ;; 'yaml-ts-mode)
+  )
 
 ;; (use-package combobulate
 ;;   :ensure (:host github :repo "mickeynp/combobulate")

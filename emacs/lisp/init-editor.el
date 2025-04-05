@@ -414,22 +414,24 @@
   (defvar gas/mc-map (make-sparse-keymap))
   (fset 'gas/mc-map gas/mc-map)
   :bind
-  (("S-<mouse-1>" . mc/add-cursor-on-click)
-   ("C-M->" . mc/mark-next-symbol-like-this)
-   ("C-M-<" . mc/mark-previous-symbol-like-this)
-   ("C-M-*" . mc/mark-all-symbols-like-this)
+  (("M-<mouse-1>" . mc/add-cursor-on-click)
    ("C->" .  mc/mark-next-like-this)
-   ;; Remember `er/expand-region' is bound to M-2!
+      ;; Remember `er/expand-region' is bound to M-2!
    ("M-3" . mc/mark-next-like-this)
-   ("M-#" . mc/unmark-next-like-this)
    ("s-d" . mc/mark-next-like-this)
+   ("M-#" . mc/unmark-next-like-this)
    ("C-<" .  mc/mark-previous-like-this)
    ("M-4" .  mc/mark-previous-like-this)
    ("M-$" .  mc/unmark-previous-like-this)
+
    ("C-*" .  mc/mark-all-like-this)
-   ("C-c m" . gas/mc-map)
-   ("C-x m" . mc/mark-all-dwim)
-   ("s-m"   . gas/mc-map)
+   ("C-c m" . mc/mark-all-dwim)
+   ("s-m"   . region-bindings-mode-map)
+
+   ("C-M->" . mc/mark-next-symbol-like-this)
+   ("C-M-<" . mc/mark-previous-symbol-like-this)
+   ("C-M-*" . mc/mark-all-symbols-like-this)
+
    :map region-bindings-mode-map
    ("a" . mc/mark-all-symbols-like-this)
    ("A" . mc/mark-all-like-this)
@@ -442,37 +444,26 @@
    ("s" . mc/mark-all-in-region-regexp)
    ;; ocassionaly useful
    ("d" . mc/mark-all-symbols-like-this-in-defun)
-   ("<" . mc/reverse-regions)
+   ("t" . mc/reverse-regions)
    ("i" . mc/insert-numbers)
    ("h" . mc/hide-unmatched-lines-mode)
    ("^" . mc/sort-regions)
-   ("C-&" . mc/vertical-align-with-space)
+   ("v" . mc/vertical-align-with-space)
+   ("," . mc/unmark-next-like-this)
+   ("." . mc/skip-to-next-like-this)
    ("C-a" . mc/edit-beginnings-of-lines)
    ("C-e" . mc/edit-ends-of-lines)
-   ("<down-mouse-1>" . mc/keyboard-quit)
-   ("<mouse-1>" . mc/keyboard-quit)
-   :map gas/mc-map
-   ("a" . mc/mark-all-symbols-like-this)
-   ("A" . mc/mark-all-like-this)
-   ("l" . mc/edit-ends-of-lines)
-   ("m" . mc/mark-all-dwim)
-   ("n" . mc/mark-next-symbol-like-this)
-   ("N" . mc/mark-next-like-this)
-   ("p" . mc/mark-previous-symbol-like-this)
-   ("P" . mc/mark-previous-like-this)
-   ("s" . mc/mark-all-in-region-regexp)
-   ;; ocassionaly useful
-   ("d" . mc/mark-all-symbols-like-this-in-defun)
-   ("<" . mc/reverse-regions)
-   ("i" . mc/insert-numbers)
-   ("h" . mc/hide-unmatched-lines-mode)
-   ("^" . mc/sort-regions)
-   ("C-&" . mc/vertical-align-with-space)
-   ("C-a" . mc/edit-beginnings-of-lines)
-   ("C-e" . mc/edit-ends-of-lines)
-   ("<down-mouse-1>" . mc/keyboard-quit)
-   ("<mouse-1>" . mc/keyboard-quit))
-)
+   ;; ("<down-mouse-1>" . mc/keyboard-quit)
+   ;; ("<mouse-1>" . mc/keyboard-quit)
+   )
+   :config
+  (global-unset-key (kbd "M-<down-mouse-1>"))
+  (global-set-key (kbd "M-<mouse-1>") 'mc/add-cursor-on-click)
+
+   (with-eval-after-load 'multiple-cursors-core
+    ;; Immediately load mc list, otherwise it will show as
+    ;; changed as empty in my git repo
+     (mc/load-lists)))
 
 (use-package expand-region
   :ensure t

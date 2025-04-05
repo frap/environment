@@ -2,7 +2,7 @@
 
 ;; Author: Red Elvis
 ;; Keywords: Emacs configuration
-;; Homepage: https://gitlab.com/andreyorst/dotfiles.git
+;; Homepage: https://gitlab.com/frap/environment.git
 
 ;;; Commentary:
 ;; Emacs 30+ configuration.
@@ -68,11 +68,11 @@ If you experience stuttering, increase this.")
 (require 'init-files-buffers)
 (require 'init-ui)
 
-;;; Editor
-(require 'init-editor)
-
 ;;; Minibuffer & Navigation
 (require 'setup-minibuffer)
+
+;;; Editor
+(require 'init-editor)
 
 ;;; LSP
 (require 'init-lsp)
@@ -82,12 +82,13 @@ If you experience stuttering, increase this.")
 
 ;;; Tools - git, project, shell
 (require 'setup-shells)
-;;(load (expand-file-name "lisp/init-tools" user-emacs-directory))
 (require 'init-tools)
 
 ;;; Org mode
 (require 'init-org)
 
 (require 'init-copilot)
+
+
 (provide 'init)
 ;;; init.el ends here

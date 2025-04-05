@@ -2,7 +2,532 @@
 ;; Automatically written history of CIDER REPL session
 ;; Edit at your own risk
 
-("(clojure.repl/doc mapv)" "(first [\"eoo7\"])" "(add-tap prn)" " (let [dev (.getElementById js/document \"dev\")
+("(get-python-version)" "(defn get-python-version []
+  (if-let [env-version (System/getenv \"PYTHON_VERSION\")]
+    env-version
+    (if (fs/exists? \".python-version\")
+      (let [version (str/trim (slurp \".python-version\"))]
+        (if (seq version)
+          version
+          (do (println \"⚠️  .python-version file is empty!\") (System/exit 1))))
+      (do (println \"❌ No PYTHON_VERSION found in ENV or .python-version file!\") (System/exit 1)))))" "
+toml
+> (extract-name \"../pyproject.toml\")
+nil
+toml
+> (in-ns 'trove-cicd)
+#object[sci.lang.Namespace 0x1d0d92d9 \"trove-cicd\"]
+trove-cicd
+> (assert-on-ci)
+
+-ERROR:--------------------------------------------------------------------------
+  to be run from continuous integration Github server only                       
+ --------------------------------------------------------------------------------
+
+*** Closed on Wed Feb 12 11:48:37 2025 ***
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+" "
+toml
+> (extract-name \"../pyproject.toml\")
+nil
+toml
+> (in-ns 'trove-cicd)
+#object[sci.lang.Namespace 0x1d0d92d9 \"trove-cicd\"]
+trove-cicd
+> (assert-on-ci)
+
+-ERROR:--------------------------------------------------------------------------
+  to be run from continuous integration Github server only                       
+ --------------------------------------------------------------------------------
+
+*** Closed on Wed Feb 12 11:48:37 2025 ***
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+" "
+toml
+> (extract-name \"../pyproject.toml\")
+nil
+toml
+> (in-ns 'trove-cicd)
+#object[sci.lang.Namespace 0x1d0d92d9 \"trove-cicd\"]
+trove-cicd
+> (assert-on-ci)
+
+-ERROR:--------------------------------------------------------------------------
+  to be run from continuous integration Github server only                       
+ --------------------------------------------------------------------------------
+
+*** Closed on Wed Feb 12 11:48:37 2025 ***
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+" "
+toml
+> (extract-name \"../pyproject.toml\")
+nil
+toml
+> (in-ns 'trove-cicd)
+#object[sci.lang.Namespace 0x1d0d92d9 \"trove-cicd\"]
+trove-cicd
+> (assert-on-ci)
+
+-ERROR:--------------------------------------------------------------------------
+  to be run from continuous integration Github server only                       
+ --------------------------------------------------------------------------------
+
+*** Closed on Wed Feb 12 11:48:37 2025 ***
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+" "
+toml
+> (extract-name \"../pyproject.toml\")
+nil
+toml
+> (in-ns 'trove-cicd)
+#object[sci.lang.Namespace 0x1d0d92d9 \"trove-cicd\"]
+trove-cicd
+> (assert-on-ci)
+
+-ERROR:--------------------------------------------------------------------------
+  to be run from continuous integration Github server only                       
+ --------------------------------------------------------------------------------
+
+*** Closed on Wed Feb 12 11:48:37 2025 ***
+
+
+
+
+
+
+
+
+
+
+
+
+
+" "
+toml
+> (extract-name \"../pyproject.toml\")
+nil
+toml
+> (in-ns 'trove-cicd)
+#object[sci.lang.Namespace 0x1d0d92d9 \"trove-cicd\"]
+trove-cicd
+> (assert-on-ci)
+
+-ERROR:--------------------------------------------------------------------------
+  to be run from continuous integration Github server only                       
+ --------------------------------------------------------------------------------
+
+*** Closed on Wed Feb 12 11:48:37 2025 ***
+
+
+
+
+
+
+
+
+
+
+
+
+" "
+toml
+> (extract-name \"../pyproject.toml\")
+nil
+toml
+> (in-ns 'trove-cicd)
+#object[sci.lang.Namespace 0x1d0d92d9 \"trove-cicd\"]
+trove-cicd
+> (assert-on-ci)
+
+-ERROR:--------------------------------------------------------------------------
+  to be run from continuous integration Github server only                       
+ --------------------------------------------------------------------------------
+
+*** Closed on Wed Feb 12 11:48:37 2025 ***
+
+
+
+
+
+
+
+
+
+
+
+" "
+toml
+> (extract-name \"../pyproject.toml\")
+nil
+toml
+> (in-ns 'trove-cicd)
+#object[sci.lang.Namespace 0x1d0d92d9 \"trove-cicd\"]
+trove-cicd
+> (assert-on-ci)
+
+-ERROR:--------------------------------------------------------------------------
+  to be run from continuous integration Github server only                       
+ --------------------------------------------------------------------------------
+
+*** Closed on Wed Feb 12 11:48:37 2025 ***
+
+
+
+
+
+
+
+
+
+
+" "
+toml
+> (extract-name \"../pyproject.toml\")
+nil
+toml
+> (in-ns 'trove-cicd)
+#object[sci.lang.Namespace 0x1d0d92d9 \"trove-cicd\"]
+trove-cicd
+> (assert-on-ci)
+
+-ERROR:--------------------------------------------------------------------------
+  to be run from continuous integration Github server only                       
+ --------------------------------------------------------------------------------
+
+*** Closed on Wed Feb 12 11:48:37 2025 ***
+
+
+
+
+
+
+
+
+
+" "
+toml
+> (extract-name \"../pyproject.toml\")
+nil
+toml
+> (in-ns 'trove-cicd)
+#object[sci.lang.Namespace 0x1d0d92d9 \"trove-cicd\"]
+trove-cicd
+> (assert-on-ci)
+
+-ERROR:--------------------------------------------------------------------------
+  to be run from continuous integration Github server only                       
+ --------------------------------------------------------------------------------
+
+*** Closed on Wed Feb 12 11:48:37 2025 ***
+
+
+(defn get-python-version []
+  (if-let [env-version (System/getenv \"PYTHON_VERSION\")]
+    env-version
+    (if (fs/exists? \".python-version\")
+      (let [version (str/trim (slurp \".python-version\"))]
+        (if (seq version)
+          version
+          (do (println \"⚠️  .python-version file is empty!\") (System/exit 1))))
+      (do (println \"❌ No PYTHON_VERSION found in ENV or .python-version file!\") (System/exit 1)))))
+
+
+
+
+
+" "
+toml
+> (extract-name \"../pyproject.toml\")
+nil
+toml
+> (in-ns 'trove-cicd)
+#object[sci.lang.Namespace 0x1d0d92d9 \"trove-cicd\"]
+trove-cicd
+> (assert-on-ci)
+
+-ERROR:--------------------------------------------------------------------------
+  to be run from continuous integration Github server only                       
+ --------------------------------------------------------------------------------
+
+*** Closed on Wed Feb 12 11:48:37 2025 ***
+
+
+(defn get-python-version []
+  (if-let [env-version (System/getenv \"PYTHON_VERSION\")]
+    env-version
+    (if (fs/exists? \".python-version\")
+      (let [version (str/trim (slurp \".python-version\"))]
+        (if (seq version)
+          version
+          (do (println \"⚠️  .python-version file is empty!\") (System/exit 1))))
+      (do (println \"❌ No PYTHON_VERSION found in ENV or .python-version file!\") (System/exit 1)))))
+
+
+
+
+" "
+toml
+> (extract-name \"../pyproject.toml\")
+nil
+toml
+> (in-ns 'trove-cicd)
+#object[sci.lang.Namespace 0x1d0d92d9 \"trove-cicd\"]
+trove-cicd
+> (assert-on-ci)
+
+-ERROR:--------------------------------------------------------------------------
+  to be run from continuous integration Github server only                       
+ --------------------------------------------------------------------------------
+
+*** Closed on Wed Feb 12 11:48:37 2025 ***
+
+
+(defn get-python-version []
+  (if-let [env-version (System/getenv \"PYTHON_VERSION\")]
+    env-version
+    (if (fs/exists? \".python-version\")
+      (let [version (str/trim (slurp \".python-version\"))]
+        (if (seq version)
+          version
+          (do (println \"⚠️  .python-version file is empty!\") (System/exit 1))))
+      (do (println \"❌ No PYTHON_VERSION found in ENV or .python-version file!\") (System/exit 1)))))
+
+
+
+" "
+toml
+> (extract-name \"../pyproject.toml\")
+nil
+toml
+> (in-ns 'trove-cicd)
+#object[sci.lang.Namespace 0x1d0d92d9 \"trove-cicd\"]
+trove-cicd
+> (assert-on-ci)
+
+-ERROR:--------------------------------------------------------------------------
+  to be run from continuous integration Github server only                       
+ --------------------------------------------------------------------------------
+
+*** Closed on Wed Feb 12 11:48:37 2025 ***
+
+
+(defn get-python-version []
+  (if-let [env-version (System/getenv \"PYTHON_VERSION\")]
+    env-version
+    (if (fs/exists? \".python-version\")
+      (let [version (str/trim (slurp \".python-version\"))]
+        (if (seq version)
+          version
+          (do (println \"⚠️  .python-version file is empty!\") (System/exit 1))))
+      (do (println \"❌ No PYTHON_VERSION found in ENV or .python-version file!\") (System/exit 1)))))
+
+
+" "
+toml
+> (extract-name \"../pyproject.toml\")
+nil
+toml
+> (in-ns 'trove-cicd)
+#object[sci.lang.Namespace 0x1d0d92d9 \"trove-cicd\"]
+trove-cicd
+> (assert-on-ci)
+
+-ERROR:--------------------------------------------------------------------------
+  to be run from continuous integration Github server only                       
+ --------------------------------------------------------------------------------
+
+*** Closed on Wed Feb 12 11:48:37 2025 ***
+
+
+(defn get-python-version []
+  (if-let [env-version (System/getenv \"PYTHON_VERSION\")]
+    env-version
+    (if (fs/exists? \".python-version\")
+      (let [version (str/trim (slurp \".python-version\"))]
+        (if (seq version)
+          version
+          (do (println \"⚠️  .python-version file is empty!\") (System/exit 1))))
+      (do (println \"❌ No PYTHON_VERSION found in ENV or .python-version file!\") (System/exit 1)))))
+
+" "
+toml
+> (extract-name \"../pyproject.toml\")
+nil
+toml
+> (in-ns 'trove-cicd)
+#object[sci.lang.Namespace 0x1d0d92d9 \"trove-cicd\"]
+trove-cicd
+> (assert-on-ci)
+
+-ERROR:--------------------------------------------------------------------------
+  to be run from continuous integration Github server only                       
+ --------------------------------------------------------------------------------
+
+*** Closed on Wed Feb 12 11:48:37 2025 ***
+
+
+(defn get-python-version []
+  (if-let [env-version (System/getenv \"PYTHON_VERSION\")]
+    env-version
+    (if (fs/exists? \".python-version\")
+      (let [version (str/trim (slurp \".python-version\"))]
+        (if (seq version)
+          version
+          (do (println \"⚠️  .python-version file is empty!\") (System/exit 1))))
+      (do (println \"❌ No PYTHON_VERSION found in ENV or .python-version file!\") (System/exit 1)))))
+" "
+toml
+> (extract-name \"../pyproject.toml\")
+nil
+toml
+> (in-ns 'trove-cicd)
+#object[sci.lang.Namespace 0x1d0d92d9 \"trove-cicd\"]
+trove-cicd
+> (assert-on-ci)
+
+-ERROR:--------------------------------------------------------------------------
+  to be run from continuous integration Github server only                       
+ --------------------------------------------------------------------------------
+
+*** Closed on Wed Feb 12 11:48:37 2025 ***
+
+" "
+toml
+> (extract-name \"../pyproject.toml\")
+nil
+toml
+> (in-ns 'trove-cicd)
+#object[sci.lang.Namespace 0x1d0d92d9 \"trove-cicd\"]
+trove-cicd
+> (assert-on-ci)
+
+-ERROR:--------------------------------------------------------------------------
+  to be run from continuous integration Github server only                       
+ --------------------------------------------------------------------------------
+
+*** Closed on Wed Feb 12 11:48:37 2025 ***
+" "(assert-on-ci)" "(in-ns 'trove-cicd)" "(extract-name \"../pyproject.toml\")" "(extract-name \"pyproject.toml\")" "(defn extract-name [file-path]
+  (when (fs/exists? file-path)
+    (let [data (slurp file-path)
+          ;; Extract the [project] section, capturing until the next section (if present)
+          project-section (some->> (re-find #\"\\[project\\](.*?)(\\n\\[|$)\" data) second)
+          ;; Extract `name = \"value\"` within the section
+          name-match (when project-section
+                       (re-find #\"(?m)^\\s*name\\s*=\\s*\\\"([^\\\"]+)\\\"\" project-section))]
+      (when name-match
+        (second name-match)))))
+" "(extract-name \"pyproject.toml\")" "(defn extract-name [file-path]
+  (when (fs/exists? file-path)
+    (let [data (slurp file-path)
+          ;; Extract the [project] section
+          project-section (second (re-find #\"\\[project\\](.*?)\\n\\[\" data))
+          ;; Find the name within [project]
+          name-match (re-find #\"(?m)^name\\s*=\\s*\\\"(.+?)\\\"\" project-section)]
+      (when name-match
+        (second name-match)))))" "(extract-name \"pyproject.toml\")" "(in-ns 'toml)" "(extract-name \"pyproject.toml\")" "(require '[clj-yaml.core :as yaml])" "(generate-terraform-vars [\"lambdas/test.py\" \"lambdas/test2.py\"] {})" "(generate-terraform-vars [\"lambdas/test.py\" \"lambdas/test2.py\"])" "(in-ns 'cicd)" "(generate-terraform-vars [\"lambdas/test.py\" \"lambdas/test2.py\"])" "(generate-terraform-vars [[\"lambdas/test.py\" \"lambdas/test2.py\"] ])" "(cli/parse-args [\":py\" \"2\"] [:aliases {:py :python} :coerce {:python parse-long}])" "(cli/parse-args [\":py\" \"2\"] [:aliases {:py :python} :coerce {:python cli/parse-long}])" "(cli/parse-opts [\"test\" \":py\" 2])" "(require '[babashka.cli :as cli])" "(build-lambdas {})" "(build-lambdas-cli)" "(build-lambdas {})" "(build-lambdas-1 )" "(build-lambdas {})" "(build-lambdas {:runtime-dir \"dist\"} )" "(generate-terraform-vars [\"test.py\" \"test2.py\" \"test3.py\"])" "(defn generate-terraform-vars [lambdas]
+  (let [tf-vars-file \"tf/lambda_files.auto.tfvars\"
+        template \"lambda_file_names = [{% for lambda in lambdas %} \\\"{{ lambda }}\\\" {% if not forloop.last %}, {% endif %}{% endfor %}]\\n\"
+        tf-content (selmer/render template {:lambdas lambdas})]
+    (spit tf-vars-file tf-content)
+    (println \"Generated Terraform vars file:\" tf-vars-file)))" "(require '[selmer.parser :as selmer])" "(require '[selmer.parse :as selmer])" "(defn generate-terraform-vars [lambdas]
+  (let [tf-vars-file \"tf/lambda_files.auto.tfvars\"
+        template \"lambda_file_names = [{% for lambda in lambdas %} \\\"{{ lambda }}\\\" {% if not forloop.last %}, {% endif %}{% endfor %}]\\n\"
+        tf-content (selmer/render template {:lambdas lambdas})]
+    (spit tf-vars-file tf-content)
+    (println \"Generated Terraform vars file:\" tf-vars-file)))" "(build-lambdas \"lambdas\" \"dist\" )" "(defn build-lambdas [-lambdas-dir -runtime-dir] (let [lambdas (fs/list-dir -lambdas-dir \"*.py\")]
+                                (map (fn [file]
+                                       (let [file-prefix (fs/strip-ext file {:ext \"py\"})
+                                             zip-file (str file-prefix \".zip\")]
+                                         (when (or (not (fs/exists? zip-file))
+                                                   (seq (fs/modified-since file zip-file)))
+                                           (do (fs/zip zip-file [file] {:root -lambdas-dir})
+                                               (fs/move zip-file -runtime-dir {:replace-existing true})))))
+                                     lambdas)) )" "(defn build-lambdas [-lambdas-dir -runtime-dir])" "(fs/zip  \"lambdas/process.zip\" \"lambdas/process_message.py\" )" " (when-not (and (fs/exists? \"dist\")
+                  (fs/exists? \"dist/proceee.py.zip\")
+                  (seq (fs/modified-since \"dist\" \"lambdas/process_message.py\"))) (println \"ture\"))" "(seq (fs/modified-since \"dist\" \"lambdas/non.py\"))" "(seq (fs/modified-since \"dist\" \"lambdas/process_message.py\"))" "(fs/modified-since \"dist\" \"lambdas/process_message.py\")" "(fs/exists? \"dist\")" "(generate-tf lambdas)" " (defn generate-tf [lambdas] (let [lambdas (->> (fs/list-dir -lambdas-dir \"*.py\")
+                                                            (remove (fn [lambda] (= (fs/file-name lambda) \"__init__.py\"))))
+                                               tf-vars-file \"tf/lambda_files.auto.tfvars\"
+                                               formatted-list (str  (clojure.string/join \", \" (map (fn [lambda] (str \"\\\"\" lambda \"\\\"\")) lambdas)))
+                                               _ (println formatted-list)
+                                                tf-content (str \"lambda_file_names = [\" formatted-list \"] \\n\" )
+                                               ]
+                                         (spit tf-vars-file tf-content)
+                                           ) )" "(str/join \",\" (map (fn [lambda] (str  lambda ) lambdas)))" "(prn lambdas)" "(def lambdas (->> (fs/list-dir -lambdas-dir \"*.py\")
+                                                            (remove (fn [lambda] (= (fs/file-name lambda) \"__init__.py\")))))" "(prn (mapv (fn [lambda] (str  lambda ) lambdas)))" "(str/join \",\" (map (fn [lambda] (str  lambda ) lambdas)))" "(prn (map (fn [lambda] (str  lambda ) lambdas)))" "(map (fn [lambda] (str  lambda ) lambdas))" "(vec (map (fn [lambda] (str \"\\\"\" lambda \"\\\"\") lambdas)))" "(prn (map (fn [lambda] (str \"\\\"\" lambda \"\\\"\") lambdas)))" "(map (fn [lambda] (str \"\\\"\" lambda \"\\\"\") lambdas))" "(def lambdas \"process.py test.py\")" "(map (fn [lambda] (str \"\\\"\" lambda \"\\\"\") lambdas))" "(clojure.string/join \", \" (map (fn [lambda] (str \"\\\"\" lambda \"\\\"\") lambdas)))" "(generate-tf \"process-test\")" "(defn generate-tf [lambdas] (let [lambdas (->> (fs/list-dir -lambdas-dir \"*.py\")
+                                                            (remove (fn [lambda] (= (fs/file-name lambda) \"__init__.py\"))))
+                                               tf-vars-file \"tf/lambda_files.auto.tfvars\"
+                                               formatted-list (str  (clojure.string/join \", \" (map (fn [lambda] (str \"\\\"\" lambda \"\\\"\") lambdas))))
+                                               _ (println formatted-list)
+                                                tf-content (str \"lambda_file_names = [\" formatted-list \"] \\n\" )
+                                               ]
+                                           ;; (spit tf-vars-file tf-content)
+                                           ) )" "(def -lambdas-dir \"lambdas\")" "(defn generate-tf [lambdas] (let [lambdas (->> (fs/list-dir -lambdas-dir \"*.py\")
+                                                            (remove (fn [lambda] (= (fs/file-name lambda) \"__init__.py\"))))
+                                               tf-vars-file \"tf/lambda_files.auto.tfvars\"
+                                               formatted-list (str  (clojure.string/join \", \" (map (fn [lambda] (str \"\\\"\" lambda \"\\\"\") lambdas))))
+                                               _ (println formatted-list)
+                                                tf-content (str \"lambda_file_names = [\" formatted-list \"] \\n\" )
+                                               ]
+                                           ;; (spit tf-vars-file tf-content)
+                                           ) )" "(clojure.repl/doc mapv)" "(first [\"eoo7\"])" "(add-tap prn)" " (let [dev (.getElementById js/document \"dev\")
         table (.getElementById js/document \"deploy\")
         cell (.closest dev \"th,td\")
         col-index (inc (.-cellIndex cell))

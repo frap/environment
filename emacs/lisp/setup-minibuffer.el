@@ -133,84 +133,6 @@
           (buffer (styles basic flex substring)))
         )
   )
-;; (use-package minibuffer
-;;   :hook (eval-expression-minibuffer-setup . common-lisp-modes-mode)
-
-;;   :bind ( :map minibuffer-inactive-mode-map
-;;           ("<mouse-1>" . ignore))
-;;   :config
-
-
-;;   (defun minibuffer-replace-input (&optional arg)
-;;     "Replace original minibuffer input.
-
-;; When a recursive minibuffer is active, insert the current string
-;; into the original minibuffer input.  With prefix ARG, replace it
-;; instead."
-;;     (interactive "P")
-;;     (when (and (minibufferp) (> (minibuffer-depth) 1))
-;;       (let* ((replacement (minibuffer-contents)))
-;;         (unwind-protect (minibuffer-quit-recursive-edit)
-;;           (run-at-time 0 nil
-;;                        (lambda (rep)
-;;                          (when arg (delete-minibuffer-contents))
-;;                          (insert rep)
-;;                          (pulse-momentary-highlight-one-line))
-;;                        replacement)))))
-
-;;   (define-key minibuffer-local-map (kbd "C-x C-i") 'minibuffer-replace-input)
-
-;;   (defun basic-remote-try-completion (string table pred point)
-;;     (and (path-remote-p string)
-;;          (completion-basic-try-completion string table pred point)))
-;;   (defun basic-remote-all-completions (string table pred point)
-;;     (and (path-remote-p string)
-;;          (completion-basic-all-completions string table pred point)))
-;;   (add-to-list
-;;    'completion-styles-alist
-;;    '(basic-remote basic-remote-try-completion basic-remote-all-completions nil))
-
-;;   (defun path-remote-p (path)
-;;     "Return t if PATH is a remote path."
-;;     (string-match-p "\\`/[^/|:]+:" (substitute-in-file-name path)))
-
-;;   (defun my/messageless (fn &rest args)
-;;     "Set `minibuffer-message-timeout' to 0.
-;; Meant as advice around minibuffer completion FN with ARGS."
-;;     (let ((minibuffer-message-timeout 0))
-;;       (apply fn args)))
-
-;;   (advice-add 'minibuffer-force-complete-and-exit :around #'my/messageless)
-
-;;   (minibuffer-depth-indicate-mode 1)
-;;   (minibuffer-electric-default-mode nil)
-
-;;   ;; (define-key minibuffer-local-completion-map (kbd "-") #'minibuffer-complete-word)
-
-;;   (define-key minibuffer-local-completion-map (kbd "?")
-;;               (lambda () (interactive)
-;;                 (minibuffer-completion-help)
-;;                 (switch-to-completions)))
-;;   (define-key completion-list-mode-map "n" 'next-line)
-;;   (define-key completion-list-mode-map "p" 'previous-line)
-;;   (define-key completion-list-mode-map "n" 'next-line)
-;;   (define-key completion-list-mode-map "f" 'next-completion)
-;;   (define-key completion-list-mode-map "b" 'previous-completion)
-;;   (define-key completion-list-mode-map "M-v" 'my/focus-minibuffer)
-;;   (define-key completion-list-mode-map "?" 'my/focus-minibuffer)
-
-;;   (defun my/minibuffer-focus-mini ()
-;;     "Focus the active minibuffer."
-;;     (interactive)
-;;     (let ((mini (active-minibuffer-window)))
-;;       (when mini
-;;         (select-window mini))))
-
-;;   ;; Try really hard to keep the cursor from getting stuck in the read-only prompt
-;;   ;; portion of the minibuffer.
-;;   (setq minibuffer-prompt-properties
-;;         '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
-
 
 
 (use-package which-key
@@ -352,43 +274,233 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; `completion-at-point-function'.
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
 
-;; (use-package cape
+(use-package corfu
+  :ensure t
+  :bind ( :map corfu-map
+          ("TAB" . corfu-next)
+          ([tab] . corfu-next)
+          ("S-TAB" . corfu-previous)
+          ([backtab] . corfu-previous)
+          ([remap completion-at-point] . corfu-complete)
+          ("RET" . corfu-complete-and-quit)
+          ("<return>" . corfu-complete-and-quit))
+  :commands (corfu-quit)
+  :custom
+  (corfu-cycle t)
+  (corfu-preselect-first t)
+  (corfu-scroll-margin 4)
+  (corfu-quit-no-match t)
+  (corfu-quit-at-boundary t)
+  (corfu-max-width 100)
+  (corfu-min-width 42)
+  (corfu-count 9)
+  ;; should be configured in the `indent' package, but `indent.el'
+  ;; doesn't provide the `indent' feature.
+  (tab-always-indent 'complete)
+  :config
+  (defun corfu-complete-and-quit ()
+    (interactive)
+    (corfu-complete)
+    (corfu-quit))
+  :hook (after-init . global-corfu-mode))
+
+
+;; (use-package kind-icon
 ;;   :ensure t
 ;;   :after corfu
-;;   :config
-;;   (setq completion-at-point-functions '(cape-file)))
+;;   :custom
+;;   (kind-icon-use-icons t)
+;;   (kind-icon-default-face 'corfu-default) ; Have background color be the same as `corfu' face background
+;;   (kind-icon-blend-background nil)  ; Use midpoint color between foreground and background colors ("blended")?
+;;   (kind-icon-blend-frac 0.08)
+;; :config
+;;   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter) ; Enable `kind-icon'
 
-;; Consult provides search and navigation commands based on the Emacs completion function completing-read.
-;; (use-package consult
+;;   ;; Add hook to reset cache so the icon colors match my theme
+;;   ;; NOTE 2022-02-05: This is a hook which resets the cache whenever I switch
+;;   ;; the theme using my custom defined command for switching themes. If I don't
+;;   ;; do this, then the backgound color will remain the same, meaning it will not
+;;   ;; match the background color corresponding to the current theme. Important
+;;   ;; since I have a light theme and dark theme I switch between. This has no
+;;   ;; function unless you use something similar
+;;   (add-hook 'kb/themes-hooks #'(lambda () (interactive) (kind-icon-reset-cache))))
+
+(use-package corfu-popupinfo
+  :bind ( :map corfu-popupinfo-map
+          ("M-p" . corfu-popupinfo-scroll-down)
+          ("M-n" . corfu-popupinfo-scroll-up))
+  :hook (corfu-mode . corfu-popupinfo-mode)
+  :custom-face
+  (corfu-popupinfo ((t :height 1.0))))
+
+(use-package corfu-terminal
+  :ensure t
+  :unless (display-graphic-p)
+  :commands (corfu-terminal-mode)
+  :hook (after-init . corfu-terminal-mode))
+
+;; (use-package nerd-icons-corfu
 ;;   :ensure t
-;;   :bind (;; C-c bindings
-;;          ("C-c h" . consult-history)
-;;          ("C-c m" . consult-mode-command)
-;;          ("C-c b" . consult-bookmark)
-;;          ("C-c k" . consult-macro)
-;;          ("C-c o" . consult-outline)
-;;          ;; C-x bindings
-;;          ("C-x b"   . consult-buffer)
-;;          ("C-x 4 b" . consult-buffer-other-window)
-;;          ("C-x 5 b" . consult-buffer-other-frame)
-;;          ("C-x r x" . consult-register)
-;;          ("C-x r b" . consult-bookmark)
-;;          ;; Custom M bindings
-;;          ("M-g o" . consult-outline)
-;;          ("M-y"   . consult-yank-pop)
-;;          ("M-i"   . consult-imenu))
 ;;   :config
-;;   (defvar bnb/org-agendas
-;;     (list :name "Org Agenda Files"
-;;           :category 'file
-;;           :narrow   ?a
-;;           :face     'consult-file
-;;           :history  'file-name-history
-;;           :action   #'consult--file-action
-;;           :items    #'org-agenda-files))
-;;   (add-to-list 'consult-buffer-sources 'bnb/org-agendas 'append)
-;;   :init
-;;   (fset 'multi-occur #'consult-multi-occur))
+;;   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)
+;;   ;; Optionally:
+;;   (setq nerd-icons-corfu-mapping
+;;         '((array :style "cod" :icon "symbol_array" :face font-lock-type-face)
+;;           (boolean :style "cod" :icon "symbol_boolean" :face font-lock-builtin-face)
+;;           ;; ...
+;;           (t :style "cod" :icon "code" :face font-lock-warning-face)))
+;;   ;; Remember to add an entry for `t', the library uses that as default.
+;;   ;; The Custom interface is also supported for tuning the variable above.
+;; )
+
+;; Use dabbrev with Corfu!
+(use-package dabbrev
+  ;; Swap M-/ and C-M-/
+  :bind (("M-/" . dabbrev-completion)
+         ("C-M-/" . dabbrev-expand)))
+
+
+(use-package embark
+  :after avy
+  :ensure t
+  :bind
+  (;;("C-c a" . embark-act)
+   ("C-." . embark-act)                 ; pick some comfortable binding
+   ("C-," . embark-dwim)                ; good alternative "M-."
+   ;; ("C-x ." . embark-act)
+   ;; ("C-x ;" . embark-dwim)
+   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+  :init
+  ;; Optionally replace the key help with a completing-read interface
+  (setq prefix-help-command #'embark-prefix-help-command)
+  :config
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\'\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+
+(use-package embark-consult
+  :after (embark consult)
+   :demand t ; only necessary if you have the hook below
+  ;; if you want to have consult previews as you move around an
+   ;; auto-updating embark collect buffer
+   :hook (embark-collect-mode . consult-preview-at-point-mode))
+
+(use-package marginalia
+  :ensure t
+  ;; Either bind `marginalia-cycle` globally or only in the minibuffer
+    :bind (("M-A" . marginalia-cycle)
+         :map minibuffer-local-map
+         ("M-A" . marginalia-cycle))
+    :init
+  (marginalia-mode)
+  :config
+  (setq marginalia-annotators
+        '(marginalia-annotators-heavy marginalia-annotators-light))
+  )
+
+
+(use-package orderless
+  :ensure t
+  :init
+  ;; Configure a custom style dispatcher (see the Consult wiki, orderless readme)
+
+  ;; Add style dispatcher that removes entries if pattern starts or ends with !
+  (defun orderless-without-if-bang (pattern _index _total)
+    (cond
+     ((equal "!" pattern)
+      '(orderless-literal . ""))
+     ((string-suffix-p "!" pattern)
+      `(orderless-without-literal . ,(substring pattern 0 -1)))
+     ((string-prefix-p "!" pattern)
+      `(orderless-without-literal . ,(substring pattern 1)))))
+
+  (setq orderless-style-dispatchers '(orderless-without-if-bang))
+
+  ;; Make space separator escapable with backslash
+  ;; (setq orderless-component-separator #'orderless-escapable-split-on-space)
+
+  (setq completion-styles '(orderless basic)
+        completion-category-defaults '((cider (styles basic))) ;; https://github.com/clojure-emacs/cider/pull/3226
+        completion-category-overrides '((file (styles basic partial-completion)))))
+
+
+;; (use-package ov
+;;   :ensure t
+;;   :commands (ov-regexp))
+
+;; (use-package popon
+;;   :straight (popon :type git :repo "https://codeberg.org/akib/emacs-popon.git"))
+
+;; VERTical Interactive COmpletion
+(use-package vertico
+  :ensure t
+  :config (vertico-mode)
+  ;; Different scroll margin
+  ;; (setq vertico-scroll-margin 0)
+
+  ;; Show more candidates
+  ;; (setq vertico-count 20)
+
+  ;; Grow and shrink the Vertico minibuffer
+  ;; (setq vertico-resize t)
+
+  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+  ;; (setq vertico-cycle t)
+  )
+
+(use-package vertico-buffer
+  :after vertico
+  :config
+  (setq vertico-buffer-display-action '(display-buffer-below-selected
+                                        (window-height . ,(+ 3 vertico-count))))
+  (vertico-buffer-mode))
+
+(use-package vertico-multiform
+  :after vertico
+  :config
+  (setq vertico-multiform-commands
+        '((consult-line buffer)
+          (consult-buffer buffer)
+          (consult-org-heading buffer)
+          (consult-imenu buffer)
+          (consult-project-buffer buffer)
+          (consult-project-extra-find buffer)))
+
+  ;; (add-to-list 'vertico-multiform-categories
+  ;;              '(jinx grid (vertico-grid-annotate . 35)))
+
+  (vertico-multiform-mode))
+
+(use-package vertico-repeat
+  :after vertico
+  :hook (minibuffer-setup . vertico-repeat-save)
+  :bind ("M-r" . vertico-repeat))
+
+;; (use-package vertico-directory
+;;   :ensure (:host github
+;;                  :repo "minad/vertico"
+;;                  :files (:defaults "extensions/*")
+;;                  :includes (vertico-indexed
+;;                             vertico-flat
+;;                             vertico-grid
+;;                             vertico-mouse
+;;                             vertico-quick
+;;                             vertico-buffer
+;;                             vertico-repeat
+;;                             vertico-reverse
+;;                             vertico-directory
+;;                             vertico-multiform
+;;                             vertico-unobtrusive
+;;                             ))
+;;   :after vertico
+;;   :bind ( :map vertico-map
+;;           ("RET" . vertico-directory-enter)
+;;           ("DEL" . vertico-directory-delete-char)
+;;           ("M-DEL" . vertico-directory-delete-word)
+;;           ("?"     . minibuffer-completion-help))
+;;   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
 (use-package consult
   :ensure t
@@ -454,6 +566,7 @@ Additionally, add `cape-file' as early as possible to the list."
     ("M-s k" . consult-keep-lines)
     ("M-s u" . consult-focus-lines)
     ;; Isearch integration
+    ("C-s" . consult-line)
     ("M-s e" . consult-isearch-history)
 
     ;; Remappings
@@ -519,65 +632,84 @@ Additionally, add `cape-file' as early as possible to the list."
    xref-show-xrefs-function #'consult-xref
    xref-show-definitions-function #'consult-xref)
 
-  ;; Optionally tweak the register preview window.
-  ;; This adds thin lines, sorting and hides the mode line of the window.
-  ;; (setq completion-in-region-function #'consult-completion-in-region)
-  (advice-add #'register-preview :override #'consult-register-window)
-  (setq completion-in-region-function #'consult-completion-in-region)
-  (defun consult-ripgrep-project-root (&optional initial)
-    (interactive "P")
-    (let ((dir (funcall consult-project-function)))
-      (consult--grep
-       "Ripgrep" #'consult--ripgrep-make-builder dir initial)))
-  (setq consult-ripgrep-args "rg --null --line-buffered --color=never --max-columns=1000 --path-separator /\ --smart-case --no-heading --line-number .")
+  ;; Configure other variables and modes in the :config section,
+  ;; after lazily loading the package.
   :config
-;; (global-set-key [remap imenu] 'consult-imenu)
-;; (global-set-key [remap switch-to-buffer] 'consult-buffer)
-;; (global-set-key [remap goto-line] 'consult-goto-line)
-;;   (consult-customize consult-theme
-;;                  :preview-key
-;;                  '("M-."
-;;                    :debounce 0.5 "<up>" "<down>"
-;;                    :debounce 1 any))
-;; Optionally configure a function which returns the project root directory.
-;; There are multiple reasonable alternatives to chose from.
-;;;; 1. project.el (project-roots)
-;; (setq consult-project-root-function
-;;       (lambda ()
-;;         (when-let (project (project-current))
-;;           (car (project-roots project)))))
-;;;; 2. projectile.el (projectile-project-root)
-;;(autoload 'projectile-project-root "projectile")
-;;(setq consult-project-root-function #'projectile-project-root)
-;;;; 3. vc.el (vc-root-dir)
-(setq consult-project-root-function #'vc-root-dir)
-;;;; 4. locate-dominating-file
+
+    ;; Optionally configure preview. The default value
+  ;; is 'any, such that any key triggers the preview.
+  ;; (setq consult-preview-key 'any)
+  ;; (setq consult-preview-key (kbd "M-."))
+  ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
+  ;; For some commands and buffer sources it is useful to configure the
+  ;; :preview-key on a per-command basis using the `consult-customize' macro.
+  (consult-customize
+   consult-theme
+   :preview-key "M-."
+   consult-ripgrep consult-git-grep consult-grep
+   consult-bookmark consult-recent-file consult-xref
+   consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
+   :preview-key '(:debounce 0.2 any))
+
+  ;; Optionally configure the narrowing key.
+  ;; Both < and C-+ work reasonably well.
+  (setq consult-narrow-key "<") ;; (kbd "C-+")
+
+  ;; Optionally make narrowing help available in the minibuffer.
+  ;; You may want to use `embark-prefix-help-command' or which-key instead.
+  ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
+
+  ;; Optionally configure a function which returns the project root directory.
+  ;; There are multiple reasonable alternatives to chose from.
+  ;;;; 1. project.el (project-roots)
+  ;; (setq consult-project-root-function
+  ;;       (lambda ()
+  ;;         (when-let (project (project-current))
+  ;;           (car (project-roots project)))))
+  ;;;; 2. projectile.el (projectile-project-root)
+  ;; (autoload 'projectile-project-root "projectile")
+  ;; (setq consult-project-root-function #'projectile-project-root)
+  ;;;; 3. vc.el (vc-root-dir)
+  ;; (setq consult-project-root-function #'vc-root-dir)
+  ;;;; 4. locate-dominating-file
   ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
 
-  ;; Optionally configure preview. The default value
-  ;;   ;; is 'any, such that any key triggers the preview.
-  ;;   ;; (setq consult-preview-key 'any)
-  ;;   ;; (setq consult-preview-key "M-.")
-  ;;   ;; (setq consult-preview-key '("S-<down>" "S-<up>"))
-  ;;   ;; For some commands and buffer sources it is useful to configure the
-  ;;   ;; :preview-key on a per-command basis using the `consult-customize' macro.
-  ;;   (consult-customize
-  ;;    consult-theme :preview-key '(:debounce 0.2 any)
-  ;;    consult-ripgrep consult-git-grep consult-grep
-  ;;    consult-bookmark consult-recent-file consult-xref
-  ;;    consult--source-bookmark consult--source-file-register
-  ;;    consult--source-recent-file consult--source-project-recent-file
-  ;;    ;; :preview-key "M-."
-  ;;    :preview-key '(:debounce 0.4 any))
+  ;; (defun consult-buffer-project ()
+  ;;   "Like consult-bufffer but narrowed to only project buffers."
+  ;;   (interactive)
+  ;;   (let ((unread-command-events (append unread-command-events (list ?p 32))))
+  ;;     (consult-buffer)))
 
-  ;;   ;; Optionally configure the narrowing key.
-  ;;   ;; Both < and C-+ work reasonably well.
-  ;;   (setq consult-narrow-key "<") ;; "C-+"
+  (defun mode-buffer-exists-p (mode)
+    (seq-some (lambda (buf)
+                (provided-mode-derived-p
+                 (buffer-local-value 'major-mode buf)
+                 mode))
+              (buffer-list)))
 
-  ;;   ;; Optionally make narrowing help available in the minibuffer.
-  ;;   ;; You may want to use `embark-prefix-help-command' or which-key instead.
-  ;;   (keymap-set consult-narrow-map (concat consult-narrow-key " ?") #'consult-narrow-help)
-)
+  (defvar eshell-source
+    `(:category 'consult-new
+      :face     'font-lock-constant-face
+      :action   ,(lambda (_) (eshell))
+      :items
+      ,(lambda ()
+         (unless (mode-buffer-exists-p 'eshell-mode)
+           '("*eshell* (new)")))))
+
+  (defvar term-source
+    `(:category 'consult-new
+      :face     'font-lock-constant-face
+      :action
+      ,(lambda (_)
+         (vterm t))
+      :items
+      ,(lambda ()
+         (unless (mode-buffer-exists-p 'vterm-mode)
+           '("*vterm* (new)")))))
+
+  (add-to-list 'consult-buffer-sources 'eshell-source 'append)
+  (add-to-list 'consult-buffer-sources 'term-source 'append)
+  )
 
 ;;Insert paths into the minibuffer prompt in Emacs
 (use-package consult-dir
@@ -587,579 +719,6 @@ Additionally, add `cape-file' as early as possible to the list."
          ("C-x C-d" . consult-dir)
          ("C-x C-j" . consult-dir-jump-file)))
 
-(use-package corfu
-  :ensure t
-  :bind ( :map corfu-map
-          ("TAB" . corfu-next)
-          ([tab] . corfu-next)
-          ("S-TAB" . corfu-previous)
-          ([backtab] . corfu-previous)
-          ([remap completion-at-point] . corfu-complete)
-          ("RET" . corfu-complete-and-quit)
-          ("<return>" . corfu-complete-and-quit))
-  :commands (corfu-quit)
-  :custom
-  (corfu-cycle t)
-  (corfu-preselect-first t)
-  (corfu-scroll-margin 4)
-  (corfu-quit-no-match t)
-  (corfu-quit-at-boundary t)
-  (corfu-max-width 100)
-  (corfu-min-width 42)
-  (corfu-count 9)
-  ;; should be configured in the `indent' package, but `indent.el'
-  ;; doesn't provide the `indent' feature.
-  (tab-always-indent 'complete)
-  :config
-  (defun corfu-complete-and-quit ()
-    (interactive)
-    (corfu-complete)
-    (corfu-quit))
-  :hook (after-init . global-corfu-mode))
-
-;; (use-package corfu
-;;   :bind (:map corfu-map
-;;           ("C-n" . corfu-next)
-;;           ("C-p" . corfu-previous)
-;;           ("S-TAB" . corfu-previous)
-;;           ([remap completion-at-point] . corfu-complete)
-;;           ("RET" . corfu-complete-and-quit)
-;;           ("<return>" . corfu-complete-and-quit))
-;;   :commands (corfu-quit)
-;;   ;; Recommended: Enable Corfu globally.
-;;   ;; This is recommended since dabbrev can be used globally (M-/).
-;;   :init
-;;   (global-corfu-mode)
-;;   :hook (corfu-mode . corfu-popupinfo-mode)
-;;   :hook (corfu-mode . corfu-history-mode)
-;;   :hook (before-save-hook . corfu-quit)
-;;   ;; You may want to enable Corfu only for certain modes.
-;;   ;; :hook ((prog-mode . corfu-mode)
-;;   ;;        (shell-mode . corfu-mode)
-;;   ;;        (eshell-mode . corfu-mode))
-;;   :custom
-;;   (corfu-auto nil)        ; Only use `corfu' when calling `completion-at-point' or
-;;                           ; `indent-for-tab-command'
-;;   (corfu-auto-prefix 2)
-;;   (corfu-auto-delay 0.25)
-
-;;   (corfu-min-width 80)
-;;   (corfu-max-width corfu-min-width)       ; Always have the same width
-;;   (corfu-count 14)
-;;   (corfu-scroll-margin 4)
-;;   (corfu-cycle nil)
-;;   ;; `nil' means to ignore `corfu-separator' behavior, that is, use the older
-;;   ;; `corfu-quit-at-boundary' = nil behavior. Set this to separator if using
-;;   ;; `corfu-auto' = `t' workflow (in that case, make sure you also set up
-;;   ;; `corfu-separator' and a keybind for `corfu-insert-separator', which my
-;;   ;; configuration already has pre-prepared). Necessary for manual corfu usage with
-;;   ;; orderless, otherwise first component is ignored, unless `corfu-separator'
-;;   ;; is inserted.
-;;   (corfu-quit-at-boundary nil)
-;;   (corfu-preselect-first t)        ; Preselect first candidate?
-
-;;   ;;(corfu-separator ?\s)          ;; Orderless field separator
-
-;;   :config
-;;   ;; Enable Corfu more generally for every minibuffer, as long as no other
-;;   ;; completion UI is active. If you use Mct or Vertico as your main minibuffer
-;;   ;; completion UI. From
-;;   ;; https://github.com/minad/corfu#completing-with-corfu-in-the-minibuffer
-;;   (defun corfu-enable-always-in-minibuffer ()
-;;   "Enable Corfu in the minibuffer if Vertico/Mct are not active."
-;;     (unless (or (bound-and-true-p mct--active) ; Useful if I ever use MCT
-;;      (bound-and-true-p vertico--input))
-;;      (setq-local corfu-auto nil)       ; Ensure auto completion is disabled
-;;      (corfu-mode 1)))
-;;   (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
-
-;;   (defun corfu-complete-and-quit ()
-;;     (interactive)
-;;     (corfu-complete)
-;;     (corfu-quit))
-;;   (unless (bound-and-true-p savehist-mode)
-;;     (savehist-mode 1))
-;;   (add-to-list 'savehist-additional-variables 'corfu-history))
-
-;; (use-package kind-icon
-;;   :ensure t
-;;   :after corfu
-;;   :custom
-;;   (kind-icon-use-icons t)
-;;   (kind-icon-default-face 'corfu-default) ; Have background color be the same as `corfu' face background
-;;   (kind-icon-blend-background nil)  ; Use midpoint color between foreground and background colors ("blended")?
-;;   (kind-icon-blend-frac 0.08)
-;; :config
-;;   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter) ; Enable `kind-icon'
-
-;;   ;; Add hook to reset cache so the icon colors match my theme
-;;   ;; NOTE 2022-02-05: This is a hook which resets the cache whenever I switch
-;;   ;; the theme using my custom defined command for switching themes. If I don't
-;;   ;; do this, then the backgound color will remain the same, meaning it will not
-;;   ;; match the background color corresponding to the current theme. Important
-;;   ;; since I have a light theme and dark theme I switch between. This has no
-;;   ;; function unless you use something similar
-;;   (add-hook 'kb/themes-hooks #'(lambda () (interactive) (kind-icon-reset-cache))))
-
-(use-package corfu-popupinfo
-  :bind ( :map corfu-popupinfo-map
-          ("M-p" . corfu-popupinfo-scroll-down)
-          ("M-n" . corfu-popupinfo-scroll-up))
-  :hook (corfu-mode . corfu-popupinfo-mode)
-  :custom-face
-  (corfu-popupinfo ((t :height 1.0))))
-
-(use-package corfu-terminal
-  :ensure t
-  :unless (display-graphic-p)
-  :commands (corfu-terminal-mode)
-  :hook (after-init . corfu-terminal-mode))
-
-;; (use-package nerd-icons-corfu
-;;   :ensure t
-;;   :config
-;;   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)
-;;   ;; Optionally:
-;;   (setq nerd-icons-corfu-mapping
-;;         '((array :style "cod" :icon "symbol_array" :face font-lock-type-face)
-;;           (boolean :style "cod" :icon "symbol_boolean" :face font-lock-builtin-face)
-;;           ;; ...
-;;           (t :style "cod" :icon "code" :face font-lock-warning-face)))
-;;   ;; Remember to add an entry for `t', the library uses that as default.
-;;   ;; The Custom interface is also supported for tuning the variable above.
-;; )
-
-;; Use dabbrev with Corfu!
-(use-package dabbrev
-  ;; Swap M-/ and C-M-/
-  :bind (("M-/" . dabbrev-completion)
-         ("C-M-/" . dabbrev-expand)))
-
-
-(use-package embark
-  :after avy
-  :ensure t
-  :bind
-  (("C-c a" . embark-act)
-   ("C-." . embark-act)
-   ("C-;" . embark-dwim)
-   ("C-x ." . embark-act)
-   ("C-x ;" . embark-dwim)
-   ("C-h C-b" . embark-bindings))
-  :init
-  (setq prefix-help-command #'embark-prefix-help-command)
-  :config
-  (add-to-list 'display-buffer-alist
-               '("\\'\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                 nil
-                 (window-parameters (mode-line-format . none)))))
-
-(use-package embark-consult
-  :ensure t
-  :hook (embark-collect-mode . consult-preview-at-point-mode)
-  ;; comes bundled with Embark; no `:ensure t' necessary
-  :after (embark consult))
-
-;; (use-package embark
-;;   :after vertico
-;;   :bind (:map vertico-map
-;;               ("C-x C-l" . embark-act))
-;;   :init
-;;   ;; Optionally replace the key help with a completing-read interface
-;;   (setq prefix-help-command #'embark-prefix-help-command)
-;;   :config
-;;   ;; Hide the mode line of the Embark live/completions buffers
-;;   (add-to-list 'display-buffer-alist
-;;                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-;;                  nil
-;;                  (window-parameters (mode-line-format . none)))))
-;;   ;; (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate))
-
-;;   (use-package embark-consult
-;;     :after (embark consult)
-;;     ;; :demand t ; only necessary if you have the hook below
-;;     ;; if you want to have consult previews as you move around an
-;;     ;; auto-updating embark collect buffer
-;;     ;; :hook
-;;     ;; (embark-collect-mode . embark-consult-preview-minor-mode)
-;;     ;;:hook (embark-collect-mode . consult-preview-at-point-mode)
-;;     )
-
-;;   ;; A few more useful configurations...
-;;   ;; (use-package emacs
-;;   ;;   :init
-;;   ;;   ;; TAB cycle if there are only few candidates
-;;   ;;   (setq completion-cycle-threshold 3)
-
-;; ;; )
-
-(use-package marginalia
-  :ensure t
-  :bind (:map minibuffer-local-map
-              ("M-A" . marginalia-cycle))
-  :init
-  (marginalia-mode)
-  :config
-  (setq marginalia-annotators
-        '(marginalia-annotators-heavy marginalia-annotators-light)))
-
-;; (use-package marginalia
-;;   :ensure t
-;;   :after vertico
-;;   :init (marginalia-mode 1)
-;;   :bind (:map vertico-map
-;;               ("M-]" . marginalia-cycle))
-;;   :config
-;;   (pcase-dolist (`(,regexp . ,category)
-;;                  '(("\\burl\\b" . url)
-;;                    ("\\bHistory\\b" . history)
-;;                    ("\\bdefinitions?\\b" . xref-location)
-;;                    ("\\bxref\\b" . xref-location)))
-;;     (setf (alist-get regexp marginalia-prompt-categories
-;;                      nil nil #'equal)
-;;           category)))
-
-;; (use-package marginalia
-;;   :ensure t
-;;   :after vertico
-;;   :bind (:map minibuffer-local-map
-;;               ("M-A" . marginalia-cycle))
-;;   :custom
-;;   (marginalia-max-relative-age 0)
-;;   (marginalia-align 'right)
-;;   :config
-;;   (marginalia-mode))
-
-(use-package orderless
-  :ensure t
-  :custom
-  (completion-styles '(orderless basic))
-  (completion-category-overrides '((file (styles basic partial-completion)))))
-
-;; (use-package orderless
-;;   :ensure t
-;;   :defer t
-;;   ;; :custom
-;;   ;; (completion-category-overrides
-;;   ;;  '((buffer (styles basic orderless))
-;;   ;;    (file (styles basic orderless))
-;;   ;;    (project-file (styles basic orderless))))
-;;   :config
-;;   (setq orderless-component-separator #'split-string-and-unquote)
-;;   (setq completion-styles '(orderless partial-completion basic))
-;;   (setf (alist-get ?` orderless-affix-dispatch-alist) #'orderless-flex)
-
-;;   (defun orderless-fast-dispatch (word index total)
-;;     (and (= index 0) (= total 1) (length< word 4)
-;;          `(orderless-regexp . ,(concat "^" (regexp-quote word)))))
-
-;;   (orderless-define-completion-style orderless-fast
-;;                                      (orderless-style-dispatchers '(orderless-fast-dispatch
-;;                                                                     my/orderless-initialism-dispatcher
-;;                                                                     my/orderless-flex-dispatcher))
-;;                                      (orderless-matching-styles '(orderless-literal orderless-regexp)))
-
-;;   :bind (:map minibuffer-local-completion-map
-;;               ("SPC" . self-insert-command)))
-
-;; (use-package orderless
-;;   :ensure t
-;;   :custom
-;;   (completion-styles '(orderless))
-;;   (completion-category-defaults nil)    ; I want to be in control!
-;;   (completion-category-overrides
-;;    '((file (styles basic-remote ; For `tramp' hostname completion with `vertico'
-;;                    orderless
-;;                    ))
-;;      ))
-
-;;   (orderless-component-separator 'orderless-escapable-split-on-space)
-;;   (orderless-matching-styles
-;;    '(orderless-literal
-;;      orderless-prefixes
-;;      orderless-initialism
-;;      orderless-regexp
-;;      ;; orderless-flex
-;;      ;; orderless-strict-leading-initialism
-;;      ;; orderless-strict-initialism
-;;      ;; orderless-strict-full-initialism
-;;      ;; orderless-without-literal          ; Recommended for dispatches instead
-;;      ))
-;;   (orderless-style-dispatchers
-;;    '(prot-orderless-literal-dispatcher
-;;      prot-orderless-strict-initialism-dispatcher
-;;      prot-orderless-flex-dispatcher
-;;      ))
-;;   :init
-;;   (defun orderless--strict-*-initialism (component &optional anchored)
-;;     "Match a COMPONENT as a strict initialism, optionally ANCHORED.
-;; The characters in COMPONENT must occur in the candidate in that
-;; order at the beginning of subsequent words comprised of letters.
-;; Only non-letters can be in between the words that start with the
-;; initials.
-
-;; If ANCHORED is `start' require that the first initial appear in
-;; the first word of the candidate.  If ANCHORED is `both' require
-;; that the first and last initials appear in the first and last
-;; words of the candidate, respectively."
-;;     (orderless--separated-by
-;;         '(seq (zero-or-more alpha) word-end (zero-or-more (not alpha)))
-;;       (cl-loop for char across component collect `(seq word-start ,char))
-;;       (when anchored '(seq (group buffer-start) (zero-or-more (not alpha))))
-;;       (when (eq anchored 'both)
-;;         '(seq (zero-or-more alpha) word-end (zero-or-more (not alpha)) eol))))
-
-;;   (defun orderless-strict-initialism (component)
-;;     "Match a COMPONENT as a strict initialism.
-;; This means the characters in COMPONENT must occur in the
-;; candidate in that order at the beginning of subsequent words
-;; comprised of letters.  Only non-letters can be in between the
-;; words that start with the initials."
-;;     (orderless--strict-*-initialism component))
-
-;;   (defun prot-orderless-literal-dispatcher (pattern _index _total)
-;;     "Literal style dispatcher using the equals sign as a suffix.
-;; It matches PATTERN _INDEX and _TOTAL according to how Orderless
-;; parses its input."
-;;     (when (string-suffix-p "=" pattern)
-;;       `(orderless-literal . ,(substring pattern 0 -1))))
-
-;;   (defun prot-orderless-strict-initialism-dispatcher (pattern _index _total)
-;;     "Leading initialism  dispatcher using the comma suffix.
-;; It matches PATTERN _INDEX and _TOTAL according to how Orderless
-;; parses its input."
-;;     (when (string-suffix-p "," pattern)
-;;       `(orderless-strict-initialism . ,(substring pattern 0 -1))))
-
-;;   (defun prot-orderless-flex-dispatcher (pattern _index _total)
-;;     "Flex  dispatcher using the tilde suffix.
-;; It matches PATTERN _INDEX and _TOTAL according to how Orderless
-;; parses its input."
-;;     (when (string-suffix-p "." pattern)
-;;       `(orderless-flex . ,(substring pattern 0 -1)))))
-
-;; (use-package ov
-;;   :ensure t
-;;   :commands (ov-regexp))
-
-;; (use-package popon
-;;   :straight (popon :type git :repo "https://codeberg.org/akib/emacs-popon.git"))
-
-;; VERTical Interactive COmpletion
-(use-package vertico
-  :ensure t
-  :config (vertico-mode))
-
-;; (use-package vertico
-;;   :ensure t
-;;   :bind ( :map vertico-map
-;;           ("M-RET" . vertico-exit-input))
-;;   :hook (after-init . vertico-mode))
-
-;; (use-package vertico
-;;   :ensure t
-;;   :straight (vertico :files (:defaults "extensions/*")
-;;                      :includes (vertico-indexed
-;;                                 vertico-flat
-;;                                 vertico-grid
-;;                                 vertico-mouse
-;;                                 vertico-quick
-;;                                 vertico-buffer
-;;                                 vertico-repeat
-;;                                 vertico-reverse
-;;                                 vertico-directory
-;;                                 vertico-multiform
-;;                                 vertico-unobtrusive
-;;                                 ))
-;;   :bind (:map vertico-map
-;;               ("<tab>" . vertico-insert ) ; Insert selected candidate into text area
-;;               ("<escape>" . minibuffer-keyboard-quit ) ; Close minibuffer
-;;               ;; NOTE 2022-02-05: Cycle through candidate groups
-;;               ("C-M-n" . vertico-next-group )
-;;               ("C-M-p" . vertico-previous-group)
-;;               ("M-RET" . vertico-exit-input)
-;;               ;; Toggle Vertico multiforms in active minibuffer
-;;               ("C-'"           . vertico-quick-exit)
-;;               ("C-i"         . vertico-quick-insert)
-;;               ("M-G" . vertico-multiform-grid)
-;;               ("M-F" . vertico-multiform-flat)
-;;               ("M-R" . vertico-multiform-reverse)
-;;               ("M-U" . vertico-multiform-unobtrusive)
-;;               ;;         ("<return>"      . exit-minibuffer)
-;;               ;;         ("C-m"           . vertico-insert)
-;;               ;;         ("C-c SPC"       . vertico-quick-exit)
-;;               ;;         ("C-<backspace>" . vertico)
-;;               ;;         ("DEL"           . vertico-directory-delete-char)
-;;               ;;         ;; ("RET" . vertico-directory-enter)
-;;               ;;         ;; ("DEL" . vertico-directory-delete-char)
-;;               ;;         ;; ("M-DEL" . vertico-directory-delete-word)
-;;               )
-;;   :hook ((rfn-eshadow-update-overlay . vertico-directory-tidy) ; Clean up file path when typing
-;;          (minibuffer-setup . vertico-repeat-save) ; Make sure vertico state is saved
-;;          )
-;;   :custom
-;;   (vertico-count 13)                    ; Number of candidates to display
-;;   (vertico-resize t)
-;;   (vertico-cycle nil) ; Go from last to first candidate and first to last (cycle)?
-;;   (vertico-grid-separator "       ")
-;;   (vertico-grid-lookahead 50)
-;;   (vertico-buffer-display-action '(display-buffer-reuse-window)) ; Default
-;;   (vertico-multiform-categories         ; Choose a multiform
-;;    '((file reverse)
-;;      (consult-grep buffer)
-;;      (consult-location)
-;;      (imenu buffer)
-;;      (library reverse indexed)
-;;      (org-roam-node reverse indexed)
-;;      (t reverse)
-;;      ))
-;;   (vertico-multiform-commands
-;;    '(("flyspell-correct-*" grid reverse)
-;;      (org-refile grid reverse indexed)
-;;      (consult-yank-pop indexed)
-;;      (consult-flycheck)
-;;      (consult-lsp-diagnostics)
-;;      ))
-;;   :init
-;;   (defun kb/vertico-multiform-flat-toggle ()
-;;     "Toggle between flat and reverse."
-;;     (interactive)
-;;     (vertico-multiform--display-toggle 'vertico-flat-mode)
-;;     (if vertico-flat-mode
-;;         (vertico-multiform--temporary-mode 'vertico-reverse-mode -1)
-;;       (vertico-multiform--temporary-mode 'vertico-reverse-mode 1)))
-;;   (defun kb/vertico-quick-embark (&optional arg)
-;;     "Embark on candidate using quick keys."
-;;     (interactive)
-;;     (when (vertico-quick-jump)
-;;       (embark-act arg)))
-;;   :config
-;;   (vertico-mode)
-;;   ;; Extensions
-;;   (vertico-multiform-mode)
-;;   ;; Prefix the current candidate with “» ”. From
-;;   ;; https://github.com/minad/vertico/wiki#prefix-current-candidate-with-arrow
-;;   (advice-add #'vertico--format-candidate :around
-;;               (lambda (orig cand prefix suffix index _start)
-;;                 (setq cand (funcall orig cand prefix suffix index _start))
-;;                 (concat
-;;                  (if (= vertico--index index)
-;;                      (propertize "» " 'face 'vertico-current)
-;;                    "  ")
-;;                  cand))))
-
-(use-package vertico-directory
-  :ensure (:host github
-                 :repo "minad/vertico"
-                 :files (:defaults "extensions/*")
-                 :includes (vertico-indexed
-                            vertico-flat
-                            vertico-grid
-                            vertico-mouse
-                            vertico-quick
-                            vertico-buffer
-                            vertico-repeat
-                            vertico-reverse
-                            vertico-directory
-                            vertico-multiform
-                            vertico-unobtrusive
-                            ))
-  :after vertico
-  :bind ( :map vertico-map
-          ("RET" . vertico-directory-enter)
-          ("DEL" . vertico-directory-delete-char)
-          ("M-DEL" . vertico-directory-delete-word)
-          ("?"     . minibuffer-completion-help))
-  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
-
-;; (use-package vertico-directory
-;;   :straight nil
-;;   :after vertico
-;;   :bind ( :map vertico-map
-;;           ("RET" . vertico-directory-enter)
-;;           ("DEL" . vertico-directory-delete-char)
-;;           ("M-DEL" . vertico-directory-delete-word))
-;;   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
-;; Vertico is a little bit nicer version of the builtin
-;; icomplete-vertical.
-;; (use-package vertico
-;;   :ensure t
-;;   :demand
-
-;;    :hook
-;;    ((minibuffer-setup . vertico-repeat-save) ; Make sure vertico state is saved for `vertico-repeat'
-;;     (rfn-eshadow-update-overlay . vertico-directory-tidy) ; Clean up file path when typing
-;;    )
-;;   :bind
-;;   (:map vertico-map
-
-;;        )
-;;   :init
-;;    (setq vertico-resize t)
-;;   ;; multiform extension
-;;   ;; (setq vertico-grid-separator "       ")
-;;   (setq vertico-grid-lookahead 50)
-;;   (setq vertico-buffer-display-action '(display-buffer-reuse-window))
-;;   (setq vertico-multiform-categories
-;;         '((file indexed)
-;;           (consult-grep buffer)
-;;           (consult-location)
-;;           (imenu buffer)
-;;           (library reverse indexed)
-;;           (org-roam-node reverse indexed)
-;;           (t reverse)
-;;           ))
-;;   (setq vertico-multiform-commands
-;;         '(("flyspell-correct-*" grid reverse)
-;;           (org-refile grid reverse indexed)
-;;           (consult-yank-pop indexed)
-;;           (consult-flycheck)
-;;           (consult-lsp-diagnostics)
-;;           (git-related-find-file (vertico-sort-function . nil))
-;;           ))
-;;   ;; (defun kb/vertico-multiform-flat-toggle ()
-;;   ;;   "Toggle between flat and reverse."
-;;   ;;   (interactive)
-;;   ;;   (vertico-multiform--display-toggle 'vertico-flat-mode)
-;;   ;;   (if vertico-flat-mode
-;;   ;;       (vertico-multiform--temporary-mode 'vertico-reverse-mode -1)
-;;   ;;     (vertico-multiform--temporary-mode 'vertico-reverse-mode 1)))
-
-;;   ;; Workaround for problem with `tramp' hostname completions. This overrides
-;;   ;; the completion style specifically for remote files! See
-;;   ;; https://github.com/minad/vertico#tramp-hostname-completion
-;;   ;; (defun lc/basic-remote-try-completion (string table pred point)
-;;   ;;   (and (vertico--remote-p string)
-;;   ;;        (completion-basic-try-completion string table pred point)))
-;;   ;; (defun lc/basic-remote-all-completions (string table pred point)
-;;   ;;   (and (vertico--remote-p string)
-;;   ;;        (completion-basic-all-completions string table pred point)))
-;;   ;; (add-to-list 'completion-styles-alist
-;;   ;;              '(basic-remote           ; Name of `completion-style'
-;;   ;;                lc/basic-remote-try-completion lc/basic-remote-all-completions nil))
-
-;;   (setq completion-in-region-function
-;;          (lambda (&rest args)
-;;            (apply (if vertico-mode
-;;                       #'consult-completion-in-region
-;;                     #'completion--in-region)
-;;                   args)))
-;;   :config
-;;   (vertico-multiform-mode)
-;;   (vertico-mode t)
-;;   ;; (vertico-mouse-mode)
-;;   ;; (set-face-attribute 'vertico-mouse nil :inherit nil)
-;;   (savehist-mode)
-;;   ;; Prefix the current candidate with “» ”. From
-;;   ;; https://github.com/minad/vertico/wiki#prefix-current-candidate-with-arrow
-;;   (advice-add #'vertico--format-candidate :around
-;;               (lambda (orig cand prefix suffix index _start)
-;;                 (setq cand (funcall orig cand prefix suffix index _start))
-;;                 (concat
-;;                  (if (= vertico--index index)
-;;                      (propertize "» " 'face 'vertico-current)
-;;                    "  ")
-;;                  cand))))
 
 (use-package wgrep
   :ensure t
