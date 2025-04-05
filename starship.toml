@@ -1,3 +1,4 @@
+
 # format = """
 # [←](#9A348E)\
 # $username\
@@ -14,7 +15,7 @@
 # #[→](fg:#06969A bg:#33658A)\
 # $time\
 # [→ ](fg:#33658A)\
-# """
+# # """
 # format = """
 # [←](#9A348E)\
 # $username\
@@ -27,13 +28,21 @@
 # $custom\
 # $python\
 # $nodejs\
-# $rust\
+# $terrafrom\
 # $time\
 # $character\
 # """
+#format = """
+#[╭─user───❯](bold blue) $username
+#[┣─system─❯](bold yellow) $hostname
+#[┣─project❯](bold red) $directory$rust$git_branch$git_status$package$golang$terraform$docker_context$python$docker_context$nodejs
+#[╰─cmd────❯](bold green)
+#"""
 
 # Disable the blank line at the start of the prompt
-#add_newline = false
+add_newline = false
+command_timeout = 1000
+scan_timeout = 1000
 
 # You can also replace your username with a neat symbol like  to save some space
 [username]
@@ -44,12 +53,27 @@ style_user = "bold dimmed blue"
 style_root = "bold red bg:#9A348E"
 format = '  ($style)'
 
+[hostname]
+ssh_only = true
+#format = 'on [$hostname](bold yellow) '
+format = "<[$hostname]($style)>"
+trim_at = "-"
+style = "bold dimmed yellow"
+disabled = false
+
+[character]
+success_symbol = "[➜](bold green)"     # The "success_symbol" segment is being set to "➜" with the color "bold green"
+error_symbol = "[✗](bold red)"
+# error_symbol = "[✗](bold #ff5555)"
+# success_symbol = "[➜](bold #50fa7b)"
+# error_symbol = "[✖](bold red)"
+# success_symbol = "[➜](bold green)"
+
 [directory]
-#style = "bg:#DA627D"
-style = "bold italic blue"
+style = "bold italic darkblue"
 read_only = " "
 format = "[ $path ]($style)"
-truncation_length = 3
+truncation_length = 10
 truncate_to_repo = true # truncates directory to root folder if in github repo
 truncation_symbol = "…/"
 
@@ -67,43 +91,45 @@ truncation_symbol = "…/"
 # So either put "Important Documents" before "Documents" or use the substituted version:
 # "Important  " = "  "
 
+[cmd_duration]
+min_time = 4
+show_milliseconds = false
+disabled = false
+style = "bold italic red"
+# min_time = 4_000  # Show command duration over 4,000 milliseconds (=4 sec)
+format = "tomó [$duration]($style) "
+
 [aws]
 format = '[$symbol ($profile )(\($region\) )(\[$duration\] )]($style)'
 #format = 'on [$symbol ($profile)(\($region\) )]($style)'
 #style = 'bold blue'
-symbol = "☁️ "
-#symbol = '🅰 '
+symbol = "  "
+#symbol = "☁️ "
+# symbol = '🅰 '
 [aws.region_aliases]
 ap-southeast-2 = 'Syd'
 us-east-1 = 'va'
 [aws.profile_aliases]
 Dev = '318356030799**'
-#disabled = false
 
 [battery]
-full_symbol = "🔋"
+format = "[$symbol $percentage]($style) "
+empty_symbol = "🪫"
+#ccharging_symbol = "🔋"
 charging_symbol = "🔌"
 discharging_symbol = "⚡"
+full_symbol = '🔋'
 
 [[battery.display]]
-threshold = 70
+threshold = 10
 style = "bold red"
 
 [c]
 symbol = "© "
+disabled = true
 #style = "bg:#86BBD8"
 detect_files = [".c"]
 format = '[→](fg:#DA627D bg:#FCA17D)[[ $symbol($version) ](bg:#86BBD8)]($style)'
-
-[character]
-error_symbol = "[✖](bold red)"
-success_symbol = "[➜](bold green)"
-
-[cmd_duration]
-# $duration – The command duration (e.g. "15s")
-# $style    – The default style of the module (e.g. "bold yellow")
-min_time = 4_000  # Show command duration over 4,000 milliseconds (=4 sec)
-format = "tomó [$duration]($style) "
 
 [docker_context]
 symbol = "🐳 "
@@ -116,8 +142,9 @@ symbol = " "
 disabled = true
 
 [git_branch]
-symbol = "🌱 "
-format = '→[$symbol$branch(:$remote_branch)]($style) '
+symbol = " "
+#symbol = "🌱 "
+# format = '→[$symbol$branch(:$remote_branch)]($style) '
 truncation_length = 15
 truncation_symbol = '⋮'
 ignore_branches = ["main", "master"]
@@ -131,29 +158,23 @@ format = '[\($state( $progress_current of $progress_total)\)]($style) '
 cherry_pick = '[🍒 PICKING](bold red)'
 
 [git_status]
-#style = "bg:#FCA17D"
-conflicted = "⚔️ "
-ahead = "🏎️ 💨 ×${count}"
-behind = "🐢 ×${count}"
-diverged = "🔱 🏎️ 💨 ×${ahead_count} 🐢 ×${behind_count}"
-untracked = "🛤️  ×${count}"
-stashed = "📦 "
-modified = "📝 ×${count}"
-staged = "🗃️  ×${count}"
-renamed = "📛 ×${count}"
-deleted = "🗑️  ×${count}"
-style = "bright-white"
-format = '[($all_status$ahead_behind )]($style)'
+conflicted = '🏳'
+ahead = '⇡${count}'
+diverged = '⇕⇡${ahead_count}⇣${behind_count}'
+behind = '⇣${count}'
+# ahead = '🏎💨'
+# behind = '😰'
+# diverged = '😵'
+up_to_date = '✓'
+untracked = '🤷'
+stashed = '📦'
+modified = '📝'
+staged = '[++\($count\)](green)'
+renamed = '👅'
+deleted = '🗑'
 
 [golang]
 symbol = " "
-
-[hostname]
-ssh_only = true
-format = "<[$hostname]($style)>"
-trim_at = "-"
-style = "bold dimmed white"
-#disabled = true
 
 [java]
 symbol = " "
@@ -161,16 +182,16 @@ disabled=true
 #style = "bg:#86BBD8"
 format = '→[[ $symbol:($version) ](bg:#86BBD8)]($style)'
 
-[kubernetes]
-format = '→[🕸️ $context \($namespace\)](dimmed cyan) '
-disabled = true
-detect_folders = [ "k8s"]
+# [kubernetes]
+# format = '→[🕸️ $context \($namespace\)](dimmed cyan) '
+# disabled = true
+# detect_folders = [ "k8s"]
 
-[kubernetes.context_aliases]
-"dev.local.cluster.k8s" = "dev"
+# [kubernetes.context_aliases]
+# "dev.local.cluster.k8s" = "dev"
 
-[lua]
-format = '→ [[ $symbol:($version) ](bg:#86BBD8)]($style)'
+# [lua]
+# format = '→ [[ $symbol:($version) ](bg:#86BBD8)]($style)'
 
 [localip]
 ssh_only = true
@@ -185,39 +206,50 @@ style = "bold dimmed white"
 
 [nodejs]
 format = '➡️  [☊ $version](bold cyan) '
+detect_files = ["package.json", ".node-version"]
+detect_folders = ["node_modules"]
 
 [package]
 disabled = true
 format = '➡️  [🎁 $version](208 bold) '
 
 [python]
-symbol = '🐍 '
-pyenv_version_name = true
-# Only use the `python3` binary to get the version.
-python_binary = 'python3'
+symbol = " "
+#pyenv_version_name = true
+style = "bold yellow"
+format = ' [${symbol}(${version} )(\($virtualenv\) )]($style)'
+python_binary = ["./venv/bin/python", "python", "python3"]
+detect_extensions = ["py"]
+version_format = "v${raw}"
 
-[rlang]
-#style = "bg:#86BBD8"
-format = "→ [$symbol($version )]($style)"
+# [rlang]
+# #style = "bg:#86BBD8"
+# format = "→ [$symbol($version )]($style)"
 
 [ruby]
+disabled = true
 symbol = " "
 
 [rust]
-disabled = false
+disabled = true
 symbol = "🦀"
 #style = "bg:#86BBD8"
 format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
 
 [custom.clj]
 disabled = false
-detect_files =  ["deps.edn", "bb.edn", ".clj", ".cljs"]
+detect_files =  ["deps.edn", "bb.edn"]
+detect_extensions = ["clj", "cljs"]
+command = "bb --version | cut -d 'v' -f2"
 #command = "rg org.clojure/clojure deps.edn | cut -d '{' -f3  | cut -d '"' -f2"
-symbol = "λ "
-format = '→ [[ $symbol $command ]($bold yellow)]($style)'
+symbol = "☯️  λ"
+#format = ' avec [$symbol] bb v [$command]($style)'
+format = ' [[ $symbol $command ]($bold yellow)]($style)'
 
 [terraform]
-format = '[🌏 $version ]($style) '
+disabled = false
+format = '[🏎💨 $version]($style) '
+# format = '[🌏 $version ]($style) '
 
 [time]
 disabled = false
