@@ -1,4 +1,8 @@
 # -*- mode: sh; -*-
+# +-------------+
+# |    GCC      |
+# +-------------+
+export LIBRARY_PATH="/opt/homebrew/lib:/opt/homebrew/opt/gcc/lib/gcc/current:$LIBRARY_PATH"
 
 # Setup some apps for XDG_CONFIG
 # +-------------+
@@ -162,9 +166,9 @@ fi
 # +-------------+
 # |   PYTHON    |
 # +-------------+
-export PYENV_ROOT="$XDG_CACHE_HOME/pyenv"
-dir_exists $PYENV_ROOT/bin && append_to_path "$PYENV_ROOT/bin"
-eval "$(pyenv init -)"
+# export PYENV_ROOT="$XDG_CACHE_HOME/pyenv"
+# dir_exists $PYENV_ROOT/bin && append_to_path "$PYENV_ROOT/bin"
+# eval "$(pyenv init -)"
 
 # +-------------+
 # |  BABASHKA   |
