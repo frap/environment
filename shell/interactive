@@ -68,12 +68,11 @@ fi
 # start-up ssh-agent
 [ -z "$SSH_AUTH_SOCK" ] && eval "$(ssh-agent -s)"
 
+export GITHUB_AUTH="$(gh auth token)"
 # +-------------+
 # |   TROVE     |
 # +-------------+
 # dont start up if eshell and no /work/tempo dir
 if [ -z "$INSIDE_EMACS" ] && dir_exists "${HOME}/work/tempo"; then
-    export GITHUB_AUTH="$(gh auth token)"
-    $HOME/work/tempo/trove-scripts/codeartifact/codeartifact_auth.py
-    alias trove='poetry run trove'
+    uv run --no-project --with pip  $HOME/work/tempo/trove-scripts/codeartifact/codeartifact_auth.py
 fi
