@@ -4,195 +4,60 @@
 ;;; LSP
 (use-package lsp-mode
   :ensure t
-  :hook ((lsp-mode . lsp-diagnostics-mode))
-  ;; use &lt;tab&gt; for completion
-  :bind (;;("&lt;tab&gt;" . company-indent-or-complete-common)
-         ("M-." . lsp-ui-peek-find-defintions)
-         ("M-?" . lsp-ui-peek-find-references))
-  :hook ((clojure-mode . lsp)
-	 (clojurec-mode . lsp)
-	 (clojurescript-mode . lsp)
-	 ;; integration with which-key
-	 (lsp-mode . (lambda ()
-		       (let ((lsp-keymap-prefix "C-c l"))
-			 (lsp-enable-which-key-integration)
-			 ;; hide auto-complete modal if
-			 ;; auto-complete package was installed
-			 ;; like we do before
-			 (auto-complete-mode -1)))))
-    :custom
+  :hook ((clojure-mode clojurec-mode clojurescript-mode) . lsp)
+  :commands (lsp lsp-deferred)
+  :bind (:map lsp-mode-map
+              ("M-." . lsp-ui-peek-find-definitions)
+              ("M-?" . lsp-ui-peek-find-references))
+  :custom
   (lsp-keymap-prefix "C-c l")
-  (lsp-auto-configure nil)
-  (lsp-diagnostics-provider :flymake)
-  (lsp-completion-provider :none)
-  (lsp-session-file (locate-user-emacs-file ".lsp-session"))
-  (lsp-log-io nil)
-  (lsp-keep-workspace-alive nil)
-  (lsp-idle-delay 0.5)
-  (lsp-enable-xref t)
-  (lsp-signature-doc-lines 1)
-  :config
-  ;; Using custom keybind for lsp
-  (define-key lsp-mode-map (kbd "C-c l") lsp-command-map)
-  ;; hide breadcrumb line on top of the buffer
-  (setq lsp-headerline-breadcrumb-enable nil)
-  ;; (dolist (m '(clojure-mode
-  ;;              clojurec-mode
-  ;;              clojurescript-mode
-  ;;              clojurex-mode))
-  ;;   (add-to-list 'lsp-language-id-configuration `(,m . "clojure")))
-  )
-
-;; (use-package lsp-mode
-;;   :init
-;;   ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-;;   (setq lsp-keymap-prefix "C-c l")
-;;   :commands (lsp lsp-deferred)
-;;   :hook  (go-mode . lsp)
-;;          (typescript-mode . lsp)
-;;          (js-mode . lsp)
-;;          (python-mode . lsp)
-;;          (python-ts-mode . lsp)
-;;          (tsx-ts-mode . lsp)
-;;          (web-mode . lsp)
-;;          (shell-script-mode . lsp)
-;;          (c-mode . lsp)
-;;          (lsp-mode . lsp-enable-which-key-integration)
-;;          (lsp-mode . lsp-diagnostics-mode)
-;;          ;; This is needed so corfu + orderless work correctly on lsp-mode
-;;          ;; (lsp-completion-mode . (lambda ()
-;;          ;;                          (setf (alist-get 'styles
-;;          ;;                                           (alist-get 'lsp-capf completion-category-defaults))
-;;          ;;                                '(orderless))))
-;;          (dired-mode . lsp-dired-mode)
-     ;; :bind (("M-." . lsp-ui-peek-find-defintions)
-;;            ("M-?" . lsp-ui-peek-find-references))
-;;    :custom
-;;     ;;(lsp-ui-sideline-enable t) ;; "a little info over there")
-;;     (lsp-prefer-capf t)
-;;     (lsp-completion-provider :none) ;; "we use corfu now baby"
-;;     ;;(lsp-disabled-clients nil '(jsts-ls ts-ls))
-;;     (lsp-ui-doc-enable t) ;; "a little info over here")
-;;     (lsp-ui-doc-show-with-cursor t)
-;;     (lsp-idle-delay 0.1) ;; "might need to make this bigger if computers don't like it")
-;;     (lsp-headerline-breadcrumb-enable t) ;; "it's cute!")
-;;     (lsp-rust-analyzer-inlay-hints-mode t) ;; "analyze me papa")
-;;     (lsp-completion-provider :capf );; "favoured by the team")
-;;     (lsp-file-watch-threshold nil);; "i don't care, leave me alone")
-;;     (lsp-eslint-validate '(svelte typescript js javascript))
-;;     (lsp-typescript-server-args (--stdio --allowJs))
-;;   ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-;;   ;; (lsp-keymap-prefix "C-c l")
-;;   ;; (lsp-auto-configure nil)
-;;   ;; (lsp-diagnostics-provider :flymake)
-;;   ;; (lsp-modeline-diagnostics-enable t)
-;; ;;   (lsp-completion-provider :none)
-;; ;; ;;  (lsp-session-file (locate-user-emacs-file ".lsp-session"))
-;; ;;   (lsp-log-io nil)
-;; ;; ;;  (lsp-keep-workspace-alive nil)
-;; ;;   (lsp-idle-delay 0.5)
-;; ;;   (lsp-enable-xref t)
-;;  ;; (lsp-signature-doc-lines 1)
-;;   ;; :init
-;;   ;; (setq lsp-restart 'ignore)
-;;   ;; (setq lsp-eldoc-enable-hover t)
-;;   ;; (setq lsp-enable-file-watchers nil)
-;;   ;; (setq lsp-signature-auto-activate nil)
-;;   ;; (setq lsp-modeline-diagnostics-enable nil)
-;;   ;; (setq lsp-keep-workspace-alive nil)
-;;   ;; (setq lsp-auto-execute-action nil)
-;;   ;; (setq lsp-before-save-edits nil)
-;;   ;; (setq lsp-headerline-breadcrumb-enable nil)
-;;   ;; (setq lsp-diagnostics-provider :none)
-;;   ;;(setq lsp-use-plists t)
-;;   :config
-;;     ;; https://github.com/minad/corfu/wiki
-;;   (defun lsp:setup-completion-for-corfu ()
-;;     (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-;;           '(orderless))
-;;     (setq-local completion-at-point-functions (list (cape-capf-buster #'lsp-completion-at-point))))
-
-;;   (add-hook 'lsp-mode-hook #'lsp:setup-completion-for-corfu))
+  (lsp-enable-file-watchers nil)
+  (lsp-diagnostics-provider :flymake) ;; we use Flycheck separately
+  (lsp-completion-provider :none) ;; we use Corfu
+  (lsp-headerline-breadcrumb-enable nil)
+  (lsp-enable-indentation nil))
 
 (use-package lsp-ui
-  :no-require
+  :ensure t
   :commands lsp-ui-mode
   :bind (:map lsp-ui-mode-map
               ("M-<mouse-1>" . lsp-find-definition-mouse)
               ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
-              ([remap xref-find-references]  . lsp-ui-peek-find-references ))
-  :custom-face
-  (lsp-ui-doc-background ((t (:background "#ffffee")))))
-
-;; (use-package consult-lsp
-;;   :after lsp-mode
-;;   :bind
-;;   (:map lsp-mode-map
-;;            ([remap xref-find-apropos] . consult-lsp-symbols)))
-
-;; (use-package dap-mode
-;;   :hook
-;;   ((dap-mode . corfu-mode)
-;;    (dap-terminated . lc/hide-debug-windows)
-;;    ;; (dap-session-created . (lambda (_arg) (projectile-save-project-buffers)))
-;;    (dap-ui-repl-mode . (lambda () (setq-local truncate-lines t))))
-;;   )
+              ([remap xref-find-references]  . lsp-ui-peek-find-references))
+  :custom
+  (lsp-ui-doc-enable t)
+  (lsp-ui-doc-show-with-cursor t)
+  (lsp-ui-doc-background "#ffffee"))
 
 (use-package lsp-completion
-  :no-require
-  :hook ((lsp-mode . lsp-completion-mode-maybe))
-  :commands (lsp-completion-mode)
+  :after lsp-mode
+  :hook (lsp-mode . lsp-completion-mode-maybe)
   :preface
   (defun lsp-completion-mode-maybe ()
+    "Enable `lsp-completion-mode' only if not inside CIDER."
     (unless (bound-and-true-p cider-mode)
-      (lsp-completion-mode 1))))
+      (lsp-completion-mode 1)))
+  :config
+  (defun lsp:setup-completion-for-corfu ()
+  "Tweak lsp-mode completion styles for Corfu+Orderless."
+  (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+        '(orderless)))
 
-(use-package lsp-treemacs
-  :ensure t
-  :defer t
-  :custom
-  (lsp-treemacs-theme "Iconless"))
+(add-hook 'lsp-completion-mode-hook #'lsp:setup-completion-for-corfu))
 
 (use-package lsp-clojure
-  :demand t
   :after lsp-mode
   :hook (cider-mode . cider-toggle-lsp-completion-maybe)
-  :hook ((clojure-mode
-          clojurec-mode
-          clojurescript-mode)
-         . lsp)
+  :hook ((clojure-mode clojurec-mode clojurescript-mode) . lsp)
   :preface
   (defun cider-toggle-lsp-completion-maybe ()
     (lsp-completion-mode (if (bound-and-true-p cider-mode) -1 1)))
-  :config
-  (setq lsp-file-watch-threshold 10000
-        lsp-headerline-breadcrumb-enable nil
-        lsp-signature-auto-activate nil
-        ;; I use clj-kondo from master
-        lsp-diagnostics-provider :none
-        lsp-enable-indentation nil ;; uncomment to use cider indentation instead of lsp
-        )
-  )
+  :custom
+  (lsp-file-watch-threshold 10000)
+  (lsp-signature-auto-activate nil)
+  (lsp-diagnostics-provider :none)
+  (lsp-enable-indentation nil)) ;; let CIDER do indentation
 
-
-;; (use-package lsp-java
-;;   :ensure t
-;;   :after lsp-mode)
-
-;; (use-package lsp-java
-;;   :hook (java-mode . lsp))
-
-;; (use-package lsp-metals
-;;   :ensure t
-;;   :after lsp-mode
-;;   :custom
-;;   (lsp-metals-server-args
-;;    '("-J-Dmetals.allow-multiline-string-formatting=off"
-;;      "-J-Dmetals.icons=unicode"))
-;;   (lsp-metals-enable-semantic-highlighting nil))
-
-;; (use-package lsp-metals
-;;   :hook (scala-mode . lsp))
 
 ;; capf
 ;; (defmacro +inject-capf/fn (&rest capfs)

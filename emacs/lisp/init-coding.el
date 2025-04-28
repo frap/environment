@@ -307,268 +307,140 @@
   :custom
   (csv-align-max-width most-positive-fixnum))
 
+;; (defun clojure-lisp-pretty-symbols ()
+;;   "Make some word or string show as pretty Unicode symbols"
+;;   (setq prettify-symbols-alist
+;; 	'(;; ("lambda" . ?λ)
+;; 	  ("fn" . ?λ)
+;; 	  ;; Ƒ Ɣ ƒ Ƭ Ʃ Ƴ ƴ ɀ ℎ ℰ ℱ Ⅎ ℳ ℓ ⊂ ⊃ ⋂ ⋃ ∩ ∪ ∈ ∊ ∋ ∍ ∘ ⇩ ⇘ ⯆ ⯅ 🭶 ⯇ ⯈
+;; 	  ;; Greek alphabet
+;; 	  ;; Α α, Β β, Γ γ, Δ δ, Ε ε, Ζ ζ, Η η, Θ θ, Ι ι, Κ κ, Λ λ, Μ μ, Ν ν,
+;; 	  ;; Ξ ξ, Ο ο, Π π, Ρ ρ, Σ σ/ς, Τ τ, Υ υ, Φ φ, Χ χ, Ψ ψ, Ω ω
+;; 	  ;; ("->" . ?→)
+;; 	  ;; ("->>" . ?↠)
+;; 	  ;; ("=>" . ?⇒)
+;; 	  ("defmulti" . ?Ƒ)
+;; 	  ("defmethod" . ?ƒ)
+;; 	  ("/=" . ?≠)   ("!=" . ?≠)
+;; 	  ("==" . ?≡)   ("not" . ?!)
+;; 	  ("&lt;=" . ?≤)   (">=" . ?≥)
+;; 	  ("comp" . ?υ) ("partial" . ?ρ))))
+
+(use-package clojure-mode
+  :ensure t
+  :delight "λ clj"
+  :hook ((clojure-mode clojurec-mode clojurescript-mode)
+         . (lambda ()
+             (common-lisp-modes-mode)
+             (clojure-lisp-pretty-symbols)
+             (flycheck-mode)
+             (clojure-set-compile-command)))
+  :config
+  (defun clojure-lisp-pretty-symbols ()
+    "Prettify common Clojure symbols."
+    (setq prettify-symbols-alist
+          '(("fn" . ?λ)
+            ("defmulti" . ?Ƒ)
+            ("defmethod" . ?ƒ)
+            ("/=" . ?≠)
+            ("!=" . ?≠)
+            ("==" . ?≡)
+            ("not" . ?!)
+            ("<=" . ?≤)
+            (">=" . ?≥)
+            ("comp" . ?υ)
+            ("partial" . ?ρ)))
+    (prettify-symbols-mode 1))
+
+  (defun clojure-set-compile-command ()
+    (let ((dir (clojure-project-dir)))
+      (cond ((file-exists-p (expand-file-name "bb.edn" dir))
+             (setq-local compile-command "bb"))
+            ((file-exists-p (expand-file-name "deps.edn" dir))
+             (setq-local compile-command "clojure")))))
+
+  (defun clojure-project-dir ()
+    (or (locate-dominating-file default-directory "deps.edn")
+        (locate-dominating-file default-directory "project.clj")
+        (locate-dominating-file default-directory "bb.edn")
+        default-directory)))
+
 (use-package flycheck-clj-kondo
   :ensure t)
 
-(defun clojure-lisp-pretty-symbols ()
-  "Make some word or string show as pretty Unicode symbols"
-  (setq prettify-symbols-alist
-	'(;; ("lambda" . ?λ)
-	  ("fn" . ?λ)
-	  ;; Ƒ Ɣ ƒ Ƭ Ʃ Ƴ ƴ ɀ ℎ ℰ ℱ Ⅎ ℳ ℓ ⊂ ⊃ ⋂ ⋃ ∩ ∪ ∈ ∊ ∋ ∍ ∘ ⇩ ⇘ ⯆ ⯅ 🭶 ⯇ ⯈
-	  ;; Greek alphabet
-	  ;; Α α, Β β, Γ γ, Δ δ, Ε ε, Ζ ζ, Η η, Θ θ, Ι ι, Κ κ, Λ λ, Μ μ, Ν ν,
-	  ;; Ξ ξ, Ο ο, Π π, Ρ ρ, Σ σ/ς, Τ τ, Υ υ, Φ φ, Χ χ, Ψ ψ, Ω ω
-	  ;; ("->" . ?→)
-	  ;; ("->>" . ?↠)
-	  ;; ("=>" . ?⇒)
-	  ("defmulti" . ?Ƒ)
-	  ("defmethod" . ?ƒ)
-	  ("/=" . ?≠)   ("!=" . ?≠)
-	  ("==" . ?≡)   ("not" . ?!)
-	  ("&lt;=" . ?≤)   (">=" . ?≥)
-	  ("comp" . ?υ) ("partial" . ?ρ))))
-
-(defun clojure-mode-hook ()
-  (clojure-lisp-pretty-symbols)
-  ;; --
-  ;;  These couple of lines are optional if you
-  ;; want to use linter in EVERY Clojure buffer.
-  ;;  You also can set (flycheck-mode nil) and
-  ;; enable it only in buffer you need following
-  ;; the next steps:
-  ;;   M-x flycheck-mode
-  (add-to-list 'flycheck-checkers 'clj-kondo-clj)
-  (flycheck-mode t)
-  ;; --
-  (clojure-set-compile-command))
-
-(use-package clojure-mode
-  :delight "λ clj"
-  :ensure t
-  :hook ((clojure-mode clojurec-mode clojurescript-mode) . common-lisp-modes-mode)
-  :hook ((clojure-mode clojurec-mode clojurescript-mode) . clojure-mode-hook)
-  :commands (clojure-project-dir)
-  :bind ( :map clojure-mode-map
-          ("C-:" . nil))
-  :config
-  (defun clojure-set-compile-command ()
-    (let ((project-dir (clojure-project-dir)))
-      (cond ((and (file-exists-p (expand-file-name "bb.edn" project-dir))
-                  (executable-find "bb"))
-             (setq-local compile-command "bb "))
-            ((and (file-exists-p (expand-file-name "deps.edn" project-dir))
-                  (executable-find "clojure"))
-             (setq-local compile-command "clojure ")))))
-  ;; (setq clojure-toplevel-inside-comment-form t
-  ;;       ;; Because of CIDER's insistence to send forms to all linked REPLs, we
-  ;;       ;; *have* to be able to switch cljc buffer to clj/cljs mode without
-  ;;       ;; cider complaining.
-  ;;       clojure-verify-major-mode nil)
-  )
-
 (use-package cider
   :ensure t
-  :delight " 🍏🍺"
-  :commands cider-find-and-clear-repl-buffer
-  :functions (cider-nrepl-request:eval cider-find-and-clear-repl-output)
-  :hook (((cider-repl-mode cider-mode) . eldoc-mode)
-         (cider-repl-mode . common-lisp-modes-mode)
-         (cider-popup-buffer-mode . cider-disable-linting))
-  :bind ( :map cider-repl-mode-map
-          ("C-c C-S-o" . cider-repl-clear-buffer)
-          :map cider-mode-map
-          ("C-c C-S-o" . cider-find-and-clear-repl-buffer)
-          ("C-c C-p" . cider-pprint-eval-last-sexp-to-comment))
-  :custom-face
-  (cider-result-overlay-face ((t (:box (:line-width -1 :color "grey50")))))
-  (cider-error-highlight-face ((t (:inherit flymake-error))))
-  (cider-warning-highlight-face ((t (:inherit flymake-warning))))
-  (cider-reader-conditional-face ((t (:inherit font-lock-comment-face))))
+  :delight "🍏🍺"
+  :hook ((cider-mode cider-repl-mode) . eldoc-mode)
   :custom
-  (nrepl-log-messages nil)
   (cider-repl-display-help-banner nil)
-  (cider-repl-tab-command #'indent-for-tab-command)
-  (nrepl-hide-special-buffers t)
-  (cider-test-show-report-on-success t)
   (cider-allow-jack-in-without-project t)
   (cider-use-fringe-indicators nil)
-  (cider-font-lock-dynamically '(macro var deprecated))
-  (cider-save-file-on-load nil)
-  (cider-inspector-fill-frame nil)
-  (cider-auto-select-error-buffer t)
-  (cider-show-eval-spinner t)
-  (nrepl-use-ssh-fallback-for-remote-hosts t)
+  (nrepl-log-messages nil)
+  (nrepl-hide-special-buffers t)
   (cider-enrich-classpath t)
-  (cider-repl-history-file (expand-file-name "~/.config/cider-history"))
-  (cider-clojure-cli-global-options "-J-XX:-OmitStackTraceInFastThrow")
-  (cider-use-tooltips nil)
-  (cider-connection-message-fn #'cider-random-tip)
+  (cider-repl-history-file (expand-file-name "~/.cache/cider-history"))
   (cider-repl-prompt-function #'cider-repl-prompt-newline)
+  (cider-clojure-cli-global-options "-J-XX:-OmitStackTraceInFastThrow")
+  (cider-font-lock-dynamically '(macro var deprecated))
+  (cider-use-tooltips nil)
   (cider-auto-inspect-after-eval nil)
-  (cider-comment-continued-prefix "")
-  (cider-comment-prefix "")
+  (cider-auto-select-error-buffer t)
   :config
-  (put 'cider-clojure-cli-aliases 'safe-local-variable #'listp)
-  (defun cider-disable-linting ()
-    "Disable linting integrations for current buffer."
-    (when (bound-and-true-p flymake-mode)
-      (flymake-mode -1)))
   (defun cider-repl-prompt-newline (namespace)
-    "Return a prompt string that mentions NAMESPACE with a newline."
     (format "%s\n> " namespace))
-  (defun cider-find-and-clear-repl-buffer ()
-    "Find the current REPL buffer and clear it.
-See `cider-find-and-clear-repl-output' for more info."
-    (interactive)
-    (cider-find-and-clear-repl-output 'clear-repl))
+
   (defun cider-open-portal ()
-    (interactive)
-    (cider-nrepl-request:eval
-     "(do
-        (ns dev)
-        (def portal ((requiring-resolve 'portal.api/open) {:launcher :emacs}))
-        (add-tap (requiring-resolve 'portal.api/submit)))"
-     #'ignore))
-  (defun cider-clear-portal ()
-    (interactive)
-    (cider-nrepl-request:eval "(portal.api/clear)" #'ignore))
-  (defun cider-close-portal ()
-    (interactive)
-    (cider-nrepl-request:eval "(portal.api/close)" #'ignore))
-  ;; Show emacs-lisp eval results in an overlay, CIDER style.
-  ;; https://endlessparentheses.com/eval-result-overlays-in-emacs-lisp.html
-  ;; We rely on CIDER to do the heavy lifting, can't seem to find a general library
-  ;; for doing this style of overlays.
-  ;; (defun corgi/eval-overlay (value point)
-  ;;   (cider--make-result-overlay (format "%S" value)
-  ;;                               :where point
-  ;;                               :duration 'command)
-  ;;   ;; Preserve the return value.
-  ;;   value)
-
-  ;; (advice-add 'eval-region :around
-  ;;             (lambda (f beg end &rest r)
-  ;;               (corgi/eval-overlay
-  ;;                (apply f beg end r)
-  ;;                end)))
-
-  ;; (advice-add 'eval-last-sexp :filter-return
-  ;;             (lambda (r)
-  ;;               (corgi/eval-overlay r (point))))
-
-  ;; (advice-add 'eval-defun :filter-return
-  ;;             (lambda (r)
-  ;;               (corgi/eval-overlay
-  ;;                r
-  ;;                (save-excursion
-  ;;                  (end-of-defun)
-  ;;                  (point)))))
-
-  (cider-register-cljs-repl-type 'sci-js "(+ 1 2 3)")
-  (defun mm/cider-connected-hook ()
-    (when (eq 'sci-js cider-cljs-repl-type)
-      (setq-local cider-show-error-buffer nil)
-      (cider-set-repl-type 'cljs)))
-  (add-hook 'cider-connected-hook #'mm/cider-connected-hook))
-
-(use-package clj-ns-name
-   :ensure (:host github :repo "corgi-emacs/clj-ns-name" )
-   :config
-  (clj-ns-name-install))
-
-;; Most annoying JVM "feature" of all time
-;; https://docs.cider.mx/cider/troubleshooting.html#empty-java-stacktraces
-;; (defun corgi/around-cider-jack-in-global-options (command project-type)
-;;   (if (eq 'clojure-cli project-type)
-;;       (concat cider-clojure-cli-global-options
-;;               " -J-XX:-OmitStackTraceInFastThrow")
-;;     (funcall command project-type)))
-
-;; (advice-add #'cider-jack-in-global-options :around #'corgi/around-cider-jack-in-global-options)
-
-(defun corgi/cider-pprint-eval-register (register)
-  "Evaluate a Clojure snippet stored in a register.
-
-Will ask for the register when used interactively. Put `#_clj' or
-`#_cljs' at the start of the snippet to force evaluation to go to
-a specific REPL type, no matter the mode (clojure-mode or
-clojurescript-mode) of the current buffer.
-
-You can use {{...}} to insert emacs-lisp code that will get
-evaluated, like `(println \"{{buffer-file-name}}\")'.
-"
-  (interactive (list (register-read-with-preview "Eval register: ")))
-  (let ((reg (replace-regexp-in-string
-              "{{\\([^}]+\\)}}"
-              (lambda (s)
-                (eval
-                 (read
-                  (match-string 1 s))))
-              (get-register register))))
-    (cond
-     ((string-match-p "^#_cljs" reg)
-      (with-current-buffer (car (cider-repls 'cljs))
-        (cider--pprint-eval-form reg)))
-     ((string-match-p "^#_clj" reg)
-      (with-current-buffer (car (cider-repls 'clj))
-        (cider--pprint-eval-form reg)))
-     (t
-      (cider--pprint-eval-form reg)))))
-
-(defun corgi/cider-jack-in-babashka (&optional project-dir)
-  "Start a utility CIDER REPL backed by Babashka, not related to a
-specific project."
   (interactive)
-  (let ((project-dir (or project-dir user-emacs-directory)))
+  (cider-nrepl-request:eval
+   "(do (ns dev) (def portal ((requiring-resolve 'portal.api/open) {:launcher :emacs})) (add-tap (requiring-resolve 'portal.api/submit)))"
+   #'ignore))
+
+(defun cider-clear-portal ()
+  (interactive)
+  (cider-nrepl-request:eval "(portal.api/clear)" #'ignore))
+
+(defun cider-close-portal ()
+  (interactive)
+  (cider-nrepl-request:eval "(portal.api/close)" #'ignore))
+
+(defun cider-jack-in-babashka ()
+  "Start babashka REPL for quick scratch."
+  (interactive)
+  (let ((default-directory (or (locate-dominating-file default-directory "bb.edn") default-directory)))
     (nrepl-start-server-process
-     project-dir
+     default-directory
      "bb --nrepl-server 0"
      (lambda (server-buf)
-       (set-process-query-on-exit-flag
-        (get-buffer-process server-buf) nil)
        (cider-nrepl-connect
         (list :repl-buffer server-buf
-              :repl-type 'clj
-              :host (plist-get nrepl-endpoint :host)
-              :port (plist-get nrepl-endpoint :port)
-              :project-dir project-dir
-              :session-name "babashka"
+              :project-dir default-directory
               :repl-init-function (lambda ()
-                                    (setq-local cljr-suppress-no-project-warning t
-                                                cljr-suppress-middleware-warnings t
-                                                process-query-on-exit-flag nil)
-                                    (set-process-query-on-exit-flag
-                                     (get-buffer-process (current-buffer)) nil)
-                                    (rename-buffer "*babashka-repl*")))))))
+                                    (rename-buffer "*babashka-repl*"))))))))
+)
 
-  ;; Create a *scratch-clj* buffer for evaluating ad-hoc Clojure expressions. If
-  ;; you make sure there's always a babashka REPL connection then this is a cheap
-  ;; way to always have a place to type in some quick Clojure expression evals.
-  (with-current-buffer (get-buffer-create "*scratch-clj*")
-    (clojure-mode)))
 
-(use-package ob-clojure
-  :after (org clojure-mode)
-  :custom
-  (org-babel-clojure-backend 'cider)
-  :init
-  (require 'cider))
+;; :commands cider-find-and-clear-repl-buffer
+;; :functions (cider-nrepl-request:eval cider-find-and-clear-repl-output)
+;; :hook (((cider-repl-mode cider-mode) . eldoc-mode)
+;;        (cider-repl-mode . common-lisp-modes-mode)
+;;        (cider-popup-buffer-mode . cider-disable-linting))
+;; :bind ( :map cider-repl-mode-map
+;;         ("C-c C-S-o" . cider-repl-clear-buffer)
+;;         :map cider-mode-map
+;;         ("C-c C-S-o" . cider-find-and-clear-repl-buffer)
+;;         ("C-c C-p" . cider-pprint-eval-last-sexp-to-comment))
+;; :custom-face
+;; (cider-result-overlay-face ((t (:box (:line-width -1 :color "grey50")))))
+;; (cider-error-highlight-face ((t (:inherit flymake-error))))
+;; (cider-warning-highlight-face ((t (:inherit flymake-warning))))
+;; (cider-reader-conditional-face ((t (:inherit font-lock-comment-face))))
 
-(use-package clj-refactor
-  :disabled t
-  :ensure t
-  :delight clj-refactor-mode
-  :hook ((clj-refactor-mode . yas-minor-mode)
-         (cider-mode . clj-refactor-mode))
-  :custom
-  (cljr-suppress-no-project-warning t)
-  (cljr-suppress-middleware-warnings t)
-  (cljr-warn-on-eval nil))
+(use-package clj-ns-name
+  :ensure (:host github :repo "corgi-emacs/clj-ns-name" )
+  :config
+  (clj-ns-name-install))
 
-;; (use-package clj-decompiler
-;;   :ensure t
-;;   :hook (cider-mode . clj-decompiler-setup))
 
 (use-package elisp-mode
   :defer t
@@ -864,49 +736,37 @@ created with `json-hs-extra-create-overlays'."
 
 (use-package yasnippet
   :ensure t
-  :defer t
-  :bind (:map yas-minor-mode-map
-              ("TAB" . nil)
-              ("<tab>" . nil)
-              ("C-<tab>" . 'yas-expand))
-  :commands (yas-minor-mode-on
-             yas-expand
-             yas-expand-snippet
-             yas-lookup-snippet
-             yas-insert-snippet
-             yas-new-snippet
-             yas-visit-snippet-file
-             yas-reload-all
-             yas-dropdown-prompt
-             yas--all-templates
-             yas--get-snippet-tables
-             yas--template-key)
   :delight yas-minor-mode
-  :hook ((text-mode . yas-minor-mode-on)
-         (prog-mode . yas-minor-mode-on)
-         (conf-mode . yas-minor-mode-on)
-         (snippet-mode . yas-minor-mode-on))
+  :commands (yas-minor-mode)
+  :hook ((prog-mode text-mode conf-mode snippet-mode) . yas-minor-mode)
+  :bind (:map yas-minor-mode-map
+              ("TAB" . nil)    ;; Don't steal normal TAB
+              ("<tab>" . nil)
+              ("C-<tab>" . yas-expand)) ;; Manual expansion
   :config
-  (defun +yas/org-last-src-lang ()
+  (yas-reload-all)
+  (setq yas-prompt-functions (delq #'yas-dropdown-prompt yas-prompt-functions))
+   (defun +yas/org-last-src-lang ()
     "Return the language of the last src-block, if it exists."
     (save-excursion
       (beginning-of-line)
       (when (re-search-backward "^[ \t]*#\\+begin_src" nil t)
-        (org-element-property :language (org-element-context)))))
-  (setq yas-prompt-functions (delq #'yas-dropdown-prompt
-                                   yas-prompt-functions))
-  :init
-  (yas-global-mode 1))
+        (org-element-property :language (org-element-context))))))
+
+(use-package yasnippet-capf
+  :ensure t
+  :after (yasnippet cape)
+  :config
+  (add-to-list 'completion-at-point-functions #'yasnippet-capf))
 
 (use-package yasnippet-classic-snippets
   :ensure t
-  :after yasnippet
-  :demand t)
+  :after yasnippet)
 
 (use-package consult-yasnippet
   :ensure t
-  :after consult
-  :config (global-set-key (kbd "M-Y") 'consult-yasnippet))
+  :after (consult yasnippet)
+  :bind ("M-Y" . consult-yasnippet))
 
 (use-package yasnippet-capf
   :ensure t
@@ -915,6 +775,14 @@ created with `json-hs-extra-create-overlays'."
   (setq yasnippet-capf-lookup-by 'key) ;; key or name
   :config
   (add-to-list 'completion-at-point-functions #'yasnippet-capf))
+
+;; Make yasnippet the first capf (important if you have many)
+(defun my/move-yas-capf-first ()
+  (when (boundp 'completion-at-point-functions)
+    (setq completion-at-point-functions
+          (cons #'yasnippet-capf
+                (remove #'yasnippet-capf completion-at-point-functions)))))
+(add-hook 'after-init-hook #'my/move-yas-capf-first)
 
 ;; (use-package web-mode
 ;;   :ensure t
