@@ -178,6 +178,21 @@
               ;; doesn't work in terminal
               ("M-[" . puni-wrap-square)))
 
+;; treesitter
+(defun treesit-p ()
+  "Check if Emacs was built with Tree-sitter support."
+  (and (fboundp 'treesit-available-p)
+       (treesit-available-p)))
+
+(use-package treesit-auto
+  :ensure t
+  :when (treesit-p)
+  :custom
+  (treesit-auto-install 'prompt) ;; auto install missing grammars with prompt
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all) ;; all known remappings
+  (global-treesit-auto-mode))
+
 ;; ────────────────────────────── Prettify Symbols ─────────────────────────────
 (add-hook 'prog-mode-hook 'prettify-symbols-mode)
 (add-hook 'org-mode-hook 'prettify-symbols-mode)
@@ -609,11 +624,6 @@ created with `json-hs-extra-create-overlays'."
   :config
   (advice-add 'delete-overlay :around #'json-hs-extra-delete-overlays))
 
-(use-package js
-  :defer t
-  :custom
-  (js-indent-level 2))
-
 (use-package lua-mode
   :ensure t
   :custom
@@ -646,10 +656,15 @@ created with `json-hs-extra-create-overlays'."
 ;;           (when (and (not (nth 4 (syntax-ppss)))
 ;;                      (looking-back "." 1))
 ;;             (lisp-eval-last-sexp)))))))
+(use-package js
+  :mode ("\\.js\\'" . js-ts-mode)
+  :hook (js-ts-mode . lsp-deferred)
+  :custom
+  (js-indent-level 2))
 
-(use-package json-mode
-  :ensure t
-  :mode "\\.json\\'")
+(use-package json-ts-mode
+  :mode ("\\.json\\'" . json-ts-mode)
+  :hook (json-ts-mode . lsp-deferred))
 
 ;; (use-package niel
 ;;   :ensure t
@@ -682,13 +697,64 @@ created with `json-hs-extra-create-overlays'."
   :delight
   :hook (emacs-lisp-mode . page-break-lines-mode))
 
-;; (use-package package-lint-flymake
-;;   :ensure t
-;;   :defer t)
+;; Setup Python with tree-sitter and LSP
+(use-package python
+  :mode ("\\.py\\'" . python-ts-mode)
+  :interpreter ("python" . python-ts-mode)
+  :hook (python-ts-mode . lsp-deferred)
+  :custom
+  (python-indent-offset 4) ;; 4 spaces standard
+  (python-shell-interpreter "python") ;; uv creates venv, expects python available
+  (python-ts-mode-indent-offset 4))
 
-;; (use-package racket-mode
-;;   :ensure t
-;;   :hook ((racket-mode racket-repl-mode) . common-lisp-modes-mode))
+;; Formatter: Ruff (instead of Black, yapf)
+(defun my/ruff-format-buffer ()
+  "Format the current Python buffer with ruff."
+  (interactive)
+  (when (eq major-mode 'python-ts-mode)
+    (let ((tmpfile (make-temp-file "ruff-format" nil ".py"))
+          (patchbuf (get-buffer-create "*Ruff Patch*"))
+          (errbuf (get-buffer-create "*Ruff Errors*"))
+          (coding-system-for-read 'utf-8)
+          (coding-system-for-write 'utf-8))
+      (unwind-protect
+          (save-restriction
+            (widen)
+            (write-region nil nil tmpfile)
+            (if (zerop (call-process "ruff" nil errbuf nil "format" tmpfile))
+                (progn
+                  (erase-buffer)
+                  (insert-file-contents tmpfile)
+                  (message "Applied ruff formatting"))
+              (message "Ruff format failed: see *Ruff Errors* buffer")))
+        (kill-buffer patchbuf)
+        (delete-file tmpfile)))))
+
+
+;; Format on save using ruff
+(add-hook 'python-ts-mode-hook
+          (lambda ()
+            (add-hook 'before-save-hook #'my/ruff-format-buffer nil t)))
+
+;;  Optionally: Flycheck with Ruff for linting
+(use-package flycheck
+  :ensure t
+  :hook (python-ts-mode . flycheck-mode)
+  :config
+  ;; Define Ruff as a checker
+  (flycheck-define-checker python-ruff
+    "A Python syntax and style checker using ruff."
+    :command ("ruff" "check" source)
+    :error-patterns
+    ((error line-start
+            (file-name) ":" line ":" column ": "
+            (or "E" "F") (id (one-or-more not-newline)) " "
+            (message)
+            line-end))
+    :modes (python-mode python-ts-mode))
+
+  ;; Add it to Flycheck
+  (add-to-list 'flycheck-checkers 'python-ruff))
 
 (use-package restclient
   :ensure t
@@ -699,16 +765,6 @@ created with `json-hs-extra-create-overlays'."
 (use-package restclient-jq
   :ensure t)
 
-;; (use-package sly
-;;   :ensure t
-;;   :hook (sly-mrepl-mode . common-lisp-modes-mode)
-;;   :commands (sly-symbol-completion-mode)
-;;   :config
-;;   (sly-symbol-completion-mode -1))
-
-;; (use-package sql-indent
-;;   :ensure t)
-
 (use-package terraform-mode
   :custom (terraform-format-on-save t)
   :mode (("\\.tf\\'" . terraform-mode))
@@ -718,6 +774,17 @@ created with `json-hs-extra-create-overlays'."
     ;; if you want to use outline-minor-mode
     (outline-minor-mode 1))
   (add-hook 'terraform-mode-hook 'my-terraform-mode-init))
+
+(use-package typescript-ts-mode
+  :mode ("\\.ts\\'" . typescript-ts-mode)
+  :hook (typescript-ts-mode . lsp-deferred)
+  :custom
+  (typescript-ts-mode-indent-offset 2)
+  :config
+  (add-hook 'typescript-ts-mode-hook
+            (lambda ()
+              (add-hook 'before-save-hook #'lsp-format-buffer nil t)))) ;; format on save
+
 
 (use-package yaml-mode
   :ensure t
@@ -803,223 +870,8 @@ created with `json-hs-extra-create-overlays'."
 ;;   :config
 ;;   (setq web-mode-engines-alist '(("django" . "\\.j2\\'"))))
 
-;;;; tree-sitter modes
-;; (use-package treesit-auto
-;;   :custom
-;;   (treesit-auto-install 'prompt)
-;;   :config
-;;   (setq treesit-auto-langs '(python typescript))
-;;   ;; (treesit-auto-add-to-auto-mode-alist 'all)
-;;   (global-treesit-auto-mode))
 
-(use-package treesit
-  :when (treesit-p)
-  :preface
-  (defun treesit-p ()
-    "Check if Emacs was built with treesiter in a portable way."
-    (and (fboundp 'treesit-available-p)
-         (treesit-available-p)))
-  (cl-defun treesit-install-and-remap
-      (lang url &key revision source-dir modes remap org-src)
-    "Convenience function for installing and enabling a ts-* mode.
 
-LANG is the language symbol.  URL is the Git repository URL for the
-grammar.  REVISION is the Git tag or branch of the desired version,
-defaulting to the latest default branch.  SOURCE-DIR is the relative
-subdirectory in the repository in which the grammar’s parser.c file
-resides, defaulting to \"src\".  MODES is a list of modes to remap to a
-symbol REMAP.  ORG-SRC is a cons specifying a source code block language
-name and a corresponding major mode."
-    (when (and (fboundp 'treesit-available-p)
-               (treesit-available-p))
-      (unless (treesit-language-available-p lang)
-        (add-to-list
-         'treesit-language-source-alist
-         (list lang url revision source-dir))
-        (treesit-install-language-grammar lang))
-      (when (and remap (treesit-ready-p lang))
-        (dolist (mode modes)
-          (add-to-list
-           'major-mode-remap-alist
-           (cons mode remap))))
-      (when (and org-src (treesit-ready-p lang))
-        (eval-after-load 'org
-          (lambda ()
-            (add-to-list 'org-src-lang-modes org-src))))))
 
-  ;; You can remap major modes with `major-mode-remap-alist'. Note
-  ;; that this does *not* extend to hooks! Make sure you migrate them
-  ;; also
-  ;; (dolist (mapping
-  ;;          '((python-mode . python-ts-mode)
-  ;;            (css-mode . css-ts-mode)
-  ;;            (typescript-mode . typescript-ts-mode)
-  ;;            (js2-mode . js-ts-mode)
-  ;;            (bash-mode . bash-ts-mode)
-  ;;            (conf-toml-mode . toml-ts-mode)
-  ;;            (go-mode . go-ts-mode)
-  ;;            (css-mode . css-ts-mode)
-  ;;            (json-mode . json-ts-mode)
-  ;;            (js-json-mode . json-ts-mode)))
-  ;;   (add-to-list 'major-mode-remap-alist mapping))
-  :custom
-  (treesit-font-lock-level 2)
-  :config
-  ;;  (treesit-install-and-remap
-  ;; 'yaml
-  ;; "https://github.com/ikatyang/tree-sitter-yaml"
-  ;; nil ;; revision
-  ;; "src"
-  ;; '(yaml-mode)
-  ;; 'yaml-ts-mode)
-  )
-
-;; (use-package combobulate
-;;   :ensure (:host github :repo "mickeynp/combobulate")
-;;   :custom
-;;     ;; You can customize Combobulate's key prefix here.
-;;     ;; Note that you may have to restart Emacs for this to take effect!
-;;     (combobulate-key-prefix "C-c o")
-;;     :hook ((prog-mode . combobulate-mode))
-;; )
-
-(use-package js
-  :defer t
-  :when (treesit-p)
-  :init
-  (treesit-install-and-remap
-   'javascript "https://github.com/tree-sitter/tree-sitter-javascript"
-   :revision "master" :source-dir "src"
-   :modes '(js-mode javascript-mode js2-mode)
-   :remap 'js-ts-mode
-   :org-src '("js" . js-ts)))
-
-(use-package typescript-ts-mode
-  :when (treesit-p)
-  :mode   ("\\.ts\\'" "\\.tsx\\'" "\\.cjs\\'" "\\.mjs\\'")
-  :init
-  (treesit-install-and-remap
-   'typescript "https://github.com/tree-sitter/tree-sitter-typescript"
-   :revision "master"
-   :source-dir "typescript/src"
-   :modes '(typescript-mode)
-   :remap 'typescript-ts-mode
-   :org-src '("ts" . ts-ts))
-  ;; :hook (typescript-ts-base-mode . (lambda ()
-  ;;                                    (setq js-indent-level 2)
-  ;;                                    (electric-pair-local-mode)
-  ;;                                    (lsp-deferred)
-  ;;                                    (lsp-lens-mode)
-  ;;                                    (dolist (h '(lsp-format-buffer
-  ;;                                                 lsp-organize-imports))
-  ;;                                      (add-hook 'before-save-hook h nil t))))
-  )
-
-(use-package json-ts-mode
-  :defer t
-  :after json
-  :when (treesit-p)
-  :init
-  (treesit-install-and-remap
-   'json "https://github.com/tree-sitter/tree-sitter-json"
-   :modes '(js-json-mode)
-   :remap 'json-ts-mode
-   :org-src '("json" . json-ts)))
-
-(use-package lua-ts-mode
-  :defer t
-  :when (and (treesit-p)
-             (package-installed-p 'lua-ts-mode))
-  :mode "\\.lua\\'"
-  :custom
-  (lua-ts-indent-offset 4)
-  :init
-  (treesit-install-and-remap
-   'lua "https://github.com/MunifTanjim/tree-sitter-lua"
-   :org-src '("lua" . lua-ts)))
-
-(use-package lua-prettify
-  :hook ((lua-mode lua-ts-mode) . lua-prettify-mode)
-  :delight lua-prettify-mode
-  :preface
-  (defgroup lua-prettify ()
-    "Lua prettification and ease of writing enchancements."
-    :prefix "lua-prettify-"
-    :group 'languages)
-  (defcustom lua-prettify-syntax-expansions
-    '(("def" "local function")
-      ("unless" "if not")
-      ("fn"  "function")
-      ("let" "local")
-      ("<-" "return"))
-    "List of abbreviarions and expansions for Lua"
-    :type '(repeat (list string string))
-    :group 'lua-prettify)
-  (defvar lua-prettify--original-syntax-table nil
-    "Original Lua syntax table.
-
-Syntax table is modified for abbreviation expansion to work on
-characters not considiered as word characters in original Lua table.
-This variable holds the original value to be restored once the mode is
-disabled.")
-  (defun lua-prettify--expand-abbrev-maybe ()
-    "Special advise for expanding abbreviations.
-
-Abbrevs that normally don't expand via abbrev-mode are handled manually."
-    (when (looking-back "<-" 1)
-      (delete-char -2)
-      (abbrev-insert (abbrev-symbol "<-"))))
-  (defun lua-prettify--cleanup ()
-    "Disable Lua prettification."
-    (setq prettify-symbols-alist nil)
-    (prettify-symbols-mode -1)
-    (abbrev-mode -1)
-    (remove-function
-     (local 'abbrev-expand-function)
-     #'lua-prettify--expand-abbrev-maybe)
-    (when lua-prettify--original-syntax-table
-      (set-syntax-table lua-prettify--original-syntax-table)
-      (setq lua-prettify--original-syntax-table nil)))
-  (defun lua-prettify--setup ()
-    "Setup Lua prettification."
-    (setq prettify-symbols-alist
-          (mapcar (lambda (abbrev-exp)
-                    (let ((abbrev (car abbrev-exp))
-                          (exp (cadr abbrev-exp)))
-                      `(,exp . ,(thread-last
-                                  abbrev
-                                  (mapcan
-                                   (lambda (ch)
-                                     (list '(Br . Bl) ch)))
-                                  cdr
-                                  vconcat))))
-                  lua-prettify-syntax-expansions))
-    (prettify-symbols-mode 1)
-    (let ((at (eval (intern (format "%s-abbrev-table" major-mode)))))
-      (dolist (abbrev-exp lua-prettify-syntax-expansions)
-        (apply #'define-abbrev at abbrev-exp)))
-    (setq lua-prettify--original-syntax-table (syntax-table))
-    (modify-syntax-entry ?- "w 12")
-    (abbrev-mode 1)
-    (add-function
-     :before (local 'abbrev-expand-function)
-     #'lua-prettify--expand-abbrev-maybe))
-  (define-minor-mode lua-prettify-mode
-    "Lua prettification and ease of writing enchancements."
-    :lighter " Lua Pretty"
-    :init-value nil
-    (if (and lua-prettify-mode
-             (not current-prefix-arg))
-        (lua-prettify--setup)
-      (lua-prettify--cleanup)))
-  (provide 'lua-prettify))
-
-(use-package elixir-ts-mode
-  :defer t
-  :when (treesit-p)
-  :init
-  (treesit-install-and-remap
-   'elixir "https://github.com/elixir-lang/tree-sitter-elixir"
-   :org-src '("elixir" . elixir-ts)))
 
 (provide 'init-coding)

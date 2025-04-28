@@ -4,6 +4,7 @@
 ;;; LSP
 (use-package lsp-mode
   :ensure t
+  :hook ((python-ts-mode . lsp-deferred))
   :hook ((clojure-mode clojurec-mode clojurescript-mode) . lsp)
   :commands (lsp lsp-deferred)
   :bind (:map lsp-mode-map
@@ -15,7 +16,14 @@
   (lsp-diagnostics-provider :flymake) ;; we use Flycheck separately
   (lsp-completion-provider :none) ;; we use Corfu
   (lsp-headerline-breadcrumb-enable nil)
-  (lsp-enable-indentation nil))
+  (lsp-enable-indentation nil)
+  (lsp-pyright-multi-root nil)
+  (lsp-enable-symbol-highlighting t)
+  (lsp-enable-snippet nil)
+  (lsp-idle-delay 0.5)
+  (lsp-lens-enable t)
+  (lsp-signature-auto-activate nil)
+  (lsp-pyright-python-executable-cmd "python"))
 
 (use-package lsp-ui
   :ensure t
