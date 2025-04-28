@@ -599,60 +599,45 @@ are defining or executing a macro."
 ;;       (funcall fn arg)))
   )
 
-;;;; unbind-key
-(global-unset-key (kbd "C-z")) ; unbind (suspend-frame)
-(global-unset-key (kbd "C-x C-z")) ; also this
-;; (use-package undo-tree
-;;   :ensure t
-;;   ;; :commands undo-tree-undo undo-tree-redo
-;;   :init
-;;   (global-undo-tree-mode t)
-;;   :config
-;;   (setq undo-tree-auto-save-history t)
-;;   (setq undo-tree-history-directory-alist
-;;         `(("." . ,(expand-file-name "undo-tree-history" user-cache-directory))))
-;;   :bind
-;;   (("C-z"  . undo-only)
-;;    ("C-S-z" . undo-tree-redo)
-;;    ("C-c u" . undo-tree-visualize)
-;;    ("C-x u" . undo-tree-visualize)
-;;    ("C-_" . undo-tree-undo)
-;;    ("M-_" . undo-tree-undo)
-;;    ("s-z" . undo-tree-undo)
-;;    ("s-Z" . undo-tree-redo)
-;;    ))
+(use-package undo-tree
+  :ensure t
+  :demand t
+  :init
+  (global-undo-tree-mode 1)
+  :custom
+  ;; Save undo history to disk automatically
+  (undo-tree-auto-save-history t)
+  (undo-tree-history-directory-alist
+   `((".*" . ,(expand-file-name "undo-tree-history/" user-cache-directory))))
+  :bind
+  (("C-z" . undo-only)          ;; simple undo (not whole branches unless you mean to)
+   ("C-S-z" . undo-tree-redo)    ;; redo
+   ("C-x u" . undo-tree-visualize))) ;; visualize tree manually if needed
 
 
+;; Fancy undo tree graph (only if needed)
 (use-package vundo
   :ensure t
-  :bind (("C-c u" . vundo)
-         ("C-x u" . vundo)
-         ("C-z"   . vundo)
-         ("s-z"   . vundo)
-         )
+  :bind (("C-c u" . vundo)) ;; <- good place for vundo, not C-z
   :custom
   (vundo-roll-back-on-quit nil)
+  (vundo-compact-display t)
   (vundo--window-max-height 10)
-  (set-face-attribute 'vundo-default nil :family "Symbola")
-  (setq vundo-glyph-alist vundo-unicode-symbols)
-  ;;(vundo--window-max-height 20)
   :config
-  ;; Take less on-screen space.
-  (setq vundo-compact-display t))
+  (set-face-attribute 'vundo-default nil :family "Symbola")
+  (setq vundo-glyph-alist vundo-unicode-symbols))
 
+;; Undo highlighting
 (use-package undo-hl
-  :hook ((text-mode org-mode) . undo-hl-mode)
-  :ensure ( :host github
-            :repo "casouri/undo-hl"))
+  :ensure (:host github :repo "casouri/undo-hl")
+  :hook ((prog-mode text-mode org-mode) . undo-hl-mode))
 
-;; The =undo-fu-session= package saves and restores the undo states of buffers
-;; across Emacs sessions.
+;; Save undo across sessions
 (use-package undo-fu-session
   :ensure t
-  :hook ((prog-mode conf-mode text-mode tex-mode) . undo-fu-session-mode)
-  :config
-  (setq undo-fu-session-directory
-        (dir-concat user-cache-directory "undo-fu-session/")))
+  :hook ((prog-mode text-mode conf-mode tex-mode) . undo-fu-session-mode)
+  :custom
+  (undo-fu-session-directory (expand-file-name "undo-fu-session/" user-cache-directory)))
 
 ;;(use-package writeroom-mode)
 

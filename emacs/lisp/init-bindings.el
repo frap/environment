@@ -300,9 +300,10 @@ point reaches the beginning or end of the buffer, stop there."
 (global-unset-key (kbd "C-z")) ; unbind (suspend-frame)
 (global-unset-key (kbd "C-x C-z")) ; also this
 
-;; normal undo and redo
-(global-set-key (kbd "C-z") 'undo-only)
-(global-set-key (kbd "C-S-z") 'undo-tree-redo)
+;; Normal undo/redo
+(global-set-key (kbd "C-z") 'undo-only)         ;; Undo
+;;(global-set-key (kbd "C-S-z") 'undo-redo)        ;; Redo (Emacs 28+)
+;; (global-set-key (kbd "C-S-z") 'undo-tree-redo) ;; Use if you rely on undo-tree instead                                        (global-set-key (kbd "C-S-z") 'undo-tree-redo) ;; Use if you rely on undo-tree instead
 
 ;; ──────────────────────── Make Escape Key Greate again ───────────────────────
 ;; (unbind-key "<escape>")
