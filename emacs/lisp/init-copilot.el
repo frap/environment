@@ -133,8 +133,6 @@ cleared, make sure the overlay doesn't come back too soon."
   (advice-add 'keyboard-quit :before #'rk/copilot-quit)
   )
 
-
-
 ;; (use-package copilot
 ;;   :ensure
 ;;   (:host github :repo "copilot-emacs/copilot.el" :files ( "*.el"))
@@ -154,8 +152,8 @@ cleared, make sure the overlay doesn't come back too soon."
 ;;   (add-to-list 'copilot-indentation-alist '(emacs-lisp-mode 2))
 ;;   )
 
-(use-package gptel
-  :ensure t)
+;; (use-package gptel
+;;   :ensure t)
 
 (provide 'init-copilot)
 ;; init-copilot.el ends here

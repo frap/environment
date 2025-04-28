@@ -274,11 +274,39 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; `completion-at-point-function'.
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
 
+(defun my/tab-dwim ()
+  "Intelligent Tab:
+- Accept Copilot if active.
+- Expand Yasnippet if possible.
+- Complete with Corfu if completion active.
+- Otherwise, indent."
+  (interactive)
+  (cond
+   ;; 🧠 Copilot
+   ((and (bound-and-true-p copilot-mode)
+         (fboundp 'copilot--overlay-visible)
+         (copilot--overlay-visible))
+    (copilot-accept-completion))
+
+   ;; 📜 Yasnippet
+   ((and (bound-and-true-p yas-minor-mode)
+         (yas-expand)))
+
+   ;; 🤖 Corfu Completion
+   ((and (bound-and-true-p corfu-mode)
+         (or (corfu--active-p)
+             (looking-at "\\_>")))
+    (corfu-complete))
+
+   ;; 🔧 Default indent
+   (t
+    (indent-for-tab-command))))
+
 (use-package corfu
   :ensure t
-  :bind ( :map corfu-map
-          ("TAB" . corfu-next)
-          ([tab] . corfu-next)
+  :bind (:map corfu-map
+          ("TAB" . my/tab-dwim)
+          ("<tab>" . my/tab-dwim)
           ("S-TAB" . corfu-previous)
           ([backtab] . corfu-previous)
           ([remap completion-at-point] . corfu-complete)
@@ -302,28 +330,9 @@ Additionally, add `cape-file' as early as possible to the list."
     (interactive)
     (corfu-complete)
     (corfu-quit))
-  :hook (after-init . global-corfu-mode))
 
+  (global-corfu-mode))
 
-;; (use-package kind-icon
-;;   :ensure t
-;;   :after corfu
-;;   :custom
-;;   (kind-icon-use-icons t)
-;;   (kind-icon-default-face 'corfu-default) ; Have background color be the same as `corfu' face background
-;;   (kind-icon-blend-background nil)  ; Use midpoint color between foreground and background colors ("blended")?
-;;   (kind-icon-blend-frac 0.08)
-;; :config
-;;   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter) ; Enable `kind-icon'
-
-;;   ;; Add hook to reset cache so the icon colors match my theme
-;;   ;; NOTE 2022-02-05: This is a hook which resets the cache whenever I switch
-;;   ;; the theme using my custom defined command for switching themes. If I don't
-;;   ;; do this, then the backgound color will remain the same, meaning it will not
-;;   ;; match the background color corresponding to the current theme. Important
-;;   ;; since I have a light theme and dark theme I switch between. This has no
-;;   ;; function unless you use something similar
-;;   (add-hook 'kb/themes-hooks #'(lambda () (interactive) (kind-icon-reset-cache))))
 
 (use-package corfu-popupinfo
   :bind ( :map corfu-popupinfo-map
