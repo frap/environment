@@ -23,7 +23,10 @@
   (lsp-idle-delay 0.5)
   (lsp-lens-enable t)
   (lsp-signature-auto-activate nil)
-  (lsp-pyright-python-executable-cmd "python"))
+  (lsp-pyright-python-executable-cmd "python")
+  :config
+  (add-to-list 'lsp-disabled-clients 'pylsp) ;; ensure no conflict
+  )
 
 (use-package lsp-ui
   :ensure t
@@ -35,7 +38,11 @@
   :custom
   (lsp-ui-doc-enable t)
   (lsp-ui-doc-show-with-cursor t)
-  (lsp-ui-doc-background "#ffffee"))
+  (lsp-ui-doc-background "#ffffee")
+  (setq lsp-ui-doc-show-with-mouse t)
+  (setq lsp-ui-doc-position 'at-point) ;; or 'top if you prefer consistency
+  (setq lsp-ui-sideline-enable nil) ;; can be noisy
+  )
 
 (use-package lsp-completion
   :after lsp-mode

@@ -232,6 +232,7 @@ Additionally, add `cape-file' as early as possible to the list."
     (add-to-list 'completion-at-point-functions #'cape-symbol)
     ;; I prefer this being early/first in the list
     (add-to-list 'completion-at-point-functions #'cape-file)
+    (add-to-list 'completion-at-point-functions #'cape-dabbrev)
     (require 'company-yasnippet)
     (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-yasnippet)))
 
@@ -326,6 +327,9 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; doesn't provide the `indent' feature.
   (tab-always-indent 'complete)
   :config
+  (setq corfu-auto t
+        corfu-auto-delay 0.2
+        corfu-auto-prefix 2)
   (defun corfu-complete-and-quit ()
     (interactive)
     (corfu-complete)
@@ -333,6 +337,9 @@ Additionally, add `cape-file' as early as possible to the list."
 
   (global-corfu-mode))
 
+(use-package corfu-history
+  :after corfu
+  :hook (corfu-mode . corfu-history-mode))
 
 (use-package corfu-popupinfo
   :bind ( :map corfu-popupinfo-map
@@ -347,6 +354,14 @@ Additionally, add `cape-file' as early as possible to the list."
   :unless (display-graphic-p)
   :commands (corfu-terminal-mode)
   :hook (after-init . corfu-terminal-mode))
+
+(use-package kind-icon
+  :after corfu
+  :ensure t
+  :custom
+  (kind-icon-default-face 'corfu-default) ; only necessary if using custom theme
+  :config
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 ;; (use-package nerd-icons-corfu
 ;;   :ensure t
@@ -383,6 +398,8 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
   :config
+  (setq embark-collect-live-update-delay 0.25)
+  (add-hook 'embark-collect-mode-hook #'consult-preview-at-point-mode)
   ;; Hide the mode line of the Embark live/completions buffers
   (add-to-list 'display-buffer-alist
                '("\\'\\*Embark Collect \\(Live\\|Completions\\)\\*"
@@ -431,32 +448,22 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; (setq orderless-component-separator #'orderless-escapable-split-on-space)
 
   (setq completion-styles '(orderless basic)
-        completion-category-defaults '((cider (styles basic))) ;; https://github.com/clojure-emacs/cider/pull/3226
-        completion-category-overrides '((file (styles basic partial-completion)))))
+      completion-category-defaults nil ;; enable for all categories
+      completion-category-overrides '((file (styles partial-completion))))
 
+;; (setq completion-styles '(orderless basic)
+;;       completion-category-defaults '((cider (styles basic))) ;; https://github.com/clojure-emacs/cider/pull/3226
+;;       completion-category-overrides '((file (styles basic partial-completion))))
 
-;; (use-package ov
-;;   :ensure t
-;;   :commands (ov-regexp))
+)
 
-;; (use-package popon
-;;   :straight (popon :type git :repo "https://codeberg.org/akib/emacs-popon.git"))
 
 ;; VERTical Interactive COmpletion
 (use-package vertico
   :ensure t
-  :config (vertico-mode)
-  ;; Different scroll margin
-  ;; (setq vertico-scroll-margin 0)
+  :config
+  (vertico-mode)
 
-  ;; Show more candidates
-  ;; (setq vertico-count 20)
-
-  ;; Grow and shrink the Vertico minibuffer
-  ;; (setq vertico-resize t)
-
-  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-  ;; (setq vertico-cycle t)
   )
 
 (use-package vertico-buffer
@@ -487,30 +494,6 @@ Additionally, add `cape-file' as early as possible to the list."
   :hook (minibuffer-setup . vertico-repeat-save)
   :bind ("M-r" . vertico-repeat))
 
-;; (use-package vertico-directory
-;;   :ensure (:host github
-;;                  :repo "minad/vertico"
-;;                  :files (:defaults "extensions/*")
-;;                  :includes (vertico-indexed
-;;                             vertico-flat
-;;                             vertico-grid
-;;                             vertico-mouse
-;;                             vertico-quick
-;;                             vertico-buffer
-;;                             vertico-repeat
-;;                             vertico-reverse
-;;                             vertico-directory
-;;                             vertico-multiform
-;;                             vertico-unobtrusive
-;;                             ))
-;;   :after vertico
-;;   :bind ( :map vertico-map
-;;           ("RET" . vertico-directory-enter)
-;;           ("DEL" . vertico-directory-delete-char)
-;;           ("M-DEL" . vertico-directory-delete-word)
-;;           ("?"     . minibuffer-completion-help))
-;;   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
-
 (use-package consult
   :ensure t
   :commands (consult-completion-in-region)
@@ -528,101 +511,101 @@ Additionally, add `cape-file' as early as possible to the list."
         consult-widen-key ">")
 
   :bind
-   (;; Global bindings
-    ;; C-c bindings `mode-specific-map'
-    ("C-c M-x" . consult-mode-command)
-    ("C-c b"   . consult-buffer)
-    ("C-c h"   . consult-history)
-    ("C-c k"   . consult-kmacro)
-    ("C-c m"   . consult-man)
-    ;; ("C-c m" . consult-mode-command)
-    ("C-c i"   . consult-info)
-    ([remap Info-search] . consult-info)
-    ("C-c r"   . consult-ripgrep)
-    ;; C-x bindings in `ctl-x-map'
-    ("C-x M-:" . consult-complex-command)    ;; orig. repeat-complex-command
-    ("C-x b"   . consult-buffer)             ;; orig. switch-to-buffer
-    ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-    ("C-x 5 b" . consult-buffer-other-frame) ;; orig. switch-to-buffer-other-frame
-    ("C-x t b" . consult-buffer-other-tab)   ;; orig. switch-to-buffer-other-tab
-    ("C-x r b" . consult-bookmark)           ;; orig. bookmark-jump
-    ("C-x p b" . consult-project-buffer)     ;; orig. project-switch-to-buffer
-    ;; Custom M-# bindings for fast register access
-    ("M-#" . consult-register-load)
-    ("M-'" . consult-register-store) ;; orig. abbrev-prefix-mark (unrelated)
-    ("C-M-#" . consult-register)
-    ;; Other custom bindings
-    ("M-y" . consult-yank-pop) ;; orig. yank-pop
-    ;; M-g bindings in `goto-map'
-    ("M-g e" . consult-compile-error)
-    ("M-g f" . consult-flymake)    ;; Alternative: consult-flycheck
-    ("M-g g" . consult-goto-line)  ;; orig. goto-line
-    ("M-g M-g" . consult-goto-line) ;; orig. goto-line
-    ("M-g o" . consult-outline)     ;; Alternative: consult-org-heading
-    ("M-g m" . consult-mark)
-    ("M-g k" . consult-global-mark)
-    ("M-g i" . consult-imenu)
-    ("M-g I" . consult-imenu-multi)
-    ;; M-s bindings in `search-map
-    ("M-s f" . consult-find)
-    ("M-s F" . consult-locate)
-    ("M-s g" . consult-grep)
-    ("M-s G" . consult-git-grep)
-    ("M-s r" . consult-ripgrep-project-root)
-    ("M-s l" . consult-line)
-    ("M-s L" . consult-line-multi)
-    ("M-s m" . consult-multi-occur)
-    ("M-s k" . consult-keep-lines)
-    ("M-s u" . consult-focus-lines)
-    ;; Isearch integration
-    ("C-s" . consult-line)
-    ("M-s e" . consult-isearch-history)
+  (;; Global bindings
+   ;; C-c bindings `mode-specific-map'
+   ("C-c M-x" . consult-mode-command)
+   ("C-c b"   . consult-buffer)
+   ("C-c h"   . consult-history)
+   ("C-c k"   . consult-kmacro)
+   ("C-c m"   . consult-man)
+   ;; ("C-c m" . consult-mode-command)
+   ("C-c i"   . consult-info)
+   ([remap Info-search] . consult-info)
+   ("C-c r"   . consult-ripgrep)
+   ;; C-x bindings in `ctl-x-map'
+   ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+   ("C-x b"   . consult-buffer)              ;; orig. switch-to-buffer
+   ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+   ("C-x 5 b" . consult-buffer-other-frame) ;; orig. switch-to-buffer-other-frame
+   ("C-x t b" . consult-buffer-other-tab)   ;; orig. switch-to-buffer-other-tab
+   ("C-x r b" . consult-bookmark)           ;; orig. bookmark-jump
+   ("C-x p b" . consult-project-buffer)     ;; orig. project-switch-to-buffer
+   ;; Custom M-# bindings for fast register access
+   ("M-#" . consult-register-load)
+   ("M-'" . consult-register-store) ;; orig. abbrev-prefix-mark (unrelated)
+   ("C-M-#" . consult-register)
+   ;; Other custom bindings
+   ("M-y" . consult-yank-pop) ;; orig. yank-pop
+   ;; M-g bindings in `goto-map'
+   ("M-g e" . consult-compile-error)
+   ("M-g f" . consult-flymake)     ;; Alternative: consult-flycheck
+   ("M-g g" . consult-goto-line)   ;; orig. goto-line
+   ("M-g M-g" . consult-goto-line) ;; orig. goto-line
+   ("M-g o" . consult-outline)     ;; Alternative: consult-org-heading
+   ("M-g m" . consult-mark)
+   ("M-g k" . consult-global-mark)
+   ("M-g i" . consult-imenu)
+   ("M-g I" . consult-imenu-multi)
+   ;; M-s bindings in `search-map
+   ("M-s f" . consult-find)
+   ("M-s F" . consult-locate)
+   ("M-s g" . consult-grep)
+   ("M-s G" . consult-git-grep)
+   ("M-s r" . consult-ripgrep-project-root)
+   ("M-s l" . consult-line)
+   ("M-s L" . consult-line-multi)
+   ("M-s m" . consult-multi-occur)
+   ("M-s k" . consult-keep-lines)
+   ("M-s u" . consult-focus-lines)
+   ;; Isearch integration
+   ("C-s" . consult-line)
+   ("M-s e" . consult-isearch-history)
 
-    ;; Remappings
+   ;; Remappings
 
-    ;; ([remap switch-to-buffer] . consult-buffer)
-    ;; ([remap imenu] 'consult-imenu)
-    ;; ([remap switch-to-buffer-other-window] . consult-buffer-other-window)
-    ;; ([remap switch-to-buffer-other-frame] . consult-buffer-other-frame)
-    ;; ([remap project-switch-to-buffer] . consult-project-buffer)
-    ;; ([remap bookmark-jump] . consult-bookmark)
-    ;; ([remap recentf-open] . consult-recent-file)
-    ;; ([remap yank] . nil)
-    ;; ([remap yank-pop] . consult-yank-pop)
-    ;; ([remap goto-line] . consult-goto-line)
-    ;;   ([remap repeat-complex-command] . consult-complex-command)
-    ;;   ([remap isearch-edit-string] . consult-isearch-history)
-    ;;   ([remap next-matching-history-element] . consult-history)
-    ;;   ([remap previous-matching-history-element] . consult-history)
+   ;; ([remap switch-to-buffer] . consult-buffer)
+   ;; ([remap imenu] 'consult-imenu)
+   ;; ([remap switch-to-buffer-other-window] . consult-buffer-other-window)
+   ;; ([remap switch-to-buffer-other-frame] . consult-buffer-other-frame)
+   ;; ([remap project-switch-to-buffer] . consult-project-buffer)
+   ;; ([remap bookmark-jump] . consult-bookmark)
+   ;; ([remap recentf-open] . consult-recent-file)
+   ;; ([remap yank] . nil)
+   ;; ([remap yank-pop] . consult-yank-pop)
+   ;; ([remap goto-line] . consult-goto-line)
+   ;;   ([remap repeat-complex-command] . consult-complex-command)
+   ;;   ([remap isearch-edit-string] . consult-isearch-history)
+   ;;   ([remap next-matching-history-element] . consult-history)
+   ;;   ([remap previous-matching-history-element] . consult-history)
 
-    :map isearch-mode-map
-    ("M-e" . consult-isearch-history)   ;; orig. isearch-edit-string
-    ("M-s e" . consult-isearch-history) ;; orig. isearch-edit-string
-    ("M-s l" . consult-line)       ;; needed by consult-line to detect isearch
-    ("M-s L" . consult-line-multi) ;; needed by consult-line to detect isearch
+   :map isearch-mode-map
+   ("M-e" . consult-isearch-history)   ;; orig. isearch-edit-string
+   ("M-s e" . consult-isearch-history) ;; orig. isearch-edit-string
+   ("M-s l" . consult-line)       ;; needed by consult-line to detect isearch
+   ("M-s L" . consult-line-multi) ;; needed by consult-line to detect isearch
 
-    :map ctl-x-map
-    ("c" . consult-prefix-map)
+   :map ctl-x-map
+   ("c" . consult-prefix-map)
 
-    :map consult-prefix-map
-    ("r" . consult-recent-file)
-    ("o" . consult-outline)
-    ("i" . consult-imenu)
-    ("g" . consult-grep)
+   :map consult-prefix-map
+   ("r" . consult-recent-file)
+   ("o" . consult-outline)
+   ("i" . consult-imenu)
+   ("g" . consult-grep)
 
-    :map dired-mode-map
-          ("O" . consult-file-externally)
+   :map dired-mode-map
+   ("O" . consult-file-externally)
 
-    :map help-map
-    ("a" . consult-apropos)
+   :map help-map
+   ("a" . consult-apropos)
 
-    :map minibuffer-local-map
-    ("M-s" . consult-history) ;; orig. next-matching-history-element
-    ("M-r" . consult-history)
+   :map minibuffer-local-map
+   ("M-s" . consult-history) ;; orig. next-matching-history-element
+   ("M-r" . consult-history)
    )
-   ;; Enable automatic preview at point in the *Completions* buffer. This is
-   ;; relevant when you use the default completion UI.
-   :hook (completion-list-mode . consult-preview-at-point-mode)
+  ;; Enable automatic preview at point in the *Completions* buffer. This is
+  ;; relevant when you use the default completion UI.
+  :hook (completion-list-mode . consult-preview-at-point-mode)
   :custom (consult-preview-key nil)
   :init
   ;; Optionally configure the register formatting. This improves the register
@@ -644,8 +627,8 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; Configure other variables and modes in the :config section,
   ;; after lazily loading the package.
   :config
-
-    ;; Optionally configure preview. The default value
+  (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)
+  ;; Optionally configure preview. The default value
   ;; is 'any, such that any key triggers the preview.
   ;; (setq consult-preview-key 'any)
   ;; (setq consult-preview-key (kbd "M-."))
@@ -670,17 +653,17 @@ Additionally, add `cape-file' as early as possible to the list."
 
   ;; Optionally configure a function which returns the project root directory.
   ;; There are multiple reasonable alternatives to chose from.
-  ;;;; 1. project.el (project-roots)
+;;;; 1. project.el (project-roots)
   ;; (setq consult-project-root-function
   ;;       (lambda ()
   ;;         (when-let (project (project-current))
   ;;           (car (project-roots project)))))
-  ;;;; 2. projectile.el (projectile-project-root)
+;;;; 2. projectile.el (projectile-project-root)
   ;; (autoload 'projectile-project-root "projectile")
   ;; (setq consult-project-root-function #'projectile-project-root)
-  ;;;; 3. vc.el (vc-root-dir)
+;;;; 3. vc.el (vc-root-dir)
   ;; (setq consult-project-root-function #'vc-root-dir)
-  ;;;; 4. locate-dominating-file
+;;;; 4. locate-dominating-file
   ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
 
   ;; (defun consult-buffer-project ()
@@ -698,27 +681,34 @@ Additionally, add `cape-file' as early as possible to the list."
 
   (defvar eshell-source
     `(:category 'consult-new
-      :face     'font-lock-constant-face
-      :action   ,(lambda (_) (eshell))
-      :items
-      ,(lambda ()
-         (unless (mode-buffer-exists-p 'eshell-mode)
-           '("*eshell* (new)")))))
+                :face     'font-lock-constant-face
+                :action   ,(lambda (_) (eshell))
+                :items
+                ,(lambda ()
+                   (unless (mode-buffer-exists-p 'eshell-mode)
+                     '("*eshell* (new)")))))
 
   (defvar term-source
     `(:category 'consult-new
-      :face     'font-lock-constant-face
-      :action
-      ,(lambda (_)
-         (vterm t))
-      :items
-      ,(lambda ()
-         (unless (mode-buffer-exists-p 'vterm-mode)
-           '("*vterm* (new)")))))
+                :face     'font-lock-constant-face
+                :action
+                ,(lambda (_)
+                   (vterm t))
+                :items
+                ,(lambda ()
+                   (unless (mode-buffer-exists-p 'vterm-mode)
+                     '("*vterm* (new)")))))
 
   (add-to-list 'consult-buffer-sources 'eshell-source 'append)
   (add-to-list 'consult-buffer-sources 'term-source 'append)
   )
+
+(use-package consult-lsp
+  :ensure t
+  :bind (:map lsp-mode-map
+              ("C-c l r" . consult-lsp-references)
+              ("C-c l d" . consult-lsp-definition)
+              ("C-c l i" . consult-lsp-implementation)))
 
 ;;Insert paths into the minibuffer prompt in Emacs
 (use-package consult-dir
@@ -734,5 +724,50 @@ Additionally, add `cape-file' as early as possible to the list."
   :commands wgrep-change-to-wgrep-mode
   :custom
   (wgrep-auto-save-buffer t))
+
+(use-package yasnippet
+  :ensure t
+  :delight yas-minor-mode
+  :commands (yas-minor-mode)
+  :hook ((prog-mode text-mode conf-mode snippet-mode) . yas-minor-mode)
+  :bind (:map yas-minor-mode-map
+              ("TAB" . nil)    ;; Don't steal normal TAB
+              ("<tab>" . nil)
+              ("C-<tab>" . yas-expand)) ;; Manual expansion
+  :config
+  (yas-reload-all)
+  (setq yas-prompt-functions (delq #'yas-dropdown-prompt yas-prompt-functions))
+   (defun +yas/org-last-src-lang ()
+    "Return the language of the last src-block, if it exists."
+    (save-excursion
+      (beginning-of-line)
+      (when (re-search-backward "^[ \t]*#\\+begin_src" nil t)
+        (org-element-property :language (org-element-context))))))
+
+(use-package yasnippet-capf
+  :ensure t
+  :after (yasnippet cape)
+  ;;:init
+  ;; (setq yasnippet-capf-lookup-by 'key) ;; key or name
+  :config
+  (add-to-list 'completion-at-point-functions #'yasnippet-capf)
+  (advice-add 'yas-expand :after (lambda () (corfu-quit))))
+
+(use-package yasnippet-classic-snippets
+  :ensure t
+  :after yasnippet)
+
+(use-package consult-yasnippet
+  :ensure t
+  :after (consult yasnippet)
+  :bind ("M-Y" . consult-yasnippet))
+
+;; Make yasnippet the first capf (important if you have many)
+(defun my/move-yas-capf-first ()
+  (when (boundp 'completion-at-point-functions)
+    (setq completion-at-point-functions
+          (cons #'yasnippet-capf
+                (remove #'yasnippet-capf completion-at-point-functions)))))
+(add-hook 'after-init-hook #'my/move-yas-capf-first)
 
 (provide 'setup-minibuffer)

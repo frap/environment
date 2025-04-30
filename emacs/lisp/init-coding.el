@@ -801,56 +801,6 @@ created with `json-hs-extra-create-overlays'."
                (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
   )
 
-(use-package yasnippet
-  :ensure t
-  :delight yas-minor-mode
-  :commands (yas-minor-mode)
-  :hook ((prog-mode text-mode conf-mode snippet-mode) . yas-minor-mode)
-  :bind (:map yas-minor-mode-map
-              ("TAB" . nil)    ;; Don't steal normal TAB
-              ("<tab>" . nil)
-              ("C-<tab>" . yas-expand)) ;; Manual expansion
-  :config
-  (yas-reload-all)
-  (setq yas-prompt-functions (delq #'yas-dropdown-prompt yas-prompt-functions))
-   (defun +yas/org-last-src-lang ()
-    "Return the language of the last src-block, if it exists."
-    (save-excursion
-      (beginning-of-line)
-      (when (re-search-backward "^[ \t]*#\\+begin_src" nil t)
-        (org-element-property :language (org-element-context))))))
-
-(use-package yasnippet-capf
-  :ensure t
-  :after (yasnippet cape)
-  :config
-  (add-to-list 'completion-at-point-functions #'yasnippet-capf))
-
-(use-package yasnippet-classic-snippets
-  :ensure t
-  :after yasnippet)
-
-(use-package consult-yasnippet
-  :ensure t
-  :after (consult yasnippet)
-  :bind ("M-Y" . consult-yasnippet))
-
-(use-package yasnippet-capf
-  :ensure t
-  :after cape
-  ;;:init
-  (setq yasnippet-capf-lookup-by 'key) ;; key or name
-  :config
-  (add-to-list 'completion-at-point-functions #'yasnippet-capf))
-
-;; Make yasnippet the first capf (important if you have many)
-(defun my/move-yas-capf-first ()
-  (when (boundp 'completion-at-point-functions)
-    (setq completion-at-point-functions
-          (cons #'yasnippet-capf
-                (remove #'yasnippet-capf completion-at-point-functions)))))
-(add-hook 'after-init-hook #'my/move-yas-capf-first)
-
 ;; (use-package web-mode
 ;;   :ensure t
 ;;   :custom
