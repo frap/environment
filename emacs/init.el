@@ -89,6 +89,9 @@ If you experience stuttering, increase this.")
 
 (require 'init-copilot)
 
+(use-package envrc
+  :ensure t
+  :hook (after-init . envrc-global-mode))
 
 (provide 'init)
 ;;; init.el ends here
