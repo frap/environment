@@ -1,43 +1,31 @@
 
 # format = """
-# [←](#9A348E)\
-# $username\
-# [→](bg:#DA627D fg:#9A348E)\
-# $directory\
-# [→](fg:#DA627D bg:#FCA17D)\
-# $git_branch\
-# $git_status\
-# [→](fg:#FCA17D bg:#86BBD8)\
-# #$terraform\
-# #$kubernetes\
-# #[→](fg:#86BBD8 bg:#06969A)\
-# #$docker_context\
-# #[→](fg:#06969A bg:#33658A)\
-# $time\
-# [→ ](fg:#33658A)\
-# # """
+#  [←](#9A348E)\
+#  $hostname\
+#  $time\
+#  $cmd_duration\
+#  [→](bg:#DA627D fg:#9A348E)\
+#  $directory\
+#  $git_branch\
+#  $git_status\
+#  [→](fg:#FCA17D bg:#86BBD8)\
+#  $java\
+#  ${custom.clj}\
+#  $python\
+#  $nodejs\
+#  $terrafrom\
+#  $aws\
+#  $time\
+#  $character\
+#  """
 # format = """
-# [←](#9A348E)\
-# $username\
-# [→](bg:#DA627D fg:#9A348E)\
-# $directory\
-# $git_branch\
-# $git_status\
-# [→](fg:#FCA17D bg:#86BBD8)\
-# $java\
-# $custom\
-# $python\
-# $nodejs\
-# $terrafrom\
-# $time\
-# $character\
-# """
-#format = """
-#[╭─user───❯](bold blue) $username
-#[┣─system─❯](bold yellow) $hostname
-#[┣─project❯](bold red) $directory$rust$git_branch$git_status$package$golang$terraform$docker_context$python$docker_context$nodejs
-#[╰─cmd────❯](bold green)
-#"""
+# [╭─system─→](bold blue) $hostname$time$cmd_duration
+# [┣─project→](bold orange) $directory$git_branch$git_status$git_state$aws${custom.clj}$package$terraform$python$nodejs$time┣
+# [╰─cmd────→](green) $character
+#  """
+# format = """
+# [┣─prj](bold yellow)$directory$git_branch$git_status$git_state$aws${custom.clj}$package$terraform$python$nodejs$time$cmd_duration[┣-cmd](bold green)$character
+#  """
 
 # Disable the blank line at the start of the prompt
 add_newline = false
@@ -46,16 +34,13 @@ scan_timeout = 1000
 
 # You can also replace your username with a neat symbol like  to save some space
 [username]
-#symbol = " "
-show_always = false
-style_user = "bold dimmed blue"
-#style_user = "bold cyan bg:#9A348E"
-style_root = "bold red bg:#9A348E"
-format = '  ($style)'
+show_always = true
+style_user = "bold dimmed cyan"
+format = "[]($style)"
 
 [hostname]
 ssh_only = true
-#format = 'on [$hostname](bold yellow) '
+#format = 'on [$hostname]($style) '
 format = "<[$hostname]($style)>"
 trim_at = "-"
 style = "bold dimmed yellow"
@@ -64,13 +49,11 @@ disabled = false
 [character]
 success_symbol = "[➜](bold green)"     # The "success_symbol" segment is being set to "➜" with the color "bold green"
 error_symbol = "[✗](bold red)"
-# error_symbol = "[✗](bold #ff5555)"
-# success_symbol = "[➜](bold #50fa7b)"
 # error_symbol = "[✖](bold red)"
 # success_symbol = "[➜](bold green)"
 
 [directory]
-style = "bold italic darkblue"
+style = "bold blue"
 read_only = " "
 format = "[ $path ]($style)"
 truncation_length = 10
@@ -85,6 +68,7 @@ truncation_symbol = "…/"
 "Music" = "🎵 "
 "Pictures" = "📷 "
 "Dev" = "🎬 "
+"work" = "👨‍💻"
 # Keep in mind that the order matters. For example:
 # "Important Documents" = "  "
 # will not be replaced, because "Documents" was already substituted before.
@@ -92,20 +76,19 @@ truncation_symbol = "…/"
 # "Important  " = "  "
 
 [cmd_duration]
-min_time = 4
-show_milliseconds = false
-disabled = false
-style = "bold italic red"
+# min_time = 1000
+show_milliseconds = true
+style = "bold italic orange"
 # min_time = 4_000  # Show command duration over 4,000 milliseconds (=4 sec)
-format = "tomó [$duration]($style) "
+format = "→ tomó [$duration]($style) "
 
 [aws]
-format = '[$symbol ($profile )(\($region\) )(\[$duration\] )]($style)'
+format = '→ [$symbol ($profile )(\($region\) )(\[$duration\] )]($style)'
 #format = 'on [$symbol ($profile)(\($region\) )]($style)'
 #style = 'bold blue'
-symbol = "  "
+#symbol = "  "
 #symbol = "☁️ "
-# symbol = '🅰 '
+symbol = '🅰 '
 [aws.region_aliases]
 ap-southeast-2 = 'Syd'
 us-east-1 = 'va'
@@ -113,9 +96,9 @@ us-east-1 = 'va'
 Dev = '318356030799**'
 
 [battery]
-format = "[$symbol $percentage]($style) "
+format = "→ [$symbol $percentage]($style) "
 empty_symbol = "🪫"
-#ccharging_symbol = "🔋"
+#charging_symbol = "🔋"
 charging_symbol = "🔌"
 discharging_symbol = "⚡"
 full_symbol = '🔋'
@@ -135,52 +118,50 @@ format = '[→](fg:#DA627D bg:#FCA17D)[[ $symbol($version) ](bg:#86BBD8)]($style
 symbol = "🐳 "
 detect_files = ["Dockerfile", "docker-compose.yml", "docker-entrypoint.sh" ]
 #style = "bg:#06969A"
-format = '[→](fg:#06969A bg:#33658A)[[ $symbol $context](bg:#06969A)]($style) $path'
+format = '[[→ $symbol $context](bg:#06969A)]($style) $path'
 
 [elixir]
 symbol = " "
 disabled = true
 
 [git_branch]
-symbol = " "
-#symbol = "🌱 "
-# format = '→[$symbol$branch(:$remote_branch)]($style) '
-truncation_length = 15
+symbol = "🌱 "
+format = '[→ $symbol$branch(:$remote_branch)]($style) '
+truncation_length = 8
 truncation_symbol = '⋮'
 ignore_branches = ["main", "master"]
 
 [git_commit]
-commit_hash_length = 6
-tag_symbol = '🔖 '
+commit_hash_length = 4
+
 
 [git_state]
-format = '[\($state( $progress_current of $progress_total)\)]($style) '
+format = '[→ \($state( $progress_current of $progress_total)\)]($style) '
 cherry_pick = '[🍒 PICKING](bold red)'
 
 [git_status]
-conflicted = '🏳'
+# conflicted = '🏳'
 ahead = '⇡${count}'
 diverged = '⇕⇡${ahead_count}⇣${behind_count}'
 behind = '⇣${count}'
-# ahead = '🏎💨'
-# behind = '😰'
+#ahead = '🏎💨'
+#behind = '😰${count}'
 # diverged = '😵'
 up_to_date = '✓'
-untracked = '🤷'
-stashed = '📦'
-modified = '📝'
+# untracked = '🤷'
+# stashed = '📦'
+# modified = '📝'
 staged = '[++\($count\)](green)'
-renamed = '👅'
-deleted = '🗑'
+# renamed = '👅'
+# deleted = '🗑'
 
 [golang]
 symbol = " "
 
 [java]
 symbol = " "
-disabled=true
-#style = "bg:#86BBD8"
-format = '→[[ $symbol:($version) ](bg:#86BBD8)]($style)'
+disabled=false
+format = '[[→ $symbol:($version) ](bg:#86BBD8)]($style)'
 
 # [kubernetes]
 # format = '→[🕸️ $context \($namespace\)](dimmed cyan) '
@@ -190,13 +171,13 @@ format = '→[[ $symbol:($version) ](bg:#86BBD8)]($style)'
 # [kubernetes.context_aliases]
 # "dev.local.cluster.k8s" = "dev"
 
-# [lua]
-# format = '→ [[ $symbol:($version) ](bg:#86BBD8)]($style)'
+[lua]
+format = '→ [[ $symbol:($version) ](bg:#86BBD8)]($style)'
 
 [localip]
 ssh_only = true
-format = "@[$localipv4](bold cyan) "
-disabled = true
+format = "📶[$localipv4](bold cyan) "
+disabled = false
 
 [memory_usage]
 disabled = true
@@ -205,22 +186,22 @@ threshold = 70
 style = "bold dimmed white"
 
 [nodejs]
-format = '➡️  [☊ $version](bold cyan) '
+format = '➡ [$symbol $version](bold green)  '
 detect_files = ["package.json", ".node-version"]
 detect_folders = ["node_modules"]
 
 [package]
-disabled = true
-format = '➡️  [🎁 $version](208 bold) '
+disabled = false
+format = '➡  [🎁 $version](208 bold) '
 
 [python]
-symbol = " "
-#pyenv_version_name = true
-style = "bold yellow"
-format = ' [${symbol}(${version} )(\($virtualenv\) )]($style)'
+symbol = '👾 '
+pyenv_version_name = true
+# symbol = "🐉 "
+style = "bold #f3e10b"
+format = '[→ ${symbol}${pyenv_prefix}(${version} )(\($virtualenv\) )]($style)'
 python_binary = ["./venv/bin/python", "python", "python3"]
-detect_extensions = ["py"]
-version_format = "v${raw}"
+
 
 # [rlang]
 # #style = "bg:#86BBD8"
@@ -239,20 +220,26 @@ format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
 [custom.clj]
 disabled = false
 detect_files =  ["deps.edn", "bb.edn"]
-detect_extensions = ["clj", "cljs"]
+detect_extensions = ["clj", "cljs", "edn"]
+style = "bold yellow"
 command = "bb --version | cut -d 'v' -f2"
-#command = "rg org.clojure/clojure deps.edn | cut -d '{' -f3  | cut -d '"' -f2"
-symbol = "☯️  λ"
+##command = "rg org.clojure/clojure deps.edn | cut -d '{' -f3  | cut -d '"' -f2"
+symbol = "λ bb v"
 #format = ' avec [$symbol] bb v [$command]($style)'
-format = ' [[ $symbol $command ]($bold yellow)]($style)'
+# format = '→ [λ]($style)'
+
+[custom.docker]
+disabled = true
+description = "Shows the docker symbol if the current directory has Dockerfile or docker-compose.yml files"
+command = "echo 🐳"
+files = ["Dockerfile", "docker-compose.yml", "docker-compose.yaml"]
+when = """ command -v docker &> /dev/null; exit (echo $?); """
 
 [terraform]
-disabled = false
-format = '[🏎💨 $version]($style) '
-# format = '[🌏 $version ]($style) '
+format = '[→ 🏗️💨 $version]($style) '
+# format = '[→](fg:#06969A bg:#33658A) [🌏 $version ]($style) '
 
 [time]
-disabled = false
 format = '[\[ $time \]]($style) '
 time_format = '%T'
-time_range = '08:00:00-17:00:00'
+time_range = '09:00:00-17:00:00'
