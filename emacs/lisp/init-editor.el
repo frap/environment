@@ -512,7 +512,6 @@
           . region-bindings-off))
   :init (global-region-bindings-mode 1))
 
-
 (use-package repeat-mode
   :hook (after-init . repeat-mode))
 
@@ -599,22 +598,6 @@ are defining or executing a macro."
 ;;       (funcall fn arg)))
   )
 
-(use-package undo-tree
-  :ensure t
-  :demand t
-  :init
-  (global-undo-tree-mode 1)
-  :custom
-  ;; Save undo history to disk automatically
-  (undo-tree-auto-save-history t)
-  (undo-tree-history-directory-alist
-   `((".*" . ,(expand-file-name "undo-tree-history/" user-cache-directory))))
-  :bind
-  (("C-z" . undo-only)          ;; simple undo (not whole branches unless you mean to)
-   ("C-S-z" . undo-tree-redo)    ;; redo
-   ("C-x u" . undo-tree-visualize))) ;; visualize tree manually if needed
-
-
 ;; Fancy undo tree graph (only if needed)
 (use-package vundo
   :ensure t
@@ -638,6 +621,20 @@ are defining or executing a macro."
   :hook ((prog-mode text-mode conf-mode tex-mode) . undo-fu-session-mode)
   :custom
   (undo-fu-session-directory (expand-file-name "undo-fu-session/" user-cache-directory)))
+
+(use-package undo-tree
+  :ensure t
+  :init
+  (global-undo-tree-mode 1)
+  :custom
+  ;; Save undo history to disk automatically
+  (undo-tree-auto-save-history t)
+  (undo-tree-history-directory-alist
+   `((".*" . ,(expand-file-name "undo-tree-history/" user-cache-directory))))
+  :bind
+  (("C-z" . undo-only)          ;; simple undo (not whole branches unless you mean to)
+   ("C-S-z" . undo-tree-redo)    ;; redo
+   ("C-x u" . undo-tree-visualize))) ;; visualize tree manually if needed
 
 ;;(use-package writeroom-mode)
 

@@ -225,10 +225,10 @@ If LOCAL-PORT is nil, PORT is used as local port."
         t
       nil))
   ;; Set reusable font name variables
-  (defvar my/fixed-width-font "JetBrains Mono"
+  (defvar my/fixed-width-font "JetBrainsMono Nerd"
     "The font to use for monospaced (fixed width) text.")
 
-  (defvar my/variable-width-font "Iosevka Aile"
+  (defvar my/variable-width-font "FiraCode Nerd Font"
     "The font to use for variable-pitch (document) text.")
   (setq resolution-factor (eval (/ (x-display-pixel-height) 1000.0)))
   ;; ;; show zero-width characters
