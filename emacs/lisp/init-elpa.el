@@ -3,14 +3,13 @@
 ;;; Code:
 
 ;; * PACKAGE MANAGEMENT
-
-;; ** ELPACA
-(defvar elpaca-installer-version 0.8)
-(defvar elpaca-directory (expand-file-name "elpaca/" "~/.local/share/git/"))
+;; ;; ** ELPACA
+(defvar elpaca-installer-version 0.11)
+(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                              :ref nil
+                              :ref nil :depth 1 :inherit ignore
                               :files (:defaults "elpaca-test.el" (:exclude "extensions"))
                               :build (:not elpaca--activate-package)))
 (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
@@ -20,41 +19,42 @@
   (add-to-list 'load-path (if (file-exists-p build) build repo))
   (unless (file-exists-p repo)
     (make-directory repo t)
-    (when (< emacs-major-version 28) (require 'subr-x))
+    (when (<= emacs-major-version 28) (require 'subr-x))
     (condition-case-unless-debug err
-        (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                 ((zerop (call-process "git" nil buffer t "clone"
-                                       (plist-get order :repo) repo)))
-                 ((zerop (call-process "git" nil buffer t "checkout"
-                                       (or (plist-get order :ref) "--"))))
-                 (emacs (concat invocation-directory invocation-name))
-                 ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                       "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                 ((require 'elpaca))
-                 ((elpaca-generate-autoloads "elpaca" repo)))
+        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                  ,@(when-let* ((depth (plist-get order :depth)))
+                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                  ,(plist-get order :repo) ,repo))))
+                  ((zerop (call-process "git" nil buffer t "checkout"
+                                        (or (plist-get order :ref) "--"))))
+                  (emacs (concat invocation-directory invocation-name))
+                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                  ((require 'elpaca))
+                  ((elpaca-generate-autoloads "elpaca" repo)))
             (progn (message "%s" (buffer-string)) (kill-buffer buffer))
           (error "%s" (with-current-buffer buffer (buffer-string))))
       ((error) (warn "%s" err) (delete-directory repo 'recursive))))
   (unless (require 'elpaca-autoloads nil t)
     (require 'elpaca)
     (elpaca-generate-autoloads "elpaca" repo)
-    (load "./elpaca-autoloads")))
+    (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
 (add-hook 'after-init-hook #'elpaca-process-queues)
 (elpaca `(,@elpaca-order))
 
-;; (push 'transient elpaca-ignored-dependencies)
-;; (setq elpaca-ignored-dependencies
-;;       (delete 'seq elpaca-ignored-dependencies))
-(push 'transient elpaca-ignored-dependencies)
-(push 'notmuch elpaca-ignored-dependencies)
-(push 'elnode elpaca-ignored-dependencies)
+;; (use-package emacs
+;;   :init
+;;   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+;;   (unless (package-installed-p 'vc-use-package)
+;;     (package-vc-install "https://github.com/slotThe/vc-use-package")))
 
-;; Install use-package support
+;; Elpaca use-package support
 (elpaca elpaca-use-package
   ;; Enable use-package :ensure support for Elpaca.
   (elpaca-use-package-mode))
 
-(elpaca-wait)
+;; (elpaca-wait)
 
 (use-package elpaca-ui
   :bind (:map elpaca-ui-mode-map
@@ -73,33 +73,9 @@
         '((display-buffer-at-bottom
           display-buffer-in-side-window)
           (side . bottom)
-          (slot . 49)
+          (slot . 60)
           (window-height . 0.4)
           (body-function . select-window))))
-
-;;straight
-;; (defvar bootstrap-version)
-;; (let ((bootstrap-file
-;;        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-;;       (bootstrap-version 6))
-;;   (unless (file-exists-p bootstrap-file)
-;;     (with-current-buffer
-;;         (url-retrieve-synchronously
-;;          "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-;;          'silent 'inhibit-cookies)
-;;       (goto-char (point-max))
-;;       (eval-print-last-sexp)))
-;;   (load bootstrap-file nil 'nomessage))
-
-;; (setq straight-vc-git-default-clone-depth 1)
-;; (setq straight-vc-git-auto-fast-forward t)
-;; ;; (setq straight-vc-git-default-protocol "ssh")
-;; ;;; Core packages
-;; (straight-use-package 'use-package)
-;; ;; load org early
-;; (straight-use-package 'org)
-;; (setq straight-use-package-by-default t)
-;; (require 'use-package)
 
 ;; Add `:doc' support for use-package so that we can use it like what a doc-strings is for
 (eval-and-compile

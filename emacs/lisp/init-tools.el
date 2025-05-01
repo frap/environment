@@ -277,6 +277,8 @@ mode.")
 ;;when I do a git-pull I'd like to see what's new
 (global-auto-revert-mode t)
 
+(use-package transient
+  :ensure t)
 
 (use-package magit
   :ensure t
@@ -405,12 +407,6 @@ mode.")
       [0 0 0 0 0 0 0 0 0 0 0 0 0 128 192 224 240 248]
       nil nil 'center)))
 
-;; show todos
-(use-package magit-todos
-  :ensure t
-  :when (version<= emacs-version "30.0.91")
-  :after magit
-  :config (magit-todos-mode 1))
 
 ;; Git-Link
 ;; git-link grabs links to lines, regions, commits, or home pages.

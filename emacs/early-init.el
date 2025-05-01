@@ -10,6 +10,8 @@
 
 ;;; Code:
 
+(setq package-enable-at-startup nil)
+
 (let ((original-gc-cons-threshold gc-cons-threshold))
   (setq
    ad-redefinition-action 'accept ; disable warnings from legacy advice system
@@ -114,25 +116,6 @@
   (defvar native-comp-async-report-warnings-errors)
   (setq native-comp-async-report-warnings-errors 'silent))
 
-(defun edit-init-file ()
-  "Edit `user-init-file'.
-With prefix argument promtps to select a file from all Emacs Lisp
-in `user-emacs-directory'."
-  (interactive)
-  (if current-prefix-arg
-      (find-file
-       (expand-file-name
-        (completing-read
-         "file"
-         (directory-files user-emacs-directory nil "^[^.].*.el$"))
-        user-emacs-directory))
-    (find-file (expand-file-name "init.el" user-emacs-directory))))
-
-(setq package-enable-at-startup nil)
-;; (require 'package)
-;; (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-;; (add-to-list 'package-archives '("gnu-devel" . "https://elpa.gnu.org/devel/"))
-;; (package-initialize)
 
 (provide 'early-init)
 ;;; early-init.el ends here
