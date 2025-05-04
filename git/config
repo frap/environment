@@ -15,9 +15,9 @@ user = frap
 
 [core]
   # Exclude everything this file. Used for general exclusions.
-  excludesfile = ~/.config/.gitignore
+  excludesfile = ~/.config/git/ignore
   # Set attributes on files. Used for general diff improvements.
-  attributesfile = ~/.config/.gitattributes
+  attributesfile = ~/.config/git/attributes
   # Don't prompt for commit messages for merge commits.
   mergeoptions = --no-edit
   # Speed up some repositories.
@@ -25,7 +25,7 @@ user = frap
   # Output unicode characters (e.g. emoji).
   quotepath = on
 
-  editor = emacsclient
+  editor = em
   # whitespace rm
   whitespace = fix,trailing-space,cr-at-eol
 

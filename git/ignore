@@ -94,3 +94,11 @@ sites/*/files
 
 # ZSH sessions
 .zsh-sessions/
+
+# Direnv stuff
+.direnv
+.envrc
+.env
+
+#Python
+.venv

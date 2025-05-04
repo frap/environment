@@ -1,5 +1,0 @@
-*.el	diff=elisp
-*.clj	diff=lisp
-*.bb    diff=lisp
-*.lisp	diff=lisp
-*.fnl	diff=fennel
