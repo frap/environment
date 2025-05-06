@@ -56,8 +56,12 @@ mesg n
 #if in a terminal
 if [ -t 0 ]  && quiet_which starship; then
   case "$TERM" in
-  xterm* | screen*)
-    eval "$(starship init bash)"
+      xterm* | screen*)
+          if [[ "$SHELL" == */bash ]]; then
+              eval "$(starship init bash)"
+          else
+              eval "$(starship init zsh)"
+          fi
     ;;
   *)
     export PS1='\[\e[0;36m\] :\W ➜ \[\e[m\]'

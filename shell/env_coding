@@ -175,6 +175,12 @@ fi
 # +-------------+
 append_to_path "$XDG_DATA_HOME/.babashka/bbin/bin"
 
+if [[ "$SHELL" == */bash ]]; then
+    if [ -f $(brew --prefix)/etc/bash_completion ]; then
+        . $(brew --prefix)/etc/bash_completion
+    fi
+fi
+
 # +-------------+
 # |   DIRENV    |
 # +-------------+

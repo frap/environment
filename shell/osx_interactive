@@ -5,13 +5,6 @@
 # Enable Terminal.app folder icons
 [ "$TERM_PROGRAM" = "Apple_Terminal" ] && export TERMINALAPP=1
 
-# Tab Completion
-
-#    Complete expected git (and others) commands by pressing the tab key
-#    for Bash.
-if [ -f $(brew --prefix)/etc/bash_completion ]; then
-  . $(brew --prefix)/etc/bash_completion
-fi
 
 if [[ $TERMINALAPP ]] && [[ -z "$INSIDE_EMACS" ]]; then
     function set_terminal_app_pwd() {
