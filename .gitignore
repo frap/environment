@@ -10,6 +10,7 @@ emacs/lisp/init-autoloads.el
 emacs/tramp
 emacs/eshell/*
 emacs/elpa/*
+emacs/elpaca
 emacs/tree-sitter
 emacs/auto-save-list
 emacs/.cache
