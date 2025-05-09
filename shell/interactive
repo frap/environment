@@ -76,7 +76,6 @@ export GITHUB_AUTH="$(gh auth token)"
 # +-------------+
 # |   TROVE     |
 # +-------------+
-# dont start up if eshell and no /work/tempo dir
-if [ -z "$INSIDE_EMACS" ] && dir_exists "${HOME}/work/tempo"; then
+trove-ca-login() {
     uv run --no-project --with pip  $HOME/work/tempo/trove-scripts/codeartifact/codeartifact_auth.py
-fi
+}

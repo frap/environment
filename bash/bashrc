@@ -1,3 +1,4 @@
+# -*- mode: bash; -*-
 # From bash manual:
 # When an interactive shell that is not a login shell is started, Bash
 # reads and executes commands from ~/.bashrc, if that file exists. This

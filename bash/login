@@ -1,4 +1,4 @@
-# -*- mode: sh; -*-
+# -*- mode: bash; -*-
 # From the bash manual:
 # When Bash is invoked as an interactive login shell, or as a non-interactive
 # shell with the --login option, it first reads and executes commands from the
