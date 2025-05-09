@@ -1,4 +1,4 @@
-Include /Users/agasson/.colima/ssh_config
+Include "~/.colima/ssh_config"
 
 # Ensure KnownHosts are unreadable if leaked
 # making it harder to know which hosts your keys have access to
@@ -22,3 +22,6 @@ Host *
     ServerAliveInterval 10
     ServerAliveCountMax 10
     IdentityFile ~/.ssh/id_rsa
+
+
+Include "~/.config/ssh/config.$(hostname)"
