@@ -43,39 +43,39 @@
 (add-hook 'after-init-hook #'elpaca-process-queues)
 (elpaca `(,@elpaca-order))
 
-;; (use-package emacs
-;;   :init
-;;   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-;;   (unless (package-installed-p 'vc-use-package)
-;;     (package-vc-install "https://github.com/slotThe/vc-use-package")))
 
 ;; Elpaca use-package support
 (elpaca elpaca-use-package
   ;; Enable use-package :ensure support for Elpaca.
-  (elpaca-use-package-mode))
+  (elpaca-use-package-mode)
+  ;; Assume :elpaca t unless otherwise specified.
+  (setq elpaca-use-package-by-default t)
+  )
 
+;; Block until current queue processed.
 ;; (elpaca-wait)
 
-(use-package elpaca-ui
-  :bind (:map elpaca-ui-mode-map
-         ("p" . previous-line)
-         ("F" . elpaca-ui-mark-pull))
-  :after popper
-  :init
-  (add-to-list 'popper-reference-buffers
-               'elpaca-log-mode)
-  (setf (alist-get (lambda (buf &rest _)
-                     (eq
-                      (buffer-local-value 'major-mode
-                                          (get-buffer buf))
-                      'elpaca-log-mode))
-                   display-buffer-alist)
-        '((display-buffer-at-bottom
-          display-buffer-in-side-window)
-          (side . bottom)
-          (slot . 60)
-          (window-height . 0.4)
-          (body-function . select-window))))
+;; (use-feature elpaca-ui
+;;   :ensure nil
+;;   :bind (:map elpaca-ui-mode-map
+;;               ("p" . previous-line)
+;;               ("F" . elpaca-ui-mark-pull))
+;;   :after popper
+;;   :init
+;;   (add-to-list 'popper-reference-buffers
+;;                'elpaca-log-mode)
+;;   (setf (alist-get (lambda (buf &rest _)
+;;                      (eq
+;;                       (buffer-local-value 'major-mode
+;;                                           (get-buffer buf))
+;;                       'elpaca-log-mode))
+;;                    display-buffer-alist)
+;;         '((display-buffer-at-bottom
+;;            display-buffer-in-side-window)
+;;           (side . bottom)
+;;           (slot . 60)
+;;           (window-height . 0.4)
+;;           (body-function . select-window))))
 
 ;; Add `:doc' support for use-package so that we can use it like what a doc-strings is for
 (eval-and-compile
@@ -92,14 +92,23 @@
      it processes symbols."
 
     ;; just process the next keywords
-    (use-package-process-keywords name-symbol rest state)))
+    (use-package-process-keywords name-symbol rest state))
+
+  (defmacro use-feature (name &rest args)
+    "Like `use-package' but accounting for asynchronous installation.
+    NAME and ARGS are in `use-package'."
+    (declare (indent defun))
+    `(use-package ,name
+       :ensure nil
+       ,@args))
+  )
 
 (eval-when-compile
   (eval-after-load 'advice
     `(setq ad-redefinition-action 'accept))
   (setq use-package-verbose nil
         use-package-compute-statistics nil
-        ;use-package-ignore-unknown-keywords t
+        ;;use-package-ignore-unknown-keywords t
         use-package-minimum-reported-time 0.01
         ;; use-package-expand-minimally t
         use-package-enable-imenu-support t)
@@ -108,7 +117,7 @@
 ;;; Security
 ;; For the love of all that is holy, do not continue with untrusted
 ;; connections!
-(use-package gnutls
+(use-feature gnutls
   :defer t
   :custom
   (gnutls-verify-error t))

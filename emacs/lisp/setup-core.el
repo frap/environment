@@ -1,5 +1,9 @@
 ;;; setup-core.el --- Optimisations  -*- lexical-binding: t; -*-
 
+;; compilations, enhance elisp.
+;; (require 'cl-lib)
+(require 'subr-x)
+(require 'bytecomp)
 ;; A helper to keep track of start-up time:
 (eval-when-compile (require 'cl-lib))
 (let ((emacs-start-time (current-time)))
@@ -12,6 +16,9 @@
 (defconst IS-MAC?     (eq system-type 'darwin))
 (defconst IS-LINUX?   (eq system-type 'gnu/linux))
 (defconst IS-GUI?     (display-graphic-p))
+
+(defvar user-cache-directory "~/.cache/emacs/"
+  "Location where files created by emacs are placed.")
 
 ;; Disable bidirectional text rendering for a modest performance boost. Just
 ;; need to remember to turn it on when displaying a right-to-left language!

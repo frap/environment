@@ -2,7 +2,7 @@
 
 ;;; Tools
 
-(use-package ediff-wind
+(use-feature ediff-wind
   :defer t
   :init
   (setq ediff-window-setup-function 'ediff-setup-windows-plain
@@ -16,33 +16,96 @@
 ;;   :config
 ;;   (advice-add 'ediff-window-display-p :override #'ignore))
 
-(use-package project
+(use-feature project
+  :bind-keymap ("s-p" . project-prefix-map)
   :bind ( :map project-prefix-map
-          ("s" . project-save-some-buffers))
+          ("s" . project-save-some-buffers)
+          ("f" . project-find-file)
+          ("F" . project-switch-project)
+          ("m" . project-compile)
+          ("K" . project-kill-buffers)
+          ("t" . eshell)
+          ("v" . magit)
+          ("s-p" . project-switch-project))
+  :bind (("C-x p q" . project-query-replace-regexp) ; C-x p is `project-prefix-map'
+         ("C-x p <delete>" . my/project-remove-project)
+         ("C-x p DEL" . my/project-remove-project)
+         ;; ("M-s p" . my/project-switch-project)
+         ;; ("M-s f" . my/project-find-file-vc-or-dir)
+         ("M-s L" . find-library))
   :custom
-  (project-compilation-buffer-name-function 'project-prefixed-buffer-name)
-  (project-vc-extra-root-markers
-   '("Cargo.toml" "compile_commands.json"
-     "compile_flags.txt" "project.clj"
-     "deps.edn" "shadow-cljs.edn"))
-  :preface
-  (defcustom project-compilation-mode nil
-    "Mode to run the `compile' command with."
-    :type 'symbol
-    :group 'project
-    :safe #'symbolp
-    :local t)
-  (defun project-save-some-buffers (&optional arg)
-    "Save some modified file-visiting buffers in the current project.
+  ;; This is one of my favorite things: you can customize
+  ;; the options shown upon switching projects.
+  (setq project-switch-commands
+        '((?f "Find file" project-find-file)
+          (?g "Find regexp" project-find-regexp)
+          (?d "Dired" project-dired)
+          (?b "Buffer" project-switch-to-buffer)
+          (?q "Query replace" project-query-replace-regexp)
+          (?v "magit" project-magit-status)
+          (?k "Kill buffers" project-kill-buffers)
+          (?! "Shell command" project-shell-command)
+          (?e "Eshell" project-eshell)))
+  ;; (project-switch-commands
+  ;;  '((project-find-file "Find file")
+  ;;    (magit-project-status "Magit" ?g)
+  ;;    (deadgrep "Grep" ?h)
+  ;;    (pt/project-run-vterm "vterm" ?t)
+  ;;    (project-dired "Dired" ?d)
+  ;;    (pt/recentf-in-project "Recently opened" ?r)))
+  (compilation-always-kill t)
+    (project-vc-merge-submodules nil)
+    (project-compilation-buffer-name-function 'project-prefixed-buffer-name)
+    (project-vc-extra-root-markers
+     '("Cargo.toml" "compile_commands.json"
+       "compile_flags.txt" "project.clj" "trove-ci.yml"
+       "deps.edn" "bb.edn" "shadow-cljs.edn"))
+    :init
+    (defun my/frame-title-format ()
+      (and-let* ((proj (project-current))
+                 (name (project-root proj))
+                 (name (file-name-nondirectory
+                        (directory-file-name name))))
+        (concat name ":")))
+    ;; (defun my/frame-title-format ()
+    ;;   (let ((proj (project-current)))
+    ;;     (if proj
+    ;;         (let ((name (project-root proj)))
+    ;;           (concat (file-name-nondirectory
+    ;;                    (directory-file-name name)) ":"))
+    ;;       "Pas de projet")))
+    ;; (timeout-throttle! #'my/frame-title-format 4.0)
+    ;; (add-to-list
+    ;;  'frame-title-format
+    ;;  'frame-title-format;   ;;  '(:eval (my/frame-title-format)))
+    (cl-defgeneric project-root (project)
+      "Return root directory of the current project.
+
+It usually contains the main build file, dependencies
+configuration file, etc. Though neither is mandatory.
+
+The directory name must be absolute."
+      (car project))
+
+    :preface
+    (defcustom project-compilation-mode nil
+      "Mode to run the `compile' command with."
+      :type 'symbol
+      :group 'project
+      :safe #'symbolp
+      :local t)
+    (defun project-save-some-buffers (&optional arg)
+      "Save some modified file-visiting buffers in the current project.
 
 Optional argument ARG (interactively, prefix argument) non-nil
 means save all with no questions."
-    (interactive "P")
-    (let* ((project-buffers (project-buffers (project-current)))
-           (pred (lambda () (memq (current-buffer) project-buffers))))
-      (funcall-interactively #'save-some-buffers arg pred)))
-  (defvar project-compilation-modes nil
-    "List of functions to check for specific compilation mode.
+      (interactive "P")
+      (let* ((project-buffers (project-buffers (project-current)))
+             (pred (lambda () (memq (current-buffer) project-buffers))))
+        (funcall-interactively #'save-some-buffers arg pred)))
+
+    (defvar project-compilation-modes nil
+      "List of functions to check for specific compilation mode.
 
 The function must return a symbol of an applicable compilation
 mode.")
@@ -78,6 +141,23 @@ mode.")
              compilation-save-buffers-predicate)))
       (funcall fn edit-command)))
   :config
+  (setq project-list-file (file-name-concat user-cache-directory "projects"))
+
+  (defun project-magit-status ()
+    "Run magit-status in the current project's root."
+    (interactive)
+    (magit-status-setup-buffer (project-root (project-current t))))
+
+  (defun my/project-remove-project ()
+    "Remove project from `project--list' using completion."
+    (interactive)
+    (project--ensure-read-project-list)
+    (let* ((projects project--list)
+           (dir (completing-read "REMOVE project from list: " projects nil t)))
+      (setq project--list (delete (assoc dir projects) projects))))
+
+  (setq project-window-list-file (file-name-concat user-cache-directory "project-window-list")
+          project-vc-merge-submodules nil)
   (add-to-list 'project-switch-commands
                '(project-dired "Dired"))
   (add-to-list 'project-switch-commands
@@ -86,119 +166,10 @@ mode.")
                '(project-compile "Compile"))
   (add-to-list 'project-switch-commands
                '(project-save-some-buffers "Save") t))
-;; (use-package project
-;;   ;; :bind-keymap ("s-p" . project-prefix-map)
-;;   ;; :bind ( :map project-prefix-map
-;;   ;;         ("s" . project-save-some-buffers)
-;;   ;;         ("t" . eshell)
-;;   ;;         ("v" . magit)
-;;   ;;         ("s-p" . project-switch-project))
-;;   ;; :bind (("C-c k" . #'project-kill-buffers)
-;;   ;;        ("C-c m" . #'project-compile)
-;;   ;;        ("C-x f" . #'find-file)
-;;   ;;        ("C-c F" . #'project-switch-project)
-;;   ;;        ("C-c R" . #'pt/recentf-in-project)
-;;   ;;        ("C-c f" . #'project-find-file))
-;;   :bind (("C-x p q" . project-query-replace-regexp) ; C-x p is `project-prefix-map'
-;;          ("C-x p <delete>" . my/project-remove-project)
-;;          ("C-x p DEL" . my/project-remove-project)
-;;          ;; ("M-s p" . my/project-switch-project)
-;;          ;; ("M-s f" . my/project-find-file-vc-or-dir)
-;;          ("M-s L" . find-library))
-;;   :init
-;;   (defun my/frame-title-format ()
-;;       (and-let* ((proj (project-current))
-;;                  (name (project-root proj))
-;;                  (name (file-name-nondirectory
-;;                         (directory-file-name name))))
-;;         (concat name ":")))
-;;   ;; (defun my/frame-title-format ()
-;;   ;;   (let ((proj (project-current)))
-;;   ;;     (if proj
-;;   ;;         (let ((name (project-root proj)))
-;;   ;;           (concat (file-name-nondirectory
-;;   ;;                    (directory-file-name name)) ":"))
-;;   ;;       "Pas de projet")))
-;;   ;; (timeout-throttle! #'my/frame-title-format 4.0)
-;;   ;; (add-to-list
-;;   ;;  'frame-title-format
-;;   ;;  '(:eval (my/frame-title-format)))
 
-;;   (setq project-switch-commands
-;;         '((?f "Find file" project-find-file)
-;;           (?g "Find regexp" project-find-regexp)
-;;           (?d "Dired" project-dired)
-;;           (?b "Buffer" project-switch-to-buffer)
-;;           (?q "Query replace" project-query-replace-regexp)
-;;           (?v "magit" project-magit-status)
-;;           (?k "Kill buffers" project-kill-buffers)
-;;           (?! "Shell command" project-shell-command)
-;;           (?e "Eshell" project-eshell)))
-
-;;   (cl-defgeneric project-root (project)
-;;     "Return root directory of the current project.
-
-;; It usually contains the main build file, dependencies
-;; configuration file, etc. Though neither is mandatory.
-
-;; The directory name must be absolute."
-;;     (car project))
-
-;;   :custom
-;;   (project-compilation-buffer-name-function 'project-prefixed-buffer-name)
-;;   (project-vc-extra-root-markers
-;;    '("Cargo.toml" "project.clj" "yarn.lock" "trove-ci.yml"
-;;      "deps.edn" "shadow-cljs.edn" "bb.edn" "pyproject.toml"))
-;;   :config
-;;   (setq project-list-file (dir-concat user-cache-directory "projects"))
-
-;;   (defun project-magit-status ()
-;;     "Run magit-status in the current project's root."
-;;     (interactive)
-;;     (magit-status-setup-buffer (project-root (project-current t))))
-
-;;   (defun my/project-remove-project ()
-;;     "Remove project from `project--list' using completion."
-;;     (interactive)
-;;     (project--ensure-read-project-list)
-;;     (let* ((projects project--list)
-;;            (dir (completing-read "REMOVE project from list: " projects nil t)))
-;;       (setq project--list (delete (assoc dir projects) projects))))
-
-;;   (setq project-window-list-file (dir-concat user-cache-directory "project-window-list")
-;;         project-vc-merge-submodules nil)
-;;   )
 
 ;; (use-package project
-;;   :bind-keymap ("s-p" . project-prefix-map)
-;;   :bind ( :map project-prefix-map
-;;           ("s" . project-save-some-buffers)
-;;           ("t" . eshell)
-;;           ("v" . magit)
-;;           ("s-p" . project-switch-project))
-;;   :bind (("C-c k" . #'project-kill-buffers)
-;;          ("C-c m" . #'project-compile)
-;;          ("C-x f" . #'find-file)
-;;          ("C-c F" . #'project-switch-project)
-;;          ("C-c R" . #'pt/recentf-in-project)
-;;          ("C-c f" . #'project-find-file))
-;;   :custom
-;;   ;; This is one of my favorite things: you can customize
-;;   ;; the options shown upon switching projects.
-;;   (project-switch-commands
-;;    '((project-find-file "Find file")
-;;      (magit-project-status "Magit" ?g)
-;;      (deadgrep "Grep" ?h)
-;;      (pt/project-run-vterm "vterm" ?t)
-;;      (project-dired "Dired" ?d)
-;;      (pt/recentf-in-project "Recently opened" ?r)))
-;;   (compilation-always-kill t)
-;;   (project-vc-merge-submodules nil)
-;;   (project-compilation-buffer-name-function 'project-prefixed-buffer-name)
-;;   (project-vc-extra-root-markers
-;;    '("Cargo.toml" "compile_commands.json"
-;;      "compile_flags.txt" "project.clj"
-;;      "deps.edn" "shadow-cljs.edn" "bb.edn"))
+
 ;;   :preface
 ;;   (defcustom project-compilation-mode nil
 ;;     "Mode to run the `compile' command with."
@@ -277,11 +248,10 @@ mode.")
 ;;when I do a git-pull I'd like to see what's new
 (global-auto-revert-mode t)
 
-(use-package transient
+(use-feature transient
   :ensure t)
 
-(use-package magit
-  :ensure t
+(use-feature magit
   ;; :hook ((git-commit-mode . flyspell-mode)
   ;;        (git-commit-mode . magit-git-commit-insert-branch))
   :bind
@@ -344,7 +314,7 @@ mode.")
        (forward-char -1)))
    )
 
-(use-package magit
+(use-feature magit
   :after project
   :config
   (add-to-list 'project-switch-commands
@@ -459,7 +429,7 @@ mode.")
             (kill-process process)
             (kill-buffer buffer)))))))
 
-(use-package server
+(use-feature server
   :commands (server-running-p)
   :init
   (setq server-socket-dir (expand-file-name "~/.cache/emacs/server"))
@@ -501,7 +471,7 @@ mode.")
            ("TWEAK" . "#fe9030")
            ("PERF"  . "#e09030")))))
 
-(use-package compile
+(use-feature compile
   :hook
   (compilation-filter . ansi-color-compilation-filter)
   :custom
@@ -744,7 +714,7 @@ Set automatically by the `" (symbol-name compilation-mode-name) "'."))
 
 ;;; Messaging
 
-(use-package message
+(use-feature message
   :defer t
   :custom
   (message-kill-buffer-on-exit t))

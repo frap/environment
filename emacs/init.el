@@ -2,7 +2,7 @@
 
 ;; Author: Red Elvis
 ;; Keywords: Emacs configuration
-;; Homepage: https://gitlab.com/frap/environment.git
+;; Homepage: https://github.com/frap/environment.git
 
 ;;; Commentary:
 ;; Emacs 30+ configuration.
@@ -12,58 +12,26 @@
 ;; startup issues
 ;;(setq debug-on-error t)
 
-
-;; * PATHS
-;; (setenv "PATH" (concat "/opt/homebrew/bin:~/.local/bin:/bin:/usr/sbin:/sbin:") (getenv "PATH"))
-;; (setq exec-path (append exec-path '("/opt/homebrew/bin:~/.local/bin")))
-;; I avoid defining too many custom helpers, =dir-concat= is an exception. Emacs
-;; 28 provides =file-name-concat=, but I'm on 27.2 some of the time.
-(use-package emacs
-  :config
-  (defun dir-concat (dir file)
-    "join path DIR with filename FILE correctly"
-    (concat (file-name-as-directory dir) file))
-
-  ;; Set directory
-  (setq default-directory
-        (cond ((equal (system-name) "Cable_Guy")
-               "~/work/tempo")
-              ((equal system-type 'darwin)
-               "~/dev")
-              (t "~/")))
-
-  ;; Adds ~/.emacs.d to the load-path
-  (push (dir-concat user-emacs-directory "lisp/") load-path)
-  (defvar user-cache-directory "~/.cache/emacs/"
-    "Location where files created by emacs are placed."))
-
-
 ;; Avoid garbage collection during startup.
 (defvar better-gc-cons-threshold 402653184
   "If you experience freezing, decrease this.
 If you experience stuttering, increase this.")
 
-;; compilations, enhance elisp.
-(require 'cl-lib)
-(require 'subr-x)
-(require 'bytecomp)
+;; * PATHS
+;; Adds ~/.config/emacs/lisp to the load-path
+(push (file-name-concat user-emacs-directory "lisp/") load-path)
 
 ;; * CORE
 
-;; Optimisations to make Emacs more responsive. These are mostly copied from
+;; Optimisations and Defaults to make Emacs more responsive. These are mostly copied from
 ;; Doom Emacs.
 (require 'setup-core)
 
 ;;; Package Management
 (require 'init-elpa)
 
-;;;################################################################
-;; * PERSONAL INFO
-;;;################################################################
-(with-demoted-errors "Erreur (personal info): %S"
-  (load-library "personal")
-  (setq user-full-name my-full-name)
-  (setq user-mail-address my-email-address))
+;; Default bindings
+(require 'init-bindings)
 
 (require 'init-files-buffers)
 (require 'init-ui)
@@ -74,24 +42,30 @@ If you experience stuttering, increase this.")
 ;;; Editor
 (require 'init-editor)
 
-;;; LSP
-(require 'init-lsp)
-;;; Languages
-(require 'init-coding)
-
-
 ;;; Tools - git, project, shell
 ;;(require 'setup-shells)
 (require 'init-tools)
 
-;;; Org mode
-(require 'init-org)
+;;; LSP
+(require 'init-lsp)
+
+;;; Coding Languages
+(require 'init-coding)
 
 (require 'init-copilot)
 
-(use-package envrc
-  :ensure t
-  :hook (after-init . envrc-global-mode))
+;; Personal
+(with-demoted-errors "Erreur (personal info): %S"
+  (load-library "personal")
+  (setq user-full-name my-full-name)
+  (setq user-mail-address my-email-address))
+
+;;; Org mode
+(require 'init-org)
+
+(use-package esup
+  :config
+  (setq esup-depth 0))
 
 (provide 'init)
 ;;; init.el ends here

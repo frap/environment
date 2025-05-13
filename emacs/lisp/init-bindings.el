@@ -46,7 +46,7 @@
 ;; use-package is built-in as of Emacs 29, but since we use :bind, we
 ;; need to load bind-key. If we forget, we get the error: Symbol's
 ;; value as variable is void: personal-keybindings.
-(use-package bind-key
+(use-feature bind-key
   :demand t
   :bind
   (:prefix-map gas/files-map
@@ -59,29 +59,17 @@
                :prefix "C-c j"))
 
 ;; use evil when "C-c t e"
-(use-package evil
-  :bind
-  (:map gas/toggles-map
-        ("e" . evil-mode)))
+;; (use-package evil
+;;   :bind
+;;   (:map gas/toggles-map
+;;         ("e" . evil-mode)))
 
 (defun gas/unbind-all (fn)
   "Unbinds a function everywhere."
   (dolist (key (where-is-internal fn nil))
     (unbind-key key)))
 
- (use-package region-bindings
-   :straight
-   (:host gitlab :repo "andreyorst/region-bindings.el")
-   ;;  :vc (:url "https://gitlab.com/andreyorst/region-bindings.el.git")
-   :commands (region-bindings-mode)
-   :preface
-   (defun region-bindings-off ()
-     (region-bindings-mode -1))
-   :hook ((after-init . global-region-bindings-mode)
-          ((elfeed-search-mode magit-mode mu4e-headers-mode)
-           . region-bindings-off)))
-
-(use-package kmacro
+(use-feature kmacro
   :defer t
   :preface
   (defun block-undo (fn &rest args)
@@ -94,18 +82,26 @@
                apply-macro-to-region-lines))
     (advice-add f :around #'block-undo)))
 
-(use-package  which-key
+(use-feature which-key
+  :defer 10
+  :bind
+  (:map help-map
+        ("h" . which-key-show-major-mode))
   :hook (after-init . which-key-mode)
-  :init (setq which-key-sort-order #'which-key-key-order-alpha
-              which-key-sort-uppercase-first nil
-              which-key-add-column-padding 1
-              which-key-max-display-columns nil
-              which-key-min-display-lines 6
-              which-key-side-window-slot -10)
+  :init
+  (setq which-key-sort-order #'which-key-prefix-then-key-order
+        which-key-idle-delay 0.3
+        which-key-idle-secondary-delay 0.1
+        which-key-sort-uppercase-first nil
+        which-key-add-column-padding 0
+        which-key-max-display-columns nil
+        which-key-min-display-lines 10
+        which-key-side-window-slot -10)
   :config
-  (setq which-key-idle-delay 0.2)
-  (setq which-key-idle-secondary-delay 0.1)
+  (set-face-attribute 'which-key-local-map-description-face nil :weight 'bold)
   (which-key-setup-side-window-bottom)
+  (add-hook 'which-key-init-buffer-hook
+            (lambda () (setq-local line-spacing 3)))
   (setq which-key-replacement-alist
         '((("left") . ("⬅️"))
           (("right") . ("➡️"))
@@ -115,9 +111,9 @@
           (("\\`DEL\\'") . ("BKSP"))
           (("RET") . ("⏎"))
           ))
-  (which-key-setup-minibuffer)
-  ;;  (:with-hook which-key-init-buffer-hook
-  ;;  (:hook (lambda (setq line-spacing 4))))
+  ;; (which-key-setup-minibuffer)
+  (with-eval-after-load 'embark
+    (setq prefix-help-command #'embark-prefix-help-command))
   )
 
 ;; C-h C-h shadows which-key with something less useful.
@@ -125,7 +121,12 @@
 
 ;;;Help
 ;;;; helpful
+(use-feature help
+  :custom
+  (help-window-select t))
+
 (use-package helpful
+  :after (avy)
   :doc "Helpful improves the built-in Emacs help system by providing more contextual information."
   :commands (helpful-callable helpful-variable helpful-command helpful-symbol helpful-key)
   :custom
@@ -135,17 +136,26 @@
   (avy-lead-face ((t (:background "#51afef" :foreground "#870000" :weight bold))))
   :bind
   (("C-h f" . #'helpful-callable)
-         ("C-h v" . #'helpful-variable)
-         ("C-h k" . #'helpful-key)
-         ("C-c C-d" . #'helpful-at-point)
-         ("C-h F" . #'helpful-function)
-         ("C-h C" . #'helpful-command)
-         ([remap describe-key]      . helpful-key)
-         ([remap describe-symbol]   . helpful-symbol)
-         ([remap describe-command]  . helpful-command)
-         ([remap describe-variable] . helpful-variable)
-         ([remap describe-function] . helpful-callable)))
-
+   ("C-h v" . #'helpful-variable)
+   ("C-h k" . #'helpful-key)
+   ("C-c C-d" . #'helpful-at-point)
+   ("C-h F" . #'helpful-function)
+   ("C-h C" . #'helpful-command)
+   ([remap describe-key]      . helpful-key)
+   ([remap describe-symbol]   . helpful-symbol)
+   ([remap describe-command]  . helpful-command)
+   ([remap describe-variable] . helpful-variable)
+   ([remap describe-function] . helpful-callable))
+  :config
+  (defun avy-action-helpful (pt)
+    (save-excursion
+      (goto-char pt)
+      (helpful-at-point))
+    (select-window
+     (cdr (ring-ref avy-ring 0)))
+    t)
+  ;; set H as avy dispatch to Help
+  (setf (alist-get ?H avy-dispatch-alist) 'avy-action-helpful))
 
 
 ;; ───────────────────────── Generic Modified Functions ────────────────────────
@@ -302,8 +312,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 ;; Normal undo/redo
 (global-set-key (kbd "C-z") 'undo-only)         ;; Undo
-;;(global-set-key (kbd "C-S-z") 'undo-redo)        ;; Redo (Emacs 28+)
-;; (global-set-key (kbd "C-S-z") 'undo-tree-redo) ;; Use if you rely on undo-tree instead                                        (global-set-key (kbd "C-S-z") 'undo-tree-redo) ;; Use if you rely on undo-tree instead
+(global-set-key (kbd "C-S-z") 'undo-redo)       ;; Redo (Emacs 28+)
 
 ;; ──────────────────────── Make Escape Key Greate again ───────────────────────
 ;; (unbind-key "<escape>")
@@ -426,10 +435,10 @@ point reaches the beginning or end of the buffer, stop there."
 ;; (bind-key "M-o"               'other-window)
 
 ;;;;; resize
-(global-set-key (kbd "M-J") 'shrink-window) ; "C-M-S-j"
-(global-set-key (kbd "M-K") 'enlarge-window)
-(global-set-key (kbd "M-H") 'shrink-window-horizontally)
-(global-set-key (kbd "M-L") 'enlarge-window-horizontally)
+;; (global-set-key (kbd "M-J") 'shrink-window) ; "C-M-S-j"
+;; (global-set-key (kbd "M-K") 'enlarge-window)
+;; (global-set-key (kbd "M-H") 'shrink-window-horizontally)
+;; (global-set-key (kbd "M-L") 'enlarge-window-horizontally)
 ;; (bind-key "M-J" (lambda () (interactive) (enlarge-window 1)))
 ;; (bind-key "M-K" (lambda () (interactive) (enlarge-window -1)))
 ;; (bind-key "M-H" (lambda () (interactive) (enlarge-window -1 t)))
@@ -525,7 +534,7 @@ point reaches the beginning or end of the buffer, stop there."
 (bind-key "C-c M-w" (function (lambda () (interactive) (setq show-trailing-whitespace (not show-trailing-whitespace)))))
 
 ;;;; join-lines
-(global-set-key (kbd "M-j")
+(global-set-key (kbd "M-J")
                 (lambda ()
                   (interactive)
                   (join-line -1)))
@@ -543,8 +552,9 @@ point reaches the beginning or end of the buffer, stop there."
     (let ((case-fold-search isearch-case-fold-search))
       (occur (if isearch-regexp isearch-string (regexp-quote isearch-string))))))
 
-(use-package bindings-x
+(use-feature bindings-x
   :bind ( :map ctl-x-map
+          ;; ("DEL" . nil)
           ("C-d" . dired-jump))
   :preface
   ;; set global keybindings
@@ -557,7 +567,7 @@ point reaches the beginning or end of the buffer, stop there."
   (bind-key "s-<right>"         'windmove-right)
   (bind-key "s-<down>"          'windmove-down)
   (bind-key "s-<up>"            'windmove-up)
-(global-set-key (kbd "M-j") 'windmove-down)
+  (global-set-key (kbd "M-j") 'windmove-down)
   (global-set-key (kbd "M-k") 'windmove-up)
   (global-set-key (kbd "M-h") 'windmove-left)
   (global-set-key (kbd "M-l") 'windmove-right)

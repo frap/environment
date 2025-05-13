@@ -10,7 +10,7 @@
 ;; Subword mode helps us move around camel-case languages, and is
 ;; mostly configured as a hook in those major modes. The only thing we
 ;; customize about it is not wanting it cluttering the mode line.
-(use-package subword
+(use-feature subword
   :defer t
   :delight)
 
@@ -21,13 +21,7 @@
   :bind ("M-;" . 'comment-dwim-2)
   :delight)
 
-(use-package paren
-  :hook (prog-mode . show-paren-mode)
-  :config
-  ;;(show-paren-mode 1)
-  (setq show-paren-delay 0.1
-        show-paren-highlight-openparen t
-        show-paren-when-point-inside-paren t))
+
 
 ;; (electric-indent-mode nil)  ; Auto indentation.
 
@@ -39,7 +33,11 @@
   :config
   (editorconfig-mode 1))
 
-(use-package display-line-numbers
+;; direnv
+(use-package envrc
+  :hook (after-init . envrc-global-mode))
+
+(use-feature display-line-numbers
   :hook (display-line-numbers-mode . toggle-hl-line)
   :hook prog-mode
   :custom
@@ -52,7 +50,7 @@
 
 ;;; Coding helpers
 
-(use-package dumb-jump
+(use-feature dumb-jump
   :defer t
   :commands (dumb-jump-xref-activate)
   :custom
@@ -61,7 +59,7 @@
   :init
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
-(use-package eldoc
+(use-feature eldoc
   :delight eldoc-mode
   :custom
   (eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
@@ -73,7 +71,7 @@
   ;;(eldoc-add-command-completions "combobulate-")
   )
 
-(use-package flymake
+(use-feature flymake
   :preface
   (defvar flymake-prefix-map (make-sparse-keymap))
   (fset 'flymake-prefix-map flymake-prefix-map)
@@ -88,95 +86,6 @@
   (flymake-mode-line-lighter "FlyM")
   :config
   (setq elisp-flymake-byte-compile-load-path (cons "./" load-path)))
-
-(defun chee/puni-unwrap-sexp (&optional open close)
-  (interactive)
-  (save-excursion
-    (let* ((bounds (puni-bounds-of-sexp-around-point))
-           (beg (+ (car bounds) 1))
-           (end (- (cdr bounds) 1)))
-      (puni-kill-region beg end)
-      (puni-backward-delete-char)
-      (if open (insert-char open))
-      (yank)
-      (if close (insert-char close)))))
-
-(defun chee/puni-rewrap-sexp nil
-  (interactive)
-  (let ((open (read-char "Opening character? "))
-        (close (read-char "Closing character? ")))
-    (chee/puni-unwrap-sexp open close)))
-
-(use-package puni
-  :ensure t
-  :defer t
-  ;; :delight ""
-  :hook (((common-lisp-modes-mode nxml-mode) . puni-mode)
-         (puni-mode . electric-pair-local-mode))
-  :init
-  ; The autoloads of Puni are set up so you can enable `puni-mode` or
-  ;; `puni-global-mode` before `puni` is actually loaded. Only after you press
-  ;; any key that calls Puni commands, it's loaded.
-  (puni-global-mode)
-  (add-hook 'term-mode-hook #'puni-disable-puni-mode)
-  (add-hook 'eshell-mode-hook #'puni-disable-puni-mode)
-  ;; paredit-like keys
-  :bind
-  (("C-b"  . backword-word)
-   ("C-f"  . forward-word)
-   ("M-b"  . puni-backward-sexp-or-up-list)
-   ("M-f"  . puni-forward-sexp-or-up-list)
-   :map region-bindings-mode-map
-    ("(" . puni-wrap-round)
-    ("[" . puni-wrap-square)
-    ("{" . puni-wrap-curly)
-    ("<" . puni-wrap-angle)
-    ;; paredit-like keys
-    :map puni-mode-map
-    ;; ("C-=" . chee/puni-unwrap-sexp)
-    ;; ("C-." . chee/puni-rewrap-sexp)
-    ("C-M-f" . puni-forward-sexp-or-up-list)
-    ("C-M-b" . puni-backward-sexp-or-up-list)
-    ("C-M-t" . puni-transpose)
-    ;; slurping & barfing
-    ("C-<left>" . puni-barf-forward)
-    ("C-}" . puni-barf-forward)
-    ("C-<right>" . puni-slurp-forward)
-    ("C-)" . puni-slurp-forward)
-    ("C-(" . puni-slurp-backward)
-    ("C-M-<left>" . puni-slurp-backward)
-    ("C-{" . puni-barf-backward)
-    ("C-M-<right>" . puni-barf-backward)
-    ("C-(" . puni-slurp-backward)
-    ("M-(" . puni-barf-backward)
-    ("C-)" . puni-slurp-forward)
-    ("M-)" . puni-barf-forward)
-    ;; depth chaining
-    ("M-r" . puni-raise)
-    ("M-s" . puni-splice)
-    ;; ("M-<up>" . puni-splice-killing-backward)
-    ;; ("M-<down>" . puni-splice-killing-forward)
-    ("M-(" . puni-wrap-round)
-    ("M-{" . puni-wrap-curly)
-    ("M-?" . puni-convolute)
-    ("M-S" . puni-split)
-    ;; moving
-    ("M-<up>" . puni-beginning-of-sexp)
-    ("M-<down>" . puni-end-of-sexp))
-  :preface
-  (define-advice puni-kill-line (:before (&rest _) back-to-indentation)
-    "Go back to indentation before killing the line if it makes sense to."
-    (when (looking-back "^[[:space:]]*" nil)
-      (if (bound-and-true-p indent-line-function)
-          (funcall indent-line-function)
-        (back-to-indentation)))))
-
-(use-package puni
-  :when IS-GUI?
-  :defer t
-  :bind (:map puni-mode-map
-              ;; doesn't work in terminal
-              ("M-[" . puni-wrap-square)))
 
 ;; treesitter
 (defun treesit-p ()
@@ -262,44 +171,14 @@
           inferior-emacs-lisp-mode)
          . rainbow-delimiters-mode))
 
-;; (use-package combobulate
-;;   ;; :after treesit
-;;   :custom
-;;   ;; You can customise Combobulate's key prefix here.
-;;   ;; Note that you may have to restart Emacs for this to take effect!
-;;   (setq combobulate-key-prefix "C-c o")
-;;  ;; :config
-;;  ;; (define-key my/open-map "c" (cons "combobulate" combobulate-key-map))
-;;   :bind
-;;   (:map combobulate-key-map
-;;         ("S-<down>"  . combobulate-navigate-down-list-maybe)
-;;         ("S-<left>"  . combobulate-navigate-previous)
-;;         ("S-<right>" . combobulate-navigate-next)
-;;         ("M-<left>"  . combobulate-navigate-logical-previous)
-;;         ("M-<right>" . combobulate-navigate-logical-next)
-;;         ("S-<up>"    . combobulate-navigate-up-list-maybe)
-;;         ("M-<down>"  . combobulate-drag-down)
-;;         ("M-<up>"    . combobulate-drag-up))
-
-;;   ;; Optional, but recommended.
-;;   ;;
-;;   ;; You can manually enable Combobulate with `M-x
-;;   ;; combobulate-mode'.
-;;   :hook ((python-ts-mode . combobulate-mode)
-;;          (js-ts-mode . combobulate-mode)
-;;          (css-ts-mode . combobulate-mode)
-;;          (yaml-ts-mode . combobulate-mode)
-;;          (json-ts-mode . combobulate-mode)
-;;          (typescript-mode . combobulate-mode)
-;;          (tsx-ts-mode . combobulate-mode)))
 
 ;;; Languages
-(use-package abbrev
+(use-feature abbrev
   :delight abbrev-mode
   :custom
   (save-abbrevs nil))
 
-(use-package cc-mode
+(use-feature cc-mode
   :hook (c-mode-common . cc-mode-setup)
   :custom
   (c-basic-offset 4)
@@ -311,7 +190,7 @@
                 comment-end ""
                 tab-width 4)))
 
-(use-package css-mode
+(use-feature css-mode
   :defer t
   :custom
   (css-indent-offset 2))
@@ -365,20 +244,7 @@
             (">=" . ?≥)
             ("comp" . ?υ)
             ("partial" . ?ρ)))
-    (prettify-symbols-mode 1))
-
-  (defun clojure-set-compile-command ()
-    (let ((dir (clojure-project-dir)))
-      (cond ((file-exists-p (expand-file-name "bb.edn" dir))
-             (setq-local compile-command "bb"))
-            ((file-exists-p (expand-file-name "deps.edn" dir))
-             (setq-local compile-command "clojure")))))
-
-  (defun clojure-project-dir ()
-    (or (locate-dominating-file default-directory "deps.edn")
-        (locate-dominating-file default-directory "project.clj")
-        (locate-dominating-file default-directory "bb.edn")
-        default-directory)))
+    (prettify-symbols-mode 1)))
 
 (use-package flycheck-clj-kondo
   :ensure t)
@@ -392,7 +258,7 @@
   (cider-allow-jack-in-without-project t)
   (cider-use-fringe-indicators nil)
   (nrepl-log-messages nil)
-  (nrepl-hide-special-buffers t)
+  ;; (nrepl-hide-special-buffers t)
   (cider-enrich-classpath t)
   (cider-repl-history-file (expand-file-name "~/.cache/cider-history"))
   (cider-repl-prompt-function #'cider-repl-prompt-newline)
@@ -457,7 +323,7 @@
   (clj-ns-name-install))
 
 
-(use-package elisp-mode
+(use-feature elisp-mode
   :defer t
   :hook ((emacs-lisp-mode . eldoc-mode)
          (emacs-lisp-mode . common-lisp-modes-mode)))
@@ -494,6 +360,7 @@
     (put sym 'fennel-indent-function 2)))
 
 (use-package fennel-font-lock-extras
+  :ensure nil
   :after fennel-mode
   :preface
   (dolist (sym '( testing deftest use-fixtures go-loop))
@@ -516,6 +383,7 @@
   (provide 'fennel-font-lock-extras))
 
 (use-package fennel-proto-repl
+  :ensure nil
   :hook ((fennel-proto-repl-minor-mode . fennel-proto-repl-link-project-buffer))
   :bind ( :map fennel-proto-repl-minor-mode-map
           ("C-c C-z" . fennel-proto-repl-switch-to-repl-in-project))
@@ -559,7 +427,7 @@ buffer with it."
 ;;   :after org)
 
 ;; buffer-local minor mode C-c @
-(use-package hideshow
+(use-feature hideshow
   :hook (prog-mode . hs-minor-mode)
   :delight hs-minor-mode
   :config
@@ -629,9 +497,9 @@ created with `json-hs-extra-create-overlays'."
   :custom
   (lua-indent-level 4))
 
-(use-package ob-lua :after org)
+;; (use-package ob-lua :after org)
 
-(use-package lisp-mode
+(use-feature lisp-mode
   :hook ((lisp-mode lisp-data-mode) . common-lisp-modes-mode))
 
 ;; (use-package inf-lisp
@@ -656,13 +524,13 @@ created with `json-hs-extra-create-overlays'."
 ;;           (when (and (not (nth 4 (syntax-ppss)))
 ;;                      (looking-back "." 1))
 ;;             (lisp-eval-last-sexp)))))))
-(use-package js
+(use-feature js
   :mode ("\\.js\\'" . js-ts-mode)
   :hook (js-ts-mode . lsp-deferred)
   :custom
   (js-indent-level 2))
 
-(use-package json-ts-mode
+(use-feature json-ts-mode
   :mode ("\\.json\\'" . json-ts-mode)
   :hook (json-ts-mode . lsp-deferred))
 
@@ -698,7 +566,7 @@ created with `json-hs-extra-create-overlays'."
   :hook (emacs-lisp-mode . page-break-lines-mode))
 
 ;; Setup Python with tree-sitter and LSP
-(use-package python
+(use-feature python
   :mode ("\\.py\\'" . python-ts-mode)
   :interpreter ("python" . python-ts-mode)
   :hook (python-ts-mode . lsp-deferred)
@@ -765,7 +633,7 @@ created with `json-hs-extra-create-overlays'."
 (use-package restclient-jq
   :ensure t)
 
-(use-package terraform-mode
+(use-feature terraform-mode
   :custom (terraform-format-on-save t)
   :mode (("\\.tf\\'" . terraform-mode))
   :ensure t
@@ -775,7 +643,7 @@ created with `json-hs-extra-create-overlays'."
     (outline-minor-mode 1))
   (add-hook 'terraform-mode-hook 'my-terraform-mode-init))
 
-(use-package typescript-ts-mode
+(use-feature typescript-ts-mode
   :mode ("\\.ts\\'" . typescript-ts-mode)
   :hook (typescript-ts-mode . lsp-deferred)
   :custom

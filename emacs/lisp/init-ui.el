@@ -30,7 +30,7 @@
 (use-package on
   :ensure (:type github :repo "ajgrf/on.el"))
 
-(use-package ui-defaults
+(use-feature ui-defaults
   :no-require
   :custom
   (inhibit-splash-screen t)
@@ -114,7 +114,7 @@
   (add-hook 'kill-buffer-query-functions #'+scratch-immortal))
 
 
-(use-package functions
+(use-feature functions
   :no-require
   :preface
   (require 'subr-x)
@@ -171,7 +171,7 @@ If LOCAL-PORT is nil, PORT is used as local port."
        (concat " " name))))
   (provide 'functions))
 
-(use-package local-config
+(use-feature local-config
   :no-require
   :preface
   (defgroup local-config ()
@@ -195,7 +195,7 @@ If LOCAL-PORT is nil, PORT is used as local port."
     :group 'local-config)
   (provide 'local-config))
 
-(use-package face-remap
+(use-feature face-remap
   :hook (text-scale-mode . text-scale-adjust-latex-previews)
   :preface
   (defun text-scale-adjust-latex-previews ()
@@ -213,7 +213,7 @@ If LOCAL-PORT is nil, PORT is used as local port."
                 (cdr (overlay-get ov 'display))
                 :scale (+ 1.0 (* 0.25 text-scale-mode-amount)))))))))
 
-(use-package font
+(use-feature font
   :no-require
   :hook (after-init . setup-fonts)
   :preface
@@ -225,7 +225,7 @@ If LOCAL-PORT is nil, PORT is used as local port."
         t
       nil))
   ;; Set reusable font name variables
-  (defvar my/fixed-width-font "JetBrainsMono Nerd"
+  (defvar my/fixed-width-font "JetBrainsMono Nerd Font"
     "The font to use for monospaced (fixed width) text.")
 
   (defvar my/variable-width-font "FiraCode Nerd Font"
@@ -292,7 +292,7 @@ If LOCAL-PORT is nil, PORT is used as local port."
 (defvar gas/toggles-map (make-sparse-keymap)
   "Keymap for toggle commands.")
 
-(use-package frame
+(use-feature frame
   :requires seq
   :bind   ((:map gas/toggles-map
                 ("t" . toggle-transparency)
@@ -339,8 +339,7 @@ If LOCAL-PORT is nil, PORT is used as local port."
   (mapc #'disable-theme custom-enabled-themes)
   (load-theme theme t)))
 
-(use-package menu-bar
-  :ensure nil
+(use-feature menu-bar
   :unless (display-graphic-p)
   :config
   (menu-bar-mode -1))
@@ -416,7 +415,7 @@ If LOCAL-PORT is nil, PORT is used as local port."
 (use-package doom-themes
   :ensure t)
 
-(use-package mouse
+(use-feature mouse
   :bind (("<mode-line> <mouse-2>" . nil)
          ("<mode-line> <mouse-3>" . nil))
   :config
@@ -428,7 +427,7 @@ If LOCAL-PORT is nil, PORT is used as local port."
 
    ))
 
-(use-package mwheel
+(use-feature mwheel
   :bind (("S-<down-mouse-1>" . nil)
          ("S-<mouse-3>" . nil)
          ("<mouse-4>" . mwheel-scroll)
@@ -537,13 +536,13 @@ PROPERTIES is a list of face property-value pairs."
 (with-eval-after-load 'nerd-icons-completion
   (+customize-faces-by-prefix "nerd-icons-" :weight regular))
 
-(use-package pixel-scroll
+(use-feature pixel-scroll
   :when (fboundp #'pixel-scroll-precision-mode)
   :hook (after-init . pixel-scroll-precision-mode)
   :custom
   (scroll-margin 0))
 
-;; (use-package tooltip
+;; (use-feature tooltip
 ;;   :straight nil
 ;;   :when IS-GUI?
 ;;   :custom
@@ -555,21 +554,12 @@ PROPERTIES is a list of face property-value pairs."
 ;;      (border-width . 1)
 ;;      (no-special-glyphs . t))))
 
-;;; windows
-(use-package window
-  ;; :bind
-  ;; ("M-o" . other-window)
-  :config
-  (add-to-list
-   'display-buffer-alist
-   '("\\*Calendar*" (display-buffer-at-bottom)))
-  )
 
 ;; (keymap-global-set "M-o" 'other-window-mru)
 
-(use-package window
+(use-feature window
   :unless (fboundp 'switchy-window-minor-mode)
-  :bind (("M-o" . my/other-window)
+  :bind (("M-o" . my/other-window-mru)
          ("M-O" . my/other-window-prev)
          :map other-window-repeat-map
          ("o" . my/other-window)
@@ -584,6 +574,9 @@ PROPERTIES is a list of face property-value pairs."
             (other-window (* direction (or arg 1)))
           (setq direction (- direction))
           (other-window (* direction (or arg 1)))))))
+  (add-to-list
+   'display-buffer-alist
+   '("\\*Calendar*" (display-buffer-at-bottom)))
   (defun my/other-window-prev (&optional arg all-frames)
     (interactive "p")
     (other-window (if arg (- arg) -1) all-frames))
@@ -651,13 +644,6 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
           (?o delete-other-windows "Delete Other Windows")
           (?? aw-show-dispatch-help))))
 
-
-;; (use-package window
-;;   :config
-;;   (add-to-list 'display-buffer-alist
-;;                '("\\*Calendar*"
-;;                  (display-buffer-at-bottom))))
-
 ;; paste in text terminalform gui
 (when (and (not (display-graphic-p))
            (executable-find "xclip"))
@@ -696,7 +682,7 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
   (global-ligature-mode t))
 
 ;;;;; ligature-for-jetbrain
-(when (font-installed-p "JetBrainsMono")
+(when (font-installed-p "JetBrainsMono Nerd Font")
   (dolist (char/ligature-re
            `((?-  ,(rx (or (or "-->" "-<<" "->>" "-|" "-~" "-<" "->") (+ "-"))))
              (?/  ,(rx (or (or "/==" "/=" "/>" "/**" "/*") (+ "/"))))

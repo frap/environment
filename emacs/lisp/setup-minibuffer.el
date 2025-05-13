@@ -1,10 +1,8 @@
 ;; setup-minibuffer  -*- lexical-binding: t; -*-
 
-
 (use-package common-lisp-modes
-  :ensure (:host github
-	   :repo "andreyorst/common-lisp-modes.el")
-   ;; :delight common-lisp-modes-mode
+  :ensure (:host github :repo "andreyorst/common-lisp-modes.el")
+  :commands common-lisp-modes-mode
   :delight "δ"
   :preface
   (defun indent-sexp-or-fill ()
@@ -18,7 +16,16 @@
           (mark-sexp)
           (indent-region (point) (mark))))))
   :bind ( :map common-lisp-modes-mode-map
-          ("M-q" . indent-sexp-or-fill)))
+          ("M-q" . indent-sexp-or-fill))
+  :config
+  (dolist (hook '(common-lisp-mode-hook
+                clojure-mode-hook
+                cider-repl-mode
+                racket-mode-hook
+                eshell-mode-hook
+                eval-expression-minibuffer-setup-hook))
+  (add-hook hook 'common-lisp-modes-mode)))
+
 
 
 ;; Add unique buffer names in the minibuffer where there are many
@@ -28,33 +35,10 @@
 (require 'uniquify)
 (setq uniquify-buffer-name-style 'forward)
 
-(use-package help
-  :custom
-  (help-window-select t))
 
-(use-package helpful
-  :ensure t
-  :after (avy)
-  ;; :init
-  ;; (setq evil-lookup-func #'helpful-at-point)
-  :bind
-  ([remap describe-function] . helpful-callable)
-  ([remap describe-command] . helpful-command)
-  ([remap describe-variable] . helpful-variable)
-  ([remap describe-key] . helpful-key)
-  :config
-  (defun avy-action-helpful (pt)
-    (save-excursion
-      (goto-char pt)
-      (helpful-at-point))
-    (select-window
-     (cdr (ring-ref avy-ring 0)))
-    t)
-  ;; set H as avy dispatch to Help
-  (setf (alist-get ?H avy-dispatch-alist) 'avy-action-helpful))
-
-(use-package minibuffer
-  :hook (eval-expression-minibuffer-setup . common-lisp-modes-mode)
+(use-feature minibuffer
+  :after common-lisp-modes
+ ;; :hook (eval-expression-minibuffer-setup . common-lisp-modes-mode)
   ;;   :hook (minibuffer-setup .  cursor-intangible-mode)
   :bind ( :map minibuffer-inactive-mode-map
           ("<mouse-1>" . ignore))
@@ -77,43 +61,30 @@
       (unless (or defining-kbd-macro
                   executing-kbd-macro)
         (funcall-interactively quit))))
-    :init
+  :custom
+  ;; Support opening new minibuffers from inside existing minibuffers.
+  (enable-recursive-minibuffers t)
+  ;; TAB cycle if there are only few candidates
+  ;; (completion-cycle-threshold 3)
+
   ;; Enable indentation+completion using the TAB key.
   ;; `completion-at-point' is often bound to M-TAB.
-  ;; should be configured in the `indent' package, but `indent.el'
-  ;; doesn't provide the `indent' feature.
-  (setq tab-always-indent 'complete)
-  ;; Add prompt indicator to `completing-read-multiple'.
-  ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
-  (defun crm-indicator (args)
-    (cons
-     (format "[CRM%s] %s"
-             (replace-regexp-in-string
-              "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" "" crm-separator)
-             (car args))
-     (cdr args)))
-  (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+  (tab-always-indent 'complete)
+
+  ;; Emacs 30 and newer: Disable Ispell completion function.
+  ;; Try `cape-dict' as an alternative.
+  (text-mode-ispell-word-completion nil)
+
+  ;; Hide commands in M-x which do not apply to the current mode.  Corfu
+  ;; commands are hidden, since they are not used via M-x. This setting is
+  ;; useful beyond Corfu/Vertico.
+  (read-extended-command-predicate #'command-completion-default-include-p)
   ;; Do not allow the cursor in the minibuffer prompt
-  (setq minibuffer-prompt-properties
-        '(read-only t cursor-intangible t face minibuffer-prompt))
-  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+  (minibuffer-prompt-properties
+   '(read-only t cursor-intangible t face minibuffer-prompt))
 
-  ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
-  ;; Vertico commands are hidden in normal buffers.
-  (setq read-extended-command-predicate
-        #'command-completion-default-include-p)
-
-  ;; Enable recursive minibuffers
-  (setq enable-recursive-minibuffers t)
-
-  :custom
-  (completion-styles '(partial-completion basic))
-  (read-buffer-completion-ignore-case t)
-  (read-file-name-completion-ignore-case t)
-  :custom-face
-  (completions-first-difference ((t (:inherit unspecified))))
   :config
-  ;; ;; Minibuffer completion
+  ;; Minibuffer completion
   (setq completion-cycle-threshold 2
         completion-flex-nospace nil
         completion-pcm-complete-word-inserts-delimiters nil
@@ -123,78 +94,31 @@
         read-buffer-completion-ignore-case t
         read-file-name-completion-ignore-case t
         completions-format 'vertical    ; *Completions* buffer
-        enable-recursive-minibuffers t
         read-minibuffer-restore-windows t
         read-answer-short t
         resize-mini-windows 'grow-only
-        completion-styles '(partial-completion substring initials)
-        completion-category-overrides ;;'((file (styles basic partial-completion initials)))
-        '((file (styles basic partial-completion initials))
-          (buffer (styles basic flex substring)))
+        ;; completion-styles '(partial-completion substring initials)
+        ;; completion-category-overrides ;;'((file (styles basic partial-completion initials)))
+        ;; '((file (styles basic partial-completion initials))
+        ;;   (buffer (styles basic flex substring)))
         )
   )
 
 
-(use-package which-key
-  :ensure t
-  :defer 10
-  :bind
-  (:map help-map
-        ("h" . which-key-show-major-mode))
-  :hook (after-init . which-key-mode)
-  :init
-  (setq ;;which-key-sort-order #'which-key-description-order
-   which-key-sort-order #'which-key-prefix-then-key-order
-   which-key-idle-delay 0.3
-   which-key-idle-secondary-delay 0.1
-   which-key-sort-uppercase-first nil
-   which-key-add-column-padding 0
-   which-key-max-display-columns nil
-   which-key-min-display-lines 8
-   which-key-side-window-slot -10
-   ;; which-key-show-transient-maps nil
-   )
-  :config
-  ;; (push '(("^[0-9-]\\|kp-[0-9]\\|kp-subtract\\|C-u$" . nil) . ignore)
-  ;;       which-key-replacement-alist)
-  (set-face-attribute 'which-key-local-map-description-face nil :weight 'bold)
-  (which-key-setup-side-window-bottom)
-  ;; (which-key-setup-side-window-right-bottom)
-  (add-hook 'which-key-init-buffer-hook
-            (lambda () (setq-local line-spacing 3)))
-  (setq which-key-replacement-alist
-        '((("<left>") . ("⬅️"))
-          (("<right>") . ("➡️"))
-          (("<up>") . ("⬆️"))
-          (("<down>") . ("⬇️"))
-          (("delete") . ("DEL"))
-          (("\\`DEL\\'") . ("BKSP"))
-          (("RET") . ("⏎"))
-          (("next") . ("PgDn"))
-          (("prior") . ("PgUp"))))
-  (advice-add 'which-key-mode :after
-              (lambda (_arg)
-                (when (featurep 'embark)
-                  (setq prefix-help-command
-                        #'embark-prefix-help-command)))
-              )
-  ;; :delight ""
-  )
 
 ;;; Completion
-
 ;; Cape provides Completion At Point Extensions which can be used in combination with Corfu, Company or the default completion UI.
 (use-package cape
   :ensure t
   :after corfu
   :hook  ((emacs-lisp-mode .  kb/cape-capf-setup-elisp)
-         (lsp-completion-mode . kb/cape-capf-setup-lsp)
-         (org-mode . kb/cape-capf-setup-org)
-         (eshell-mode . kb/cape-capf-setup-eshell)
-         (git-commit-mode . kb/cape-capf-setup-git-commit)
-      ;;   (LaTeX-mode . kb/cape-capf-setup-latex)
-      ;;   (sh-mode . kb/cape-capf-setup-sh)
-         )
+          (lsp-completion-mode . kb/cape-capf-setup-lsp)
+          (org-mode . kb/cape-capf-setup-org)
+          (eshell-mode . kb/cape-capf-setup-eshell)
+          (git-commit-mode . kb/cape-capf-setup-git-commit)
+          ;;   (LaTeX-mode . kb/cape-capf-setup-latex)
+          (sh-mode . kb/cape-capf-setup-eshell)
+          )
   :bind (("C-c p p" . completion-at-point) ;; capf
          ("C-c p t" . complete-tag)        ;; etags
          ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
@@ -233,7 +157,6 @@ Additionally, add `cape-file' as early as possible to the list."
     ;; I prefer this being early/first in the list
     (add-to-list 'completion-at-point-functions #'cape-file)
     (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-    (require 'company-yasnippet)
     (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-yasnippet)))
 
   ;; LSP
@@ -260,11 +183,11 @@ Additionally, add `cape-file' as early as possible to the list."
     (let ((result))
       (dolist (element '(cape-symbol cape-dabbrev) result)
         (add-to-list 'completion-at-point-functions element))))
-  ;; ;; Sh
-;; (defun kb/cape-capf-setup-sh ()
-;;   (require 'company-shell)
-;;   (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-shell)))
-:config
+  ;; sh
+  ;; (defun kb/cape-capf-setup-sh ()
+  ;;   (require 'company-shell)
+  ;;   (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-shell)))
+  :config
   ;; For pcomplete. For now these two advices are strongly recommended to
   ;; achieve a sane Eshell experience. See
   ;; https://github.com/minad/corfu#completing-with-corfu-in-the-shell-or-eshell
@@ -275,85 +198,45 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; `completion-at-point-function'.
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
 
-(defun my/tab-dwim ()
-  "Intelligent Tab:
-- Accept Copilot if active.
-- Expand Yasnippet if possible.
-- Complete with Corfu if completion active.
-- Otherwise, indent."
-  (interactive)
-  (cond
-   ;; 🧠 Copilot
-   ((and (bound-and-true-p copilot-mode)
-         (fboundp 'copilot--overlay-visible)
-         (copilot--overlay-visible))
-    (copilot-accept-completion))
-
-   ;; 📜 Yasnippet
-   ((and (bound-and-true-p yas-minor-mode)
-         (yas-expand)))
-
-   ;; 🤖 Corfu Completion
-   ((and (bound-and-true-p corfu-mode)
-         (or (corfu--active-p)
-             (looking-at "\\_>")))
-    (corfu-complete))
-
-   ;; 🔧 Default indent
-   (t
-    (indent-for-tab-command))))
-
 (use-package corfu
-  :ensure t
-  :bind (:map corfu-map
-          ("TAB" . my/tab-dwim)
-          ("<tab>" . my/tab-dwim)
-          ("S-TAB" . corfu-previous)
-          ([backtab] . corfu-previous)
-          ([remap completion-at-point] . corfu-complete)
-          ("RET" . corfu-complete-and-quit)
-          ("<return>" . corfu-complete-and-quit))
-  :commands (corfu-quit)
+  ;; Optional customizations
   :custom
-  (corfu-cycle t)
-  (corfu-preselect-first t)
-  (corfu-scroll-margin 4)
-  (corfu-quit-no-match t)
-  (corfu-quit-at-boundary t)
-  (corfu-max-width 100)
-  (corfu-min-width 42)
-  (corfu-count 9)
-  ;; should be configured in the `indent' package, but `indent.el'
-  ;; doesn't provide the `indent' feature.
-  (tab-always-indent 'complete)
-  :config
-  (setq corfu-auto t
-        corfu-auto-delay 0.2
-        corfu-auto-prefix 2)
-  (defun corfu-complete-and-quit ()
-    (interactive)
-    (corfu-complete)
-    (corfu-quit))
+  (corfu-cycle t) ;; Enable cycling for `corfu-next/previous'
+  ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
+  ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
+  ;; (corfu-preview-current nil)    ;; Disable current candidate preview
+  ;; (corfu-preselect 'prompt)      ;; Preselect the prompt
+  ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
 
-  (global-corfu-mode))
+  ;; Enable Corfu only for certain modes. See also `global-corfu-modes'.
+  :hook ((prog-mode . corfu-mode)
+         (shell-mode . corfu-mode)
+         (eshell-mode . corfu-mode))
+  :bind ((:map corfu-map
+               ("TAB" . my/tab-dwim)
+               ("<tab>" . my/tab-dwim)
+               ("S-TAB" . corfu-previous)
+               ([backtab] . corfu-previous)
+               ([remap completion-at-point] . corfu-complete)
+               ("RET" . corfu-complete-and-quit)
+               ("<return>" . corfu-complete-and-quit)))
 
-(use-package corfu-history
-  :after corfu
-  :hook (corfu-mode . corfu-history-mode))
+  :init
+  ;; Recommended: Enable Corfu globally.  Recommended since many modes provide
+  ;; Capfs and Dabbrev can be used globally (M-/).  See also the customization
+  ;; variable `global-corfu-modes' to exclude certain modes.
+  (global-corfu-mode)
 
-(use-package corfu-popupinfo
-  :bind ( :map corfu-popupinfo-map
-          ("M-p" . corfu-popupinfo-scroll-down)
-          ("M-n" . corfu-popupinfo-scroll-up))
-  :hook (corfu-mode . corfu-popupinfo-mode)
-  :custom-face
-  (corfu-popupinfo ((t :height 1.0))))
+  ;; Enable optional extension modes:
+  (corfu-history-mode)
+  (corfu-popupinfo-mode)
+  )
 
-(use-package corfu-terminal
-  :ensure t
-  :unless (display-graphic-p)
-  :commands (corfu-terminal-mode)
-  :hook (after-init . corfu-terminal-mode))
+;; corfu-history relies on save-hist
+(use-feature savehist
+  :init
+  (savehist-mode 1))
+
 
 (use-package kind-icon
   :after corfu
@@ -363,30 +246,9 @@ Additionally, add `cape-file' as early as possible to the list."
   :config
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
-;; (use-package nerd-icons-corfu
-;;   :ensure t
-;;   :config
-;;   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)
-;;   ;; Optionally:
-;;   (setq nerd-icons-corfu-mapping
-;;         '((array :style "cod" :icon "symbol_array" :face font-lock-type-face)
-;;           (boolean :style "cod" :icon "symbol_boolean" :face font-lock-builtin-face)
-;;           ;; ...
-;;           (t :style "cod" :icon "code" :face font-lock-warning-face)))
-;;   ;; Remember to add an entry for `t', the library uses that as default.
-;;   ;; The Custom interface is also supported for tuning the variable above.
-;; )
-
-;; Use dabbrev with Corfu!
-(use-package dabbrev
-  ;; Swap M-/ and C-M-/
-  :bind (("M-/" . dabbrev-completion)
-         ("C-M-/" . dabbrev-expand)))
-
-
+;; offers context-sensitive actions for minibuffer completions
 (use-package embark
   :after avy
-  :ensure t
   :bind
   (;;("C-c a" . embark-act)
    ("C-." . embark-act)                 ; pick some comfortable binding
@@ -413,89 +275,227 @@ Additionally, add `cape-file' as early as possible to the list."
    ;; auto-updating embark collect buffer
    :hook (embark-collect-mode . consult-preview-at-point-mode))
 
+;; adds annotations (file sizes, buffer modes) to minibuffer compeltions
 (use-package marginalia
-  :ensure t
   ;; Either bind `marginalia-cycle` globally or only in the minibuffer
-    :bind (("M-A" . marginalia-cycle)
+  :bind (
+         ;; ("M-A" . marginalia-cycle)
          :map minibuffer-local-map
-         ("M-A" . marginalia-cycle))
-    :init
+         ("M-A" . marginalia-cycle)
+         )
+  :init
   (marginalia-mode)
   :config
   (setq marginalia-annotators
         '(marginalia-annotators-heavy marginalia-annotators-light))
   )
 
-
+;; Enables flexible, out-of-order matching for completion candidates.
 (use-package orderless
-  :ensure t
-  :init
-  ;; Configure a custom style dispatcher (see the Consult wiki, orderless readme)
+  :custom
+  ;; Configure a custom style dispatcher (see the Consult wiki)
+  ;; (orderless-style-dispatchers '(+orderless-consult-dispatch orderless-affix-dispatch))
+  ;; (orderless-component-separator #'orderless-escapable-split-on-space)
+  (orderless-matching-styles '(orderless-literal orderless-regexp orderless-flex))
+  (completion-styles '(orderless basic))
+  (completion-category-defaults nil)
+  (completion-category-overrides '((file (styles partial-completion)))))
 
-  ;; Add style dispatcher that removes entries if pattern starts or ends with !
-  (defun orderless-without-if-bang (pattern _index _total)
-    (cond
-     ((equal "!" pattern)
-      '(orderless-literal . ""))
-     ((string-suffix-p "!" pattern)
-      `(orderless-without-literal . ,(substring pattern 0 -1)))
-     ((string-prefix-p "!" pattern)
-      `(orderless-without-literal . ,(substring pattern 1)))))
+;; (use-package orderless
+;;   :init
+;;   ;; Configure a custom style dispatcher (see the Consult wiki, orderless readme)
 
-  (setq orderless-style-dispatchers '(orderless-without-if-bang))
+;;   ;; Add style dispatcher that removes entries if pattern starts or ends with !
+;;   (defun orderless-without-if-bang (pattern _index _total)
+;;     (cond
+;;      ((equal "!" pattern)
+;;       '(orderless-literal . ""))
+;;      ((string-suffix-p "!" pattern)
+;;       `(orderless-without-literal . ,(substring pattern 0 -1)))
+;;      ((string-prefix-p "!" pattern)
+;;       `(orderless-without-literal . ,(substring pattern 1)))))
 
-  ;; Make space separator escapable with backslash
-  ;; (setq orderless-component-separator #'orderless-escapable-split-on-space)
+;;   (setq orderless-style-dispatchers '(orderless-without-if-bang))
 
-  (setq completion-styles '(orderless basic)
-      completion-category-defaults nil ;; enable for all categories
-      completion-category-overrides '((file (styles partial-completion))))
+;;   ;; Make space separator escapable with backslash
+;;   ;; (setq orderless-component-separator #'orderless-escapable-split-on-space)
 
-;; (setq completion-styles '(orderless basic)
-;;       completion-category-defaults '((cider (styles basic))) ;; https://github.com/clojure-emacs/cider/pull/3226
-;;       completion-category-overrides '((file (styles basic partial-completion))))
+;;   (setq completion-styles '(orderless basic)
+;;       completion-category-defaults nil ;; enable for all categories
+;;       completion-category-overrides '((file (styles partial-completion))))
 
-)
+;; ;; (setq completion-styles '(orderless basic)
+;; ;;       completion-category-defaults '((cider (styles basic))) ;; https://github.com/clojure-emacs/cider/pull/3226
+;; ;;       completion-category-overrides '((file (styles basic partial-completion))))
+
+;; )
 
 
-;; VERTical Interactive COmpletion
+;; VERTical Interactive COmpletion for minibuffer
 (use-package vertico
-  :ensure t
+ :ensure (vertico :files (:defaults "extensions/*")
+                  :includes (vertico-indexed
+                             vertico-flat
+                             vertico-grid
+                             vertico-mouse
+                             vertico-quick
+                             vertico-buffer
+                             vertico-repeat
+                             vertico-reverse
+                             vertico-directory
+                             vertico-multiform
+                             vertico-unobtrusive
+                             ))
+ :bind (:map vertico-map
+             ("<tab>" . vertico-insert ) ; Insert selected candidate into text area
+             ("M-TAB" . minibuffer-complete)
+             ("<escape>" . minibuffer-keyboard-quit ) ; Close minibuffer
+             ;; NOTE 2022-02-05: Cycle through candidate groups
+             ("C-M-n" . vertico-next-group )
+             ("C-M-p" . vertico-previous-group)
+             ("M-RET" . vertico-exit-input)
+             ;; Toggle Vertico multiforms in active minibuffer
+             ("C-'"           . vertico-quick-exit)
+             ("C-i"         . vertico-quick-insert)
+             ("M-G" . vertico-multiform-grid)
+             ("M-F" . vertico-multiform-flat)
+             ("M-R" . vertico-multiform-reverse)
+             ("M-U" . vertico-multiform-unobtrusive)
+             ;;         ("<return>"      . exit-minibuffer)
+             ("C-m"           . vertico-insert)
+             ("C-c SPC"       . vertico-quick-exit)
+             ;;         ("C-<backspace>" . vertico)
+             ("RET" . vertico-directory-enter)
+             ("DEL" . vertico-directory-delete-char)
+             ("M-DEL" . vertico-directory-delete-word) ;
+             )
+   :custom
+  (vertico-count 10)                    ; Number of candidates to display
+  (vertico-resize t)
+  (vertico-cycle nil) ; Go from last to first candidate and first to last (cycle)?
+  (vertico-grid-separator "       ")
+  (vertico-grid-lookahead 50)
+  (vertico-buffer-display-action '(display-buffer-reuse-window)) ; Default
+  (vertico-multiform-categories                                  ; Choose a multiform
+   '((file reverse)
+     (consult-grep buffer)
+     (consult-location)
+     (imenu buffer)
+     (library reverse indexed)
+     ;;    (org-roam-node reverse indexed)
+     (t reverse)
+     ))
+  (vertico-multiform-commands
+   '(("flyspell-correct-*" grid reverse)
+     (org-refile grid reverse indexed)
+     (consult-yank-pop indexed)
+     (consult-flycheck)
+     (consult-lsp-diagnostics)
+     ))
+  :hook ((rfn-eshadow-update-overlay . vertico-directory-tidy) ; Clean up file path when typing
+         (minibuffer-setup . vertico-repeat-save) ; Make sure vertico state is saved
+         )
+
+    :init
+  (defun kb/vertico-multiform-flat-toggle ()
+    "Toggle between flat and reverse."
+    (interactive)
+    (vertico-multiform--display-toggle 'vertico-flat-mode)
+    (if vertico-flat-mode
+        (vertico-multiform--temporary-mode 'vertico-reverse-mode -1)
+      (vertico-multiform--temporary-mode 'vertico-reverse-mode 1)))
+  (defun kb/vertico-quick-embark (&optional arg)
+    "Embark on candidate using quick keys."
+    (interactive)
+    (when (vertico-quick-jump)
+      (embark-act arg)))
+
+  ;; Workaround for problem with `tramp' hostname completions. This overrides
+  ;; the completion style specifically for remote files! See
+  ;; https://github.com/minad/vertico#tramp-hostname-completion
+  (defun kb/basic-remote-try-completion (string table pred point)
+    (and (vertico--remote-p string)
+         (completion-basic-try-completion string table pred point)))
+  (defun kb/basic-remote-all-completions (string table pred point)
+    (and (vertico--remote-p string)
+         (completion-basic-all-completions string table pred point)))
+  (add-to-list 'completion-styles-alist
+               '(basic-remote           ; Name of `completion-style'
+                 kb/basic-remote-try-completion kb/basic-remote-all-completions nil))
   :config
   (vertico-mode)
-
+  ;; Extensions
+  (vertico-multiform-mode)
+  ;; Prefix the current candidate with “» ”. From
+  ;; https://github.com/minad/vertico/wiki#prefix-current-candidate-with-arrow
+  (advice-add #'vertico--format-candidate
+              :around
+              (lambda (orig cand prefix suffix index _start)
+                (setq cand (funcall orig cand prefix suffix index _start))
+                (concat
+                 (if (= vertico--index index)
+                     (propertize "» " 'face 'vertico-current)
+                   "  ")
+                 cand)))
+  ;; Prompt indicator for `completing-read-multiple'.
+  (when (< emacs-major-version 31)
+    (advice-add #'completing-read-multiple :filter-args
+                (lambda (args)
+                  (cons (format "[CRM%s] %s"
+                                (string-replace "[ \t]*" "" crm-separator)
+                                (car args))
+                        (cdr args)))))
   )
 
-(use-package vertico-buffer
-  :after vertico
-  :config
-  (setq vertico-buffer-display-action '(display-buffer-below-selected
-                                        (window-height . ,(+ 3 vertico-count))))
-  (vertico-buffer-mode))
+;; (use-package vertico-directory
+;;   :after vertico
+;;   :ensure nil
+;;   ;; More convenient directory navigation commands
+;;   :bind (:map vertico-map
+;;               ("RET" . vertico-directory-enter)
+;;               ("DEL" . vertico-directory-delete-char)
+;;               ("M-DEL" . vertico-directory-delete-word))
+;;   ;; Tidy shadowed file names
+;;   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
-(use-package vertico-multiform
-  :after vertico
-  :config
-  (setq vertico-multiform-commands
-        '((consult-line buffer)
-          (consult-buffer buffer)
-          (consult-org-heading buffer)
-          (consult-imenu buffer)
-          (consult-project-buffer buffer)
-          (consult-project-extra-find buffer)))
+;; (use-package vertico-buffer
+;;   :after vertico
+;;   :ensure nil
+;;   :config
+;;   (setq vertico-buffer-display-action '(display-buffer-below-selected
+;;                                         (window-height . ,(+ 3 vertico-count))))
+;;   (vertico-buffer-mode))
 
-  ;; (add-to-list 'vertico-multiform-categories
-  ;;              '(jinx grid (vertico-grid-annotate . 35)))
+;; (use-package vertico-multiform
+;;   :after vertico
+;;   :ensure nil
+;;   :config
+;;   (setq vertico-multiform-commands
+;;         '((consult-line buffer)
+;;           (consult-buffer buffer)
+;;           (consult-org-heading buffer)
+;;           (consult-imenu buffer)
+;;           (consult-project-buffer buffer)
+;;           (consult-project-extra-find buffer)))
 
-  (vertico-multiform-mode))
+;;   ;; (add-to-list 'vertico-multiform-categories
+;;   ;;              '(jinx grid (vertico-grid-annotate . 35)))
 
-(use-package vertico-repeat
-  :after vertico
-  :hook (minibuffer-setup . vertico-repeat-save)
-  :bind ("M-r" . vertico-repeat))
+;;   (vertico-multiform-mode))
+
+;; (use-package vertico-repeat
+;;   :after vertico
+;;   :hook (minibuffer-setup . vertico-repeat-save)
+;;   :bind ("M-r" . vertico-repeat))
+
+;; Enhanced search and navigation commands
+;; (use-package consult
+;;   :ensure t
+;;   :bind
+;;   (("C-s" . consult-line)
+;;    ("C-M-l" . consult-imenu)))
 
 (use-package consult
-  :ensure t
   :commands (consult-completion-in-region)
   :preface
   (defvar consult-prefix-map (make-sparse-keymap))
@@ -520,7 +520,6 @@ Additionally, add `cape-file' as early as possible to the list."
    ("C-c m"   . consult-man)
    ;; ("C-c m" . consult-mode-command)
    ("C-c i"   . consult-info)
-   ([remap Info-search] . consult-info)
    ("C-c r"   . consult-ripgrep)
    ;; C-x bindings in `ctl-x-map'
    ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
@@ -560,23 +559,6 @@ Additionally, add `cape-file' as early as possible to the list."
    ;; Isearch integration
    ("C-s" . consult-line)
    ("M-s e" . consult-isearch-history)
-
-   ;; Remappings
-
-   ;; ([remap switch-to-buffer] . consult-buffer)
-   ;; ([remap imenu] 'consult-imenu)
-   ;; ([remap switch-to-buffer-other-window] . consult-buffer-other-window)
-   ;; ([remap switch-to-buffer-other-frame] . consult-buffer-other-frame)
-   ;; ([remap project-switch-to-buffer] . consult-project-buffer)
-   ;; ([remap bookmark-jump] . consult-bookmark)
-   ;; ([remap recentf-open] . consult-recent-file)
-   ;; ([remap yank] . nil)
-   ;; ([remap yank-pop] . consult-yank-pop)
-   ;; ([remap goto-line] . consult-goto-line)
-   ;;   ([remap repeat-complex-command] . consult-complex-command)
-   ;;   ([remap isearch-edit-string] . consult-isearch-history)
-   ;;   ([remap next-matching-history-element] . consult-history)
-   ;;   ([remap previous-matching-history-element] . consult-history)
 
    :map isearch-mode-map
    ("M-e" . consult-isearch-history)   ;; orig. isearch-edit-string
@@ -627,6 +609,23 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; Configure other variables and modes in the :config section,
   ;; after lazily loading the package.
   :config
+  ;; Remap existing commands
+  (define-key global-map [remap switch-to-buffer] #'consult-buffer)
+  (define-key global-map [remap imenu] #'consult-imenu)
+  (define-key global-map [remap switch-to-buffer-other-window] #'consult-buffer-other-window)
+  (define-key global-map [remap switch-to-buffer-other-frame] #'consult-buffer-other-frame)
+  (define-key global-map [remap project-switch-to-buffer] #'consult-project-buffer)
+  (define-key global-map [remap bookmark-jump] #'consult-bookmark)
+  (define-key global-map [remap recentf-open] #'consult-recent-file)
+  (define-key global-map [remap yank] nil)
+  (define-key global-map [remap yank-pop] #'consult-yank-pop)
+  (define-key global-map [remap goto-line] #'consult-goto-line)
+  (define-key global-map [remap repeat-complex-command] #'consult-complex-command)
+  (define-key global-map [remap isearch-edit-string] #'consult-isearch-history)
+  (define-key global-map [remap next-matching-history-element] #'consult-history)
+  (define-key global-map [remap previous-matching-history-element] #'consult-history)
+  (define-key global-map [remap Info-search] #'consult-info)
+
   (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)
   ;; Optionally configure preview. The default value
   ;; is 'any, such that any key triggers the preview.
@@ -711,12 +710,12 @@ Additionally, add `cape-file' as early as possible to the list."
               ("C-c l i" . consult-lsp-implementation)))
 
 ;;Insert paths into the minibuffer prompt in Emacs
-(use-package consult-dir
-  :ensure t
-  :bind (("C-x C-d" . consult-dir)
-         :map minibuffer-local-completion-map ;; vertico-map
-         ("C-x C-d" . consult-dir)
-         ("C-x C-j" . consult-dir-jump-file)))
+;; (use-package consult-dir
+;;   :ensure t
+;;   :bind (("C-x C-d" . consult-dir)
+;;          :map minibuffer-local-completion-map ;; vertico-map
+;;          ("C-x C-d" . consult-dir)
+;;          ("C-x C-j" . consult-dir-jump-file)))
 
 
 (use-package wgrep
@@ -726,17 +725,18 @@ Additionally, add `cape-file' as early as possible to the list."
   (wgrep-auto-save-buffer t))
 
 (use-package yasnippet
-  :ensure t
+  :defer t
   :delight yas-minor-mode
   :commands (yas-minor-mode)
   :hook ((prog-mode text-mode conf-mode snippet-mode) . yas-minor-mode)
-  :bind (:map yas-minor-mode-map
-              ("TAB" . nil)    ;; Don't steal normal TAB
-              ("<tab>" . nil)
-              ("C-<tab>" . yas-expand)) ;; Manual expansion
+  ;; :bind (:map yas-minor-mode-map
+  ;;             ("TAB" . nil)    ;; Don't steal normal TAB
+  ;;             ("<tab>" . nil)
+  ;;             ("C-<tab>" . yas-expand)) ;; Manual expansion
   :config
   (yas-reload-all)
-  (setq yas-prompt-functions (delq #'yas-dropdown-prompt yas-prompt-functions))
+  (setq yas-prompt-functions
+        (delq #'yas-dropdown-prompt yas-prompt-functions))
    (defun +yas/org-last-src-lang ()
     "Return the language of the last src-block, if it exists."
     (save-excursion
@@ -745,22 +745,59 @@ Additionally, add `cape-file' as early as possible to the list."
         (org-element-property :language (org-element-context))))))
 
 (use-package yasnippet-capf
-  :ensure t
+  :defer t
   :after (yasnippet cape)
   ;;:init
   ;; (setq yasnippet-capf-lookup-by 'key) ;; key or name
   :config
   (add-to-list 'completion-at-point-functions #'yasnippet-capf)
-  (advice-add 'yas-expand :after (lambda () (corfu-quit))))
+  ;; (advice-add 'yas-expand :after (lambda () (corfu-quit)))
+  )
 
 (use-package yasnippet-classic-snippets
-  :ensure t
+  :defer t
   :after yasnippet)
 
-(use-package consult-yasnippet
-  :ensure t
-  :after (consult yasnippet)
-  :bind ("M-Y" . consult-yasnippet))
+;; (use-package consult-yasnippet
+;;   :ensure t
+;;   :after (consult yasnippet)
+;;   :bind ("M-Y" . consult-yasnippet))
+
+;; 🧠 Copilot
+(defun my/copilot-accept ()
+  (when (and (bound-and-true-p copilot-mode)
+             (fboundp 'copilot--overlay-visible)
+             (copilot--overlay-visible))
+    (copilot-accept-completion)
+    t))
+
+;; 📜 Yasnippet
+(defun my/yas-expand ()
+  (when (and (bound-and-true-p yas-minor-mode)
+             (yas-expand))
+    t))
+
+;; 🤖 Corfu Completion
+(defun my/corfu-complete ()
+  (when (and (bound-and-true-p corfu-mode)
+             (or (corfu--active-p)
+                 (looking-at "\\_>")))
+    (corfu-complete)
+    t))
+
+(defun my/tab-dwim ()
+  "Intelligent Tab:
+- Accept Copilot if active.
+- Expand Yasnippet if possible.
+- Complete with Corfu if completion active.
+- Otherwise, indent."
+  (interactive)
+  (or (my/copilot-accept)
+      (my/yas-expand)
+      (my/corfu-complete)
+      ;; 🔧 Default indent
+      (indent-for-tab-command)))
+
 
 ;; Make yasnippet the first capf (important if you have many)
 (defun my/move-yas-capf-first ()

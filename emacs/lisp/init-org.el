@@ -1,9 +1,9 @@
 ;;; lisp/init-org.el --- Emacs Org-mode -*- lexical-binding: t -*-
 ;;; Org
 
-(use-package org
-   :delight (org-mode "🦄" :major)
-   :hook ((org-babel-after-execute . org-redisplay-inline-images))
+(use-feature org
+  :delight (org-mode "🦄" :major)
+  :hook ((org-babel-after-execute . org-redisplay-inline-images))
   :bind ( :map org-mode-map
           ("C-c c" . org-capture)
           ("C-c a" . org-agenda)
@@ -253,7 +253,7 @@ ARG is taken as a number."
                 (prettify-symbols-mode)))
   )
 
-  (use-package org-capture
+  (use-feature org-capture
   ;; :bind ( :map mode-specific-map
   ;;         ("o c" . org-capture))
   :config
@@ -315,7 +315,7 @@ ARG is taken as a number."
   :config
   (setq graphviz-dot-indent-width 4))
 
-(use-package ob-shell
+(use-feature ob-shell
   :after org)
 
 ;; (use-package org-modern

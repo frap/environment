@@ -1,6 +1,6 @@
 ;;; lisp/init-editor.el --- Emacs Editor -*- lexical-binding: t -*-
 
-(use-package defaults
+(use-feature defaults
   :preface
   (setq
    ;; my source directory
@@ -102,13 +102,13 @@
 ;; (when (file-exists-p custom-file)
 ;;   (load custom-file 'noerror 'nomessage))
 
-(use-package autorevert
+(use-feature autorevert
   :hook (after-init . global-auto-revert-mode))
 
 ;; DWIM case
 ;; These do-what-I-mean bindings are newer than the classic
 ;; keybindings, but a better default.
-(use-package emacs
+(use-feature emacs
   :bind
   ([remap capitalize-word] . capitalize-dwim)
   ([remap downcase-word] . downcase-dwim)
@@ -261,13 +261,6 @@
   (setq avy-all-windows t))
 (global-set-key (kbd "M-j") 'avy-goto-char-timer)
 
-(use-package bindings
-  :bind (:map ctl-x-map
-          ("DEL" . nil)
-          ("C-d" . dired-jump))
-  :init
-  (setq mode-line-end-spaces nil))
-
 (global-set-key "\M-1" 'delete-other-windows)
 
 (use-package breadcrumb
@@ -278,26 +271,26 @@
   (breadcrumb-imenu-crumbs)
   (breadcrumb-mode))
 
-(use-package bookmark
+(use-feature bookmark
   :config
-  (setq bookmark-default-file (dir-concat user-cache-directory "bookmarks")))
+  (setq bookmark-default-file (file-name-concat user-cache-directory "bookmarks")))
 
-(use-package browse-url
+(use-feature browse-url
   :when (fboundp 'xwidget-webkit-browse-url)
   :custom (browse-url-browser-function #'xwidget-webkit-browse-url))
 
-(use-package dabbrev
-  :commands (dabbrev-expand dabbrev-completion)
+;; Use Dabbrev with Corfu!
+(use-feature dabbrev
+  ;; Swap M-/ and C-M-/
+  :bind (("M-/" . dabbrev-completion)
+         ("C-M-/" . dabbrev-expand))
   :config
-  (setq dabbrev-abbrev-char-regexp "\\sw\\|\\s_")
-  (setq dabbrev-abbrev-skip-leading-regexp "\\$\\|\\*\\|/\\|=")
-  (setq dabbrev-backward-only nil)
-  (setq dabbrev-case-distinction nil)
-  (setq dabbrev-case-fold-search t)
-  (setq dabbrev-case-replace nil)
-  (setq dabbrev-check-other-buffers t)
-  (setq dabbrev-eliminate-newlines nil)
-  (setq dabbrev-upcase-means-case-search t))
+  (add-to-list 'dabbrev-ignored-buffer-regexps "\\` ")
+  ;; Available since Emacs 29 (Use `dabbrev-ignored-buffer-regexps' on older Emacs)
+  (add-to-list 'dabbrev-ignored-buffer-modes 'authinfo-mode)
+  (add-to-list 'dabbrev-ignored-buffer-modes 'doc-view-mode)
+  (add-to-list 'dabbrev-ignored-buffer-modes 'pdf-view-mode)
+  (add-to-list 'dabbrev-ignored-buffer-modes 'tags-table-mode))
 
 ;; Supercharge the way hippie-expand behaves, expand as little as
 ;; possible
@@ -317,12 +310,12 @@
 
 ;;  delete-auto-save-files t           ; deletes buffer's auto save file when it is saved or killed with no changes in it
 
-(use-package doc-view
+(use-feature doc-view
   :defer t
   :custom
   (doc-view-resolution 192))
 
-(use-package flyspell
+(use-feature flyspell
   :when (or (executable-find "ispell")
             (executable-find "aspell")
             (executable-find "hunspell"))
@@ -340,7 +333,7 @@
    ("$" . jinx-mode)))
 
 
-(use-package outline
+(use-feature outline
   :hook (common-lisp-modes-mode . lisp-outline-minor-mode)
   :delight outline-minor-mode
   :custom
@@ -377,7 +370,7 @@
 (setq-default indent-tabs-mode nil)
 
 ;;; Searching
-(use-package isearch
+(use-feature isearch
   :bind ( :map isearch-mode-map
           ("<backspace>" . isearch-del-char)
           ("<left>" . isearch-edit-string)
@@ -398,6 +391,53 @@
 ;;   :ensure t
 ;;   :hook (gnus-part-display . message-view-patch-highlight))
 
+;;; Region
+ (use-package region-bindings
+   :ensure (:host gitlab :repo "andreyorst/region-bindings.el")
+   :delight " 🇦"
+   :preface
+   (defun region-bindings-off ()
+     (region-bindings-mode -1))
+   :hook ((after-init . global-region-bindings-mode)
+          ((elfeed-search-mode magit-mode mu4e-headers-mode)
+           . region-bindings-off)))
+
+(use-package expand-region
+  :ensure t
+  :bind ("M-2" . er/expand-region))
+
+(use-feature page
+  :bind (;; I often input C-x C-p instead of C-x p followed by project
+         ;; key, deleting contents of whole buffer as a result.
+         ("C-x C-p" . nil)
+         :map narrow-map
+         ("]" . narrow-forward-page)
+         ("[" . narrow-backward-page))
+  :preface
+  (defun narrow-forward-page (&optional count)
+    (interactive "p")
+    (or count (setq count 1))
+    (widen)
+    (forward-page count)
+    (narrow-to-page))
+  (defun narrow-backward-page (&optional count)
+    (interactive "p")
+    (or count (setq count 1))
+    (widen)
+    (forward-page (- (1+ count)))    ; 1+ needed to actually cross page boundary
+    (narrow-to-page)))
+
+(use-feature rect
+  :bind (("C-x r C-y" . rectangle-yank-add-lines))
+  :preface
+  (defun rectangle-yank-add-lines ()
+    (interactive "*")
+    (when (use-region-p)
+      (delete-region (region-beginning) (region-end)))
+    (save-restriction
+      (narrow-to-region (point) (point))
+      (yank-rectangle))))
+
 ;;; Multi Cursor
 
 ;; This is globally useful, so it goes under `C-x', and `m'
@@ -413,12 +453,14 @@
   :preface
   (defvar gas/mc-map (make-sparse-keymap))
   (fset 'gas/mc-map gas/mc-map)
+  :commands (mc/edit-lines
+             mc/mark-all-like-this
+             mc/mark-next-like-this
+             mc/mark-previous-like-this)
   :bind
-  (("M-<mouse-1>" . mc/add-cursor-on-click)
+  (;; Remember `er/expand-region' is bound to M-2!
    ("C->" .  mc/mark-next-like-this)
-      ;; Remember `er/expand-region' is bound to M-2!
    ("M-3" . mc/mark-next-like-this)
-   ("s-d" . mc/mark-next-like-this)
    ("M-#" . mc/unmark-next-like-this)
    ("C-<" .  mc/mark-previous-like-this)
    ("M-4" .  mc/mark-previous-like-this)
@@ -426,7 +468,6 @@
 
    ("C-*" .  mc/mark-all-like-this)
    ("C-c m" . mc/mark-all-dwim)
-   ("s-m"   . region-bindings-mode-map)
 
    ("C-M->" . mc/mark-next-symbol-like-this)
    ("C-M-<" . mc/mark-previous-symbol-like-this)
@@ -456,91 +497,142 @@
    ;; ("<down-mouse-1>" . mc/keyboard-quit)
    ;; ("<mouse-1>" . mc/keyboard-quit)
    )
-   :config
+  :config
   (global-unset-key (kbd "M-<down-mouse-1>"))
   (global-set-key (kbd "M-<mouse-1>") 'mc/add-cursor-on-click)
 
-   (with-eval-after-load 'multiple-cursors-core
+  (with-eval-after-load 'multiple-cursors-core
     ;; Immediately load mc list, otherwise it will show as
     ;; changed as empty in my git repo
-     (mc/load-lists)))
+    (mc/load-lists)))
 
-(use-package expand-region
-  :ensure t
-  :bind ("M-2" . er/expand-region))
+;; Editing parentheses
+(use-feature paren
+  :hook (prog-mode . show-paren-mode)
+  :config
+  ;;(show-paren-mode 1)
+  (setq show-paren-delay 0.1
+        show-paren-highlight-openparen t
+        show-paren-when-point-inside-paren t))
 
-(use-package page
-  :bind (;; I often input C-x C-p instead of C-x p followed by project
-         ;; key, deleting contents of whole buffer as a result.
-         ("C-x C-p" . nil)
-         :map narrow-map
-         ("]" . narrow-forward-page)
-         ("[" . narrow-backward-page))
+(defun chee/puni-unwrap-sexp (&optional open close)
+  (interactive)
+  (save-excursion
+    (let* ((bounds (puni-bounds-of-sexp-around-point))
+           (beg (+ (car bounds) 1))
+           (end (- (cdr bounds) 1)))
+      (puni-kill-region beg end)
+      (puni-backward-delete-char)
+      (if open (insert-char open))
+      (yank)
+      (if close (insert-char close)))))
+
+(defun chee/puni-rewrap-sexp nil
+  (interactive)
+  (let ((open (read-char "Opening character? "))
+        (close (read-char "Closing character? ")))
+    (chee/puni-unwrap-sexp open close)))
+
+(use-package puni
+  :defer t
+  :delight " ♾️"
+  :hook (((common-lisp-modes-mode nxml-mode) . puni-mode)
+         (puni-mode . electric-pair-local-mode))
+  :init
+  ; The autoloads of Puni are set up so you can enable `puni-mode` or
+  ;; `puni-global-mode` before `puni` is actually loaded. Only after you press
+  ;; any key that calls Puni commands, it's loaded.
+  (puni-global-mode)
+  (add-hook 'term-mode-hook #'puni-disable-puni-mode)
+  (add-hook 'eshell-mode-hook #'puni-disable-puni-mode)
+  ;; paredit-like keys
+  :bind
+  (("C-b"  . backword-word)
+   ("C-f"  . forward-word)
+   ("M-b"  . puni-backward-sexp-or-up-list)
+   ("M-f"  . puni-forward-sexp-or-up-list)
+   :map region-bindings-mode-map
+    ("(" . puni-wrap-round)
+    ("[" . puni-wrap-square)
+    ("{" . puni-wrap-curly)
+    ("<" . puni-wrap-angle)
+    ;; paredit-like keys
+    :map puni-mode-map
+    ;; ("C-=" . chee/puni-unwrap-sexp)
+    ;; ("C-." . chee/puni-rewrap-sexp)
+    ("C-M-f" . puni-forward-sexp-or-up-list)
+    ("C-M-b" . puni-backward-sexp-or-up-list)
+    ("C-M-t" . puni-transpose)
+    ;; slurping & barfing
+    ("C-<left>" . puni-barf-forward)
+    ("C-}" . puni-barf-forward)
+    ("C-<right>" . puni-slurp-forward)
+    ("C-)" . puni-slurp-forward)
+    ("C-(" . puni-slurp-backward)
+    ("C-M-<left>" . puni-slurp-backward)
+    ("C-{" . puni-barf-backward)
+    ("C-M-<right>" . puni-barf-backward)
+    ("C-(" . puni-slurp-backward)
+    ("M-(" . puni-barf-backward)
+    ("C-)" . puni-slurp-forward)
+    ("M-)" . puni-barf-forward)
+    ;; depth chaining
+    ("M-r" . puni-raise)
+    ("M-s" . puni-splice)
+    ;; ("M-<up>" . puni-splice-killing-backward)
+    ;; ("M-<down>" . puni-splice-killing-forward)
+    ("M-(" . puni-wrap-round)
+    ("M-{" . puni-wrap-curly)
+    ("M-?" . puni-convolute)
+    ("M-S" . puni-split)
+    ;; moving
+    ("M-<up>" . puni-beginning-of-sexp)
+    ("M-<down>" . puni-end-of-sexp))
   :preface
-  (defun narrow-forward-page (&optional count)
-    (interactive "p")
-    (or count (setq count 1))
-    (widen)
-    (forward-page count)
-    (narrow-to-page))
-  (defun narrow-backward-page (&optional count)
-    (interactive "p")
-    (or count (setq count 1))
-    (widen)
-    (forward-page (- (1+ count)))    ; 1+ needed to actually cross page boundary
-    (narrow-to-page)))
+  (define-advice puni-kill-line (:before (&rest _) back-to-indentation)
+    "Go back to indentation before killing the line if it makes sense to."
+    (when (looking-back "^[[:space:]]*" nil)
+      (if (bound-and-true-p indent-line-function)
+          (funcall indent-line-function)
+        (back-to-indentation)))))
 
-(use-package rect
-  :bind (("C-x r C-y" . rectangle-yank-add-lines))
-  :preface
-  (defun rectangle-yank-add-lines ()
-    (interactive "*")
-    (when (use-region-p)
-      (delete-region (region-beginning) (region-end)))
-    (save-restriction
-      (narrow-to-region (point) (point))
-      (yank-rectangle))))
+(use-package puni
+  :when IS-GUI?
+  :ensure nil
+  :bind (:map puni-mode-map
+              ;; doesn't work in terminal
+              ("M-[" . puni-wrap-square)))
 
-(use-package region-bindings
-  :ensure ( :host gitlab
-            :repo "andreyorst/region-bindings.el")
-  :commands (region-bindings-mode)
-  :preface
-  (defun region-bindings-off ()
-    (region-bindings-mode -1))
-  :hook (((elfeed-search-mode magit-mode mu4e-headers-mode)
-          . region-bindings-off))
-  :init (global-region-bindings-mode 1))
-
-(use-package repeat-mode
+(use-feature repeat-mode
   :hook (after-init . repeat-mode))
 
-(use-package select
+(use-feature select
   :when (display-graphic-p)
   :custom
   (x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING)))
 
 ;; This mode saves our place for when we revisit a file.
-(use-package saveplace
+(use-feature saveplace
   :hook (on-first-buffer . save-place-mode))
 
 ;; auto-saving changed files
-(use-package savehist
+(use-feature savehist
   :hook (after-init . savehist-mode))
 
-(use-package super-save
+(use-feature super-save
   :defer 1
   :delight
   :config
   (super-save-mode +1)
   (setq super-save-auto-save-when-idle t))
 
-(use-package simple
+(use-feature simple
   :bind (("M-z" . zap-up-to-char)
          ("M-S-z" . zap-to-char)
          ("C-x k" . kill-current-buffer)
          ("C-h C-f" . describe-face)
-         ([remap undo] . undo-only))
+         ;; ([remap undo] . undo-only)
+         )
   :hook ((before-save . delete-trailing-whitespace)
          (overwrite-mode . overwrite-mode-set-cursor-shape))
   :custom
@@ -598,22 +690,30 @@ are defining or executing a macro."
 ;;       (funcall fn arg)))
   )
 
-;; Fancy undo tree graph (only if needed)
-(use-package vundo
-  :ensure t
-  :bind (("C-c u" . vundo)) ;; <- good place for vundo, not C-z
-  :custom
-  (vundo-roll-back-on-quit nil)
-  (vundo-compact-display t)
-  (vundo--window-max-height 10)
+
+(use-feature undo-tree
   :config
-  (set-face-attribute 'vundo-default nil :family "Symbola")
-  (setq vundo-glyph-alist vundo-unicode-symbols))
+  (global-undo-tree-mode 1)
+  :custom
+  ;; Save undo history to disk automatically
+  (undo-tree-auto-save-history t)
+  (undo-tree-history-directory-alist
+   `((".*" . ,(expand-file-name "undo-tree-history/" user-cache-directory))))
+  :bind
+  (("C-z" . undo-only) ;; simple undo (not whole branches unless you mean to)
+   ("C-S-z" . undo-tree-redo)        ;; redo
+   ("C-x u" . undo-tree-visualize))) ;; visualize tree manually if needed
 
 ;; Undo highlighting
 (use-package undo-hl
   :ensure (:host github :repo "casouri/undo-hl")
   :hook ((prog-mode text-mode org-mode) . undo-hl-mode))
+
+(use-package undo-fu
+  :bind (("C-/" . undo-fu-only-undo)
+         ("C-?" . undo-fu-only-redo)
+         ("C-c u" . undo-fu-only-undo)
+         ("C-c U" . undo-fu-only-redo)))
 
 ;; Save undo across sessions
 (use-package undo-fu-session
@@ -622,19 +722,16 @@ are defining or executing a macro."
   :custom
   (undo-fu-session-directory (expand-file-name "undo-fu-session/" user-cache-directory)))
 
-(use-package undo-tree
-  :ensure t
-  :init
-  (global-undo-tree-mode 1)
+(use-package vundo
+  :bind (("C-x u" . vundo))
   :custom
-  ;; Save undo history to disk automatically
-  (undo-tree-auto-save-history t)
-  (undo-tree-history-directory-alist
-   `((".*" . ,(expand-file-name "undo-tree-history/" user-cache-directory))))
-  :bind
-  (("C-z" . undo-only)          ;; simple undo (not whole branches unless you mean to)
-   ("C-S-z" . undo-tree-redo)    ;; redo
-   ("C-x u" . undo-tree-visualize))) ;; visualize tree manually if needed
+  (vundo-compact-display t)
+  (vundo--window-max-height 10)
+  :config
+  ;; Optional: Use Unicode characters for a prettier tree
+  (setq vundo-glyph-alist vundo-unicode-symbols)
+  ;; Optional: Set a font that supports the Unicode characters
+  (set-face-attribute 'vundo-default nil :family "Symbola"))
 
 ;;(use-package writeroom-mode)
 
@@ -645,7 +742,6 @@ are defining or executing a macro."
 (put 'downcase-region 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
 (put 'narrow-to-defun  'disabled nil)
-
 
 (provide 'init-editor)
 ;;; init-editor.el ends here

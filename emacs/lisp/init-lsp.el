@@ -6,6 +6,7 @@
   :ensure t
   :hook ((python-ts-mode . lsp-deferred))
   :hook ((clojure-mode clojurec-mode clojurescript-mode) . lsp)
+  :hook ((python-mode . lsp-deferred))
   :commands (lsp lsp-deferred)
   :bind (:map lsp-mode-map
               ("M-." . lsp-ui-peek-find-definitions)
@@ -26,6 +27,11 @@
   (lsp-pyright-python-executable-cmd "python")
   :config
   (add-to-list 'lsp-disabled-clients 'pylsp) ;; ensure no conflict
+  (setq lsp-completion-provider :none)
+  (defun corfu-lsp-setup ()
+  (setq-local completion-styles '(orderless)
+              completion-category-defaults nil))
+  (add-hook 'lsp-mode-hook #'corfu-lsp-setup)
   )
 
 (use-package lsp-ui
@@ -44,24 +50,29 @@
   (setq lsp-ui-sideline-enable nil) ;; can be noisy
   )
 
-(use-package lsp-completion
-  :after lsp-mode
-  :hook (lsp-mode . lsp-completion-mode-maybe)
-  :preface
-  (defun lsp-completion-mode-maybe ()
-    "Enable `lsp-completion-mode' only if not inside CIDER."
-    (unless (bound-and-true-p cider-mode)
-      (lsp-completion-mode 1)))
-  :config
-  (defun lsp:setup-completion-for-corfu ()
-  "Tweak lsp-mode completion styles for Corfu+Orderless."
-  (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-        '(orderless)))
+;; (use-package lsp-completion
+;;   :after lsp-mode
+;;   :ensure nil
+;;   :hook (lsp-mode . lsp-completion-mode-maybe)
+;;   :preface
+;;   (defun lsp-completion-mode-maybe ()
+;;     "Enable `lsp-completion-mode' only if not inside CIDER."
+;;     (unless (bound-and-true-p cider-mode)
+;;       (lsp-completion-mode 1)))
+;;   :config
+;;   (defun corfu-lsp-setup ()
+;;   (setq-local completion-styles '(orderless)
+;;               completion-category-defaults nil))
+;;   (defun lsp:setup-completion-for-corfu ()
+;;   "Tweak lsp-mode completion styles for Corfu+Orderless."
+;;   (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+;;         '(orderless)))
 
-(add-hook 'lsp-completion-mode-hook #'lsp:setup-completion-for-corfu))
+;; (add-hook 'lsp-completion-mode-hook #'lsp:setup-completion-for-corfu))
 
 (use-package lsp-clojure
   :after lsp-mode
+  :ensure nil
   :hook (cider-mode . cider-toggle-lsp-completion-maybe)
   :hook ((clojure-mode clojurec-mode clojurescript-mode) . lsp)
   :preface

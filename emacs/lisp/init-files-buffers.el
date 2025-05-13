@@ -16,13 +16,13 @@
 ;; ffap, short for “find file at point,” guesses a default file from
 ;; the point. ffap-bindings rebinds several commands with ffap
 ;; equivalents. aka smarter C-x C-f when point on path or URL
-(use-package ffap
+(use-feature ffap
   :init
   ;; Don't ping things that look like domain names.
   (setq ffap-machine-p-known 'reject)
   :hook (on-first-input . ffap-bindings))
 
-(use-package dired
+(use-feature dired
   :hook (dired-mode . dired-hide-details-mode)
   :custom (dired-listing-switches "-lAXhv --group-directories-first")
   :bind (:map dired-mode-map
@@ -69,9 +69,38 @@
       auto-revert-verbose nil
       auto-revert-interval 1
       delete-by-moving-to-trash t)
-    (setq dired-dwim-target t))
+  (setq dired-dwim-target t))
 
-(use-package files
+(use-package dired-narrow
+  :ensure t
+  :after dired
+  :commands (dired-narrow dired-narrow-fuzzy dired-narrow-regexp)
+  :bind (:map dired-mode-map
+              ("C-c C-n" . dired-narrow)
+              ("C-c C-f" . dired-narrow-fuzzy)
+              ("C-c C-N" . dired-narrow-regexp)))
+
+(use-package dired-subtree
+  :ensure t
+  :after dired
+  :init
+  (defun my/dired-expand-all ()
+    "Expand all subtrees in the dired buffer."
+    (interactive)
+    (let ((has-more t))
+      (while has-more
+        (condition-case ex
+            (progn
+              (dired-next-dirline 1)
+              (dired-subtree-toggle))
+          ('error (setq has-more nil))))))
+  :commands (dired-subtree-toggle dired-subtree-cycle)
+  :bind (:map dired-mode-map
+              ("<tab>" . dired-subtree-toggle)
+              ("S-<tab>" . my/dired-expand-all)
+              ("<backtab>" . dired-subtree-cycle)))
+
+(use-feature files
   :preface
   (setq
    ;; more info in completions
@@ -80,15 +109,15 @@
    read-minibuffer-restore-windows t
    ;; scope save prompts to individual projects
    save-some-buffers-default-predicate 'save-some-buffers-root
-    ;;Emacs is super fond of littering filesystems with backups and autosaves. This was valid in 1980. It is no longer the case
+   ;;Emacs is super fond of littering filesystems with backups and autosaves. This was valid in 1980. It is no longer the case
    make-backup-files nil
    auto-save-default nil
    create-lockfiles nil
    warning-minimum-level :error )
   (setq-default
-   x-select-enable-clipboard t       ; Makes killing/yanking interact with the clipboard.
+   x-select-enable-clipboard t ; Makes killing/yanking interact with the clipboard.
    save-interprogram-paste-before-kill t ; Save clipboard strings into kill ring before replacing them.
-   apropos-do-all t                  ; Shows all options when running apropos
+   apropos-do-all t                     ; Shows all options when running apropos
    message-log-max 1000
    fill-column 80
 
@@ -117,23 +146,12 @@
   (unless (file-exists-p auto-save-dir)
     (make-directory auto-save-dir t))
   (setq auto-revert-interval 0.5
-     ;; Revert buffers like Dired
+        ;; Revert buffers like Dired
         global-auto-revert-non-file-buffers t
         ;; Don't ask when reverting
         auto-revert-verbose nil))
 
-;; Use human readable Size column instead of original one
-(eval-after-load 'ibuffer
-  '(progn
-     (define-ibuffer-column size-h
-       (:name "Size" :inline t)
-       (cond
-        ((> (buffer-size) 1000000) (format "%7.1fM" (/ (buffer-size) 1000000.0)))
-        ((> (buffer-size) 100000) (format "%7.0fk" (/ (buffer-size) 1000.0)))
-        ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
-        (t (format "%8d" (buffer-size)))))))
-
-(use-package ibuffer
+(use-feature ibuffer
   :bind (("C-x C-b" . ibuffer)
          ("M-s b" . my/buffers-major-mode)
          ("M-s v" . my/buffers-vc-root))
@@ -245,6 +263,17 @@
               (ibuffer-switch-to-saved-filter-groups "default")))
   )
 
+;; Use human readable Size column instead of original one
+(eval-after-load 'ibuffer
+  '(progn
+     (define-ibuffer-column size-h
+       (:name "Size" :inline t)
+       (cond
+        ((> (buffer-size) 1000000) (format "%7.1fM" (/ (buffer-size) 1000000.0)))
+        ((> (buffer-size) 100000) (format "%7.0fk" (/ (buffer-size) 1000.0)))
+        ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
+        (t (format "%8d" (buffer-size)))))))
+
 (use-package ibuffer-project
   :ensure t
   :after (ibuffer project)
@@ -259,7 +288,7 @@
           (ibuffer-project-generate-filter-groups))))
 
 ;; Show event history and command history of some or all buffers.
-(use-package command-log-mode
+(use-feature command-log-mode
   :ensure t)
 
 ;; what does scratch do?
@@ -284,11 +313,11 @@
 ;; early, because many of the crumb droppers are configured below!
 (use-package no-littering
   :ensure (:wait t)
-  :init
+  :preface
   (setq no-littering-etc-directory "~/.cache/emacs/etc/"
 	no-littering-var-directory "~/.cache/emacs/var/"))
 
-(use-package recentf
+(use-feature recentf
   :hook (after-init . recentf-mode)
   :defines (recentf-exclude)
   :custom
