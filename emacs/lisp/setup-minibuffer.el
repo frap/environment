@@ -1,7 +1,7 @@
 ;; setup-minibuffer  -*- lexical-binding: t; -*-
 
 (use-package common-lisp-modes
-  :ensure (:host github :repo "andreyorst/common-lisp-modes.el")
+  :elpaca (:host github :repo "andreyorst/common-lisp-modes.el")
   :commands common-lisp-modes-mode
   :delight "δ"
   :preface
@@ -25,8 +25,6 @@
                 eshell-mode-hook
                 eval-expression-minibuffer-setup-hook))
   (add-hook hook 'common-lisp-modes-mode)))
-
-
 
 ;; Add unique buffer names in the minibuffer where there are many
 ;; identical files. This is super useful if you rely on folders for

@@ -21,8 +21,6 @@
   :bind ("M-;" . 'comment-dwim-2)
   :delight)
 
-
-
 ;; (electric-indent-mode nil)  ; Auto indentation.
 
 ;; editorconfig for emacs

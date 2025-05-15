@@ -393,14 +393,18 @@
 
 ;;; Region
  (use-package region-bindings
-   :ensure (:host gitlab :repo "andreyorst/region-bindings.el")
+   :elpaca (:host gitlab :repo "andreyorst/region-bindings.el")
    :delight " 🇦"
    :preface
    (defun region-bindings-off ()
      (region-bindings-mode -1))
-   :hook ((after-init . global-region-bindings-mode)
-          ((elfeed-search-mode magit-mode mu4e-headers-mode)
-           . region-bindings-off)))
+   :hook
+   (after-init . global-region-bindings-mode)
+   (elfeed-search-mode . region-bindings-off)
+   (magit-mode . region-bindings-off)
+   (mu4e-headers-mode . region-bindings-off)
+   :init
+   (add-hook 'region-bindings-mode-hook (lambda () (message "region-bindings-mode active"))))
 
 (use-package expand-region
   :ensure t
@@ -459,14 +463,14 @@
              mc/mark-previous-like-this)
   :bind
   (;; Remember `er/expand-region' is bound to M-2!
-   ("C->" .  mc/mark-next-like-this)
+   ("C->" . mc/mark-next-like-this)
    ("M-3" . mc/mark-next-like-this)
    ("M-#" . mc/unmark-next-like-this)
-   ("C-<" .  mc/mark-previous-like-this)
-   ("M-4" .  mc/mark-previous-like-this)
-   ("M-$" .  mc/unmark-previous-like-this)
+   ("C-<" . mc/mark-previous-like-this)
+   ("M-4" . mc/mark-previous-like-this)
+   ("M-$" . mc/unmark-previous-like-this)
 
-   ("C-*" .  mc/mark-all-like-this)
+   ("C-*" . mc/mark-all-like-this)
    ("C-c m" . mc/mark-all-dwim)
 
    ("C-M->" . mc/mark-next-symbol-like-this)
@@ -534,6 +538,7 @@
     (chee/puni-unwrap-sexp open close)))
 
 (use-package puni
+  :elpaca (:host github :repo "AmaiKinono/puni")
   :defer t
   :delight " ♾️"
   :hook (((common-lisp-modes-mode nxml-mode) . puni-mode)
