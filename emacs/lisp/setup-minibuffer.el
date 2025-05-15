@@ -61,6 +61,7 @@
       (unless (or defining-kbd-macro
                   executing-kbd-macro)
         (funcall-interactively quit))))
+  (setq crm-separator "[ \t]*,[ \t]*")
   :custom
   ;; Support opening new minibuffers from inside existing minibuffers.
   (enable-recursive-minibuffers t)
@@ -103,8 +104,6 @@
         ;;   (buffer (styles basic flex substring)))
         )
   )
-
-
 
 ;;; Completion
 ;; Cape provides Completion At Point Extensions which can be used in combination with Corfu, Company or the default completion UI.
@@ -357,10 +356,10 @@ Additionally, add `cape-file' as early as possible to the list."
              ;; Toggle Vertico multiforms in active minibuffer
              ("C-'"           . vertico-quick-exit)
              ("C-i"         . vertico-quick-insert)
-             ("M-G" . vertico-multiform-grid)
-             ("M-F" . vertico-multiform-flat)
-             ("M-R" . vertico-multiform-reverse)
-             ("M-U" . vertico-multiform-unobtrusive)
+             ;; ("M-G" . vertico-multiform-grid)
+             ;; ("M-F" . vertico-multiform-flat)
+             ;; ("M-R" . vertico-multiform-reverse)
+             ;; ("M-U" . vertico-multiform-unobtrusive)
              ;;         ("<return>"      . exit-minibuffer)
              ("C-m"           . vertico-insert)
              ("C-c SPC"       . vertico-quick-exit)
@@ -425,7 +424,7 @@ Additionally, add `cape-file' as early as possible to the list."
   :config
   (vertico-mode)
   ;; Extensions
-  (vertico-multiform-mode)
+  ;; (vertico-multiform-mode)
   ;; Prefix the current candidate with “» ”. From
   ;; https://github.com/minad/vertico/wiki#prefix-current-candidate-with-arrow
   (advice-add #'vertico--format-candidate

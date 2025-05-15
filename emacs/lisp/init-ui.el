@@ -279,7 +279,7 @@ If LOCAL-PORT is nil, PORT is used as local port."
     (set-face-attribute 'org-document-title nil :font my/variable-width-font :weight 'bold :height 1.3)
 
     ;; Make sure certain org faces use the fixed-pitch face when variable-pitch-mode is on
-    (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+    (set-face-attribute 'org-block nil :foreground "unspecified" :inherit 'fixed-pitch)
     (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
     (set-face-attribute 'org-formula nil :inherit 'fixed-pitch)
     (set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))

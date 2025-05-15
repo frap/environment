@@ -258,7 +258,7 @@
   (cider-allow-jack-in-without-project t)
   (cider-use-fringe-indicators nil)
   (nrepl-log-messages nil)
-  ;; (nrepl-hide-special-buffers t)
+  (nrepl-hide-special-buffers t)
   (cider-enrich-classpath t)
   (cider-repl-history-file (expand-file-name "~/.cache/cider-history"))
   (cider-repl-prompt-function #'cider-repl-prompt-newline)
