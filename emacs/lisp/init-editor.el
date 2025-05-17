@@ -394,7 +394,7 @@
 
 ;;; Region
  (use-package region-bindings
-   :elpaca (:host gitlab :repo "andreyorst/region-bindings.el")
+   :ensure (:host gitlab :repo "andreyorst/region-bindings.el")
    :preface
    (defun region-bindings-off ()
      (region-bindings-mode -1))
