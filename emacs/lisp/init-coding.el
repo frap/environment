@@ -262,7 +262,7 @@
              (common-lisp-modes-mode)
              (clojure-lisp-pretty-symbols)
              (flycheck-mode)
-             (clojure-set-compile-command)))
+             ))
   :config
   (defun clojure-lisp-pretty-symbols ()
     "Prettify common Clojure symbols."
@@ -286,7 +286,17 @@
 (use-package cider
   :ensure t
   :delight "🍏🍺"
-  :hook ((cider-mode cider-repl-mode) . eldoc-mode)
+  :commands cider-find-and-clear-repl-buffer
+  :functions (cider-nrepl-request:eval cider-find-and-clear-repl-output)
+  ;; :hook ((cider-mode cider-repl-mode) . eldoc-mode)
+  :hook (((cider-repl-mode cider-mode) . eldoc-mode)
+         (cider-repl-mode . common-lisp-modes-mode)
+         (cider-popup-buffer-mode . cider-disable-linting))
+  :bind ( :map cider-repl-mode-map
+          ("C-c C-S-o" . cider-repl-clear-buffer)
+          :map cider-mode-map
+          ("C-c C-S-o" . cider-find-and-clear-repl-buffer)
+          ("C-c C-p" . cider-pprint-eval-last-sexp-to-comment))
   :custom
   (cider-repl-display-help-banner nil)
   (cider-allow-jack-in-without-project t)
@@ -301,6 +311,11 @@
   (cider-use-tooltips nil)
   (cider-auto-inspect-after-eval nil)
   (cider-auto-select-error-buffer t)
+  :custom-face
+  (cider-result-overlay-face ((t (:box (:line-width -1 :color "grey50")))))
+  (cider-error-highlight-face ((t (:inherit flymake-error))))
+  (cider-warning-highlight-face ((t (:inherit flymake-warning))))
+  (cider-reader-conditional-face ((t (:inherit font-lock-comment-face))))
   :config
   (defun cider-repl-prompt-newline (namespace)
     (format "%s\n> " namespace))
@@ -334,28 +349,10 @@
                                     (rename-buffer "*babashka-repl*"))))))))
 )
 
-
-;; :commands cider-find-and-clear-repl-buffer
-;; :functions (cider-nrepl-request:eval cider-find-and-clear-repl-output)
-;; :hook (((cider-repl-mode cider-mode) . eldoc-mode)
-;;        (cider-repl-mode . common-lisp-modes-mode)
-;;        (cider-popup-buffer-mode . cider-disable-linting))
-;; :bind ( :map cider-repl-mode-map
-;;         ("C-c C-S-o" . cider-repl-clear-buffer)
-;;         :map cider-mode-map
-;;         ("C-c C-S-o" . cider-find-and-clear-repl-buffer)
-;;         ("C-c C-p" . cider-pprint-eval-last-sexp-to-comment))
-;; :custom-face
-;; (cider-result-overlay-face ((t (:box (:line-width -1 :color "grey50")))))
-;; (cider-error-highlight-face ((t (:inherit flymake-error))))
-;; (cider-warning-highlight-face ((t (:inherit flymake-warning))))
-;; (cider-reader-conditional-face ((t (:inherit font-lock-comment-face))))
-
 (use-package clj-ns-name
   :ensure (:host github :repo "corgi-emacs/clj-ns-name" )
   :config
   (clj-ns-name-install))
-
 
 (use-feature elisp-mode
   :defer t
@@ -469,7 +466,6 @@ buffer with it."
     "Move point to the location of the mouse pointer."
     (mouse-set-point last-input-event)))
 
-
 (use-package jet
   :ensure t
   :config
@@ -554,6 +550,7 @@ created with `json-hs-extra-create-overlays'."
 ;;           (when (and (not (nth 4 (syntax-ppss)))
 ;;                      (looking-back "." 1))
 ;;             (lisp-eval-last-sexp)))))))
+
 (use-feature js
   :mode ("\\.js\\'" . js-ts-mode)
   :hook (js-ts-mode . lsp-deferred)

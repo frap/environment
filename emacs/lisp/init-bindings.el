@@ -36,8 +36,8 @@
 ;; Fix TAB and C-i (only in GUI)
 (defun setup-input (&rest _)
   (when (display-graphic-p)
-    (general-def input-decode-map [(control ?i)] [control-i])
-    (general-def input-decode-map [(control ?I)] [(shift control-i)])))
+    (define-key input-decode-map [(control ?i)] [control-i])
+    (define-key input-decode-map [(control ?I)] [(shift control-i)])))
 
 ;; ;; If it's a daemon instance run setup-input each new frame
 (add-hook 'server-after-make-frame-hook 'setup-input)
