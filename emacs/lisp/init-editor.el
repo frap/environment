@@ -335,7 +335,8 @@
 
 (use-feature outline
   :hook (common-lisp-modes-mode . lisp-outline-minor-mode)
-  :delight outline-minor-mode
+  :delight
+  ;; :delight '(:eval (propertize " Ξ" 'face 'font-lock-function-name-face))
   :custom
   (outline-minor-mode-cycle t)
   :preface
@@ -394,21 +395,22 @@
 ;;; Region
  (use-package region-bindings
    :elpaca (:host gitlab :repo "andreyorst/region-bindings.el")
-   :delight " 🇦"
    :preface
    (defun region-bindings-off ()
      (region-bindings-mode -1))
    :hook
    (after-init . global-region-bindings-mode)
-   (elfeed-search-mode . region-bindings-off)
+   ;; (elfeed-search-mode . region-bindings-off)
    (magit-mode . region-bindings-off)
-   (mu4e-headers-mode . region-bindings-off)
-   :init
-   (add-hook 'region-bindings-mode-hook (lambda () (message "region-bindings-mode active"))))
+   ;; :init
+   ;; (add-hook 'region-bindings-mode-hook (lambda () (message "region-bindings-mode active")))
+   )
 
 (use-package expand-region
   :ensure t
-  :bind ("M-2" . er/expand-region))
+  :bind (("M-2" . er/expand-region)
+         ("C-=" . er/expand-region))
+  )
 
 (use-feature page
   :bind (;; I often input C-x C-p instead of C-x p followed by project
@@ -540,7 +542,7 @@
 (use-package puni
   :elpaca (:host github :repo "AmaiKinono/puni")
   :defer t
-  :delight " ♾️"
+  ;; :delight " ♾️"
   :hook (((common-lisp-modes-mode nxml-mode) . puni-mode)
          (puni-mode . electric-pair-local-mode))
   :init
@@ -695,8 +697,8 @@ are defining or executing a macro."
 ;;       (funcall fn arg)))
   )
 
-
 (use-feature undo-tree
+  ;; :delight '(:eval (propertize " ψ" 'face 'font-lock-keyword-face))
   :config
   (global-undo-tree-mode 1)
   :custom
@@ -711,6 +713,7 @@ are defining or executing a macro."
 
 ;; Undo highlighting
 (use-package undo-hl
+  :delight
   :ensure (:host github :repo "casouri/undo-hl")
   :hook ((prog-mode text-mode org-mode) . undo-hl-mode))
 
