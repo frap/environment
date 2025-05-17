@@ -396,7 +396,7 @@ Additionally, add `cape-file' as early as possible to the list."
   :config
   (vertico-mode)
   ;; Extensions
-  ;; (vertico-multiform-mode)
+  (vertico-multiform-mode)
   ;; Prefix the current candidate with “» ”. From
   ;; https://github.com/minad/vertico/wiki#prefix-current-candidate-with-arrow
   (defun my/vertico-format-candidate (orig cand prefix suffix index _start)
