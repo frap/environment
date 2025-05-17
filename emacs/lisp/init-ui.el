@@ -349,12 +349,14 @@ If LOCAL-PORT is nil, PORT is used as local port."
   :init
   (setq doom-modeline-buffer-file-name-style 'truncate-upto-project
         doom-modeline-modal-icon nil
-        doom-modeline-height 26)
-  (doom-modeline-mode)
-  :config
-  (setq doom-modeline-persp-name t
+        doom-modeline-height 26
+        doom-modeline-persp-name t
         doom-modeline-major-mode-icon t
-        doom-modeline-window-width-limit (- fill-column 10)))
+        doom-modeline-minor-modes t
+        doom-modeline-buffer-encoding nil
+        doom-modeline-window-width-limit (- fill-column 10))
+  :config
+   (doom-modeline-mode 1))
 
 (use-package modus-themes
   :ensure t
