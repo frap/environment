@@ -267,8 +267,8 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; Configure a custom style dispatcher (see the Consult wiki)
   ;; (orderless-style-dispatchers '(+orderless-consult-dispatch orderless-affix-dispatch))
   ;; (orderless-component-separator #'orderless-escapable-split-on-space)
-  (orderless-matching-styles '(orderless-literal orderless-regexp orderless-flex))
-  (completion-styles '(orderless basic))
+  ;; (orderless-matching-styles '(orderless-literal orderless-regexp orderless-flex))
+  (completion-styles '(basic orderless))
   (completion-category-defaults nil)
   (completion-category-overrides '((file (styles partial-completion)))))
 
@@ -341,7 +341,7 @@ Additionally, add `cape-file' as early as possible to the list."
              ("M-DEL" . vertico-directory-delete-word) ;
              )
    :custom
-  (vertico-count 10)                    ; Number of candidates to display
+  (vertico-count 20)                    ; Number of candidates to display
   (vertico-resize t)
   (vertico-cycle nil) ; Go from last to first candidate and first to last (cycle)?
   (vertico-grid-separator "       ")
@@ -399,15 +399,16 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; (vertico-multiform-mode)
   ;; Prefix the current candidate with “» ”. From
   ;; https://github.com/minad/vertico/wiki#prefix-current-candidate-with-arrow
-  (advice-add #'vertico--format-candidate
-              :around
-              (lambda (orig cand prefix suffix index _start)
-                (setq cand (funcall orig cand prefix suffix index _start))
-                (concat
-                 (if (= vertico--index index)
-                     (propertize "» " 'face 'vertico-current)
-                   "  ")
-                 cand)))
+  (defun my/vertico-format-candidate (orig cand prefix suffix index _start)
+  (setq cand (funcall orig cand prefix suffix index _start))
+  (concat
+   (if (and (numberp vertico--index)
+            (= vertico--index index))
+       (propertize "» " 'face 'vertico-current)
+     "  ")
+   cand))
+
+  (advice-add #'vertico--format-candidate :around #'my/vertico-format-candidate)
   ;; Prompt indicator for `completing-read-multiple'.
   (when (< emacs-major-version 31)
     (advice-add #'completing-read-multiple :filter-args
