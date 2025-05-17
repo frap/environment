@@ -34,14 +34,14 @@
 
 ;; In Emacs for history reasons C-i is the same key as TAB. This is a problem inherited from terminal emulators. Using GUI we can do better
 ;; Fix TAB and C-i (only in GUI)
-;; (defun setup-input (&rest _)
-;;   (when (display-graphic-p)
-;;     (general-def input-decode-map [(control ?i)] [control-i])
-;;     (general-def input-decode-map [(control ?I)] [(shift control-i)])))
+(defun setup-input (&rest _)
+  (when (display-graphic-p)
+    (general-def input-decode-map [(control ?i)] [control-i])
+    (general-def input-decode-map [(control ?I)] [(shift control-i)])))
 
 ;; ;; If it's a daemon instance run setup-input each new frame
-;; (add-hook 'server-after-make-frame-hook 'setup-input)
-;; (add-hook 'after-init-hook 'setup-input)
+(add-hook 'server-after-make-frame-hook 'setup-input)
+(add-hook 'after-init-hook 'setup-input)
 
 ;; use-package is built-in as of Emacs 29, but since we use :bind, we
 ;; need to load bind-key. If we forget, we get the error: Symbol's
@@ -83,6 +83,7 @@
     (advice-add f :around #'block-undo)))
 
 (use-feature which-key
+  :delight
   :defer 10
   :bind
   (:map help-map
