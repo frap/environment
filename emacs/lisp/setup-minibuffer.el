@@ -1,31 +1,5 @@
 ;; setup-minibuffer  -*- lexical-binding: t; -*-
 
-(use-package common-lisp-modes
-  :elpaca (:host github :repo "andreyorst/common-lisp-modes.el")
-  :commands common-lisp-modes-mode
-  :delight "δ"
-  :preface
-  (defun indent-sexp-or-fill ()
-    "Indent an s-expression or fill string/comment."
-    (interactive)
-    (let ((ppss (syntax-ppss)))
-      (if (or (nth 3 ppss)
-              (nth 4 ppss))
-          (fill-paragraph)
-        (save-excursion
-          (mark-sexp)
-          (indent-region (point) (mark))))))
-  :bind ( :map common-lisp-modes-mode-map
-          ("M-q" . indent-sexp-or-fill))
-  :config
-  (dolist (hook '(common-lisp-mode-hook
-                clojure-mode-hook
-                cider-repl-mode
-                racket-mode-hook
-                eshell-mode-hook
-                eval-expression-minibuffer-setup-hook))
-  (add-hook hook 'common-lisp-modes-mode)))
-
 ;; Add unique buffer names in the minibuffer where there are many
 ;; identical files. This is super useful if you rely on folders for
 ;; organisation and have lots of files with the same name,

@@ -7,18 +7,54 @@
 ;;  compilation-scroll-output t
 ;;  )
 
-;; Subword mode helps us move around camel-case languages, and is
-;; mostly configured as a hook in those major modes. The only thing we
-;; customize about it is not wanting it cluttering the mode line.
-(use-feature subword
-  :defer t
-  :delight)
-
 ;;; comment-dwim-2
 ;;; comment/un-comment
 (use-package comment-dwim-2
   :ensure t
   :bind ("M-;" . 'comment-dwim-2)
+  :delight)
+
+
+;; Common Lisp Mode
+(use-package common-lisp-modes
+  :ensure (:host github :repo "andreyorst/common-lisp-modes.el")
+  :commands common-lisp-modes-mode
+  :delight " δ"
+  :preface
+  (defun indent-sexp-or-fill ()
+    "Indent an s-expression or fill string/comment."
+    (interactive)
+    (let ((ppss (syntax-ppss)))
+      (if (or (nth 3 ppss)
+              (nth 4 ppss))
+          (fill-paragraph)
+        (save-excursion
+          (mark-sexp)
+          (indent-region (point) (mark))))))
+  :bind ( :map common-lisp-modes-mode-map
+          ("M-q" . indent-sexp-or-fill))
+  :config
+  (dolist (hook '(common-lisp-mode-hook
+                clojure-mode-hook
+                cider-repl-mode
+                racket-mode-hook
+                eshell-mode-hook
+                eval-expression-minibuffer-setup-hook))
+    (add-hook hook 'common-lisp-modes-mode)))
+
+
+;; Indent S-Exp As I Type
+(use-package isayt
+  :ensure (:host gitlab :repo "andreyorst/isayt.el")
+  :delight
+  :hook (common-lisp-modes-mode . isayt-mode))
+
+
+;; Subword mode helps us move around camel-case languages, and is
+;; mostly configured as a hook in those major modes. The only thing we
+;; customize about it is not wanting it cluttering the mode line.
+(use-feature subword
+  :defer t
   :delight)
 
 ;; (electric-indent-mode nil)  ; Auto indentation.
@@ -48,7 +84,7 @@
 
 ;;; Coding helpers
 
-(use-feature dumb-jump
+(use-package dumb-jump
   :defer t
   :commands (dumb-jump-xref-activate)
   :custom
@@ -433,17 +469,13 @@ buffer with it."
     "Move point to the location of the mouse pointer."
     (mouse-set-point last-input-event)))
 
-(use-package isayt
-  :ensure (:host gitlab :repo "andreyorst/isayt.el")
-  ;;  :delight isayt-mode
-  :hook (common-lisp-modes-mode . isayt-mode))
 
 (use-package jet
   :ensure t
   :config
   (defun jet-json-to-clipboard ()
-  (interactive)
-  (jet-to-clipboard (jet--thing-at-point) '("--from=json" "--to=edn"))))
+    (interactive)
+    (jet-to-clipboard (jet--thing-at-point) '("--from=json" "--to=edn"))))
 
 (global-set-key (kbd "C-c j j e") 'copy-json-as-edn)
 
