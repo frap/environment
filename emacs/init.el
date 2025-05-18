@@ -38,6 +38,7 @@ If you experience stuttering, increase this.")
 
 ;;; Minibuffer & Navigation
 (require 'setup-minibuffer)
+;; (require 'minimal-minibuffer)
 
 ;;; Editor
 (require 'init-editor)

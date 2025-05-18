@@ -155,8 +155,7 @@
   (completion-category-overrides
    '((file (styles basic-remote ; For `tramp' hostname completion with `vertico'
                    orderless
-                   ))
-     ))
+                   ))))
 
   (orderless-component-separator 'orderless-escapable-split-on-space)
   (orderless-matching-styles
