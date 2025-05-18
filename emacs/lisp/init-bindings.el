@@ -84,11 +84,11 @@
 
 (use-feature which-key
   :delight
-  :defer 10
+  :defer t
+  :commands (which-key-mode which-key-show-major-mode)
   :bind
   (:map help-map
         ("h" . which-key-show-major-mode))
-  :hook (after-init . which-key-mode)
   :init
   (setq which-key-sort-order #'which-key-prefix-then-key-order
         which-key-idle-delay 0.3
@@ -97,13 +97,8 @@
         which-key-add-column-padding 0
         which-key-max-display-columns nil
         which-key-min-display-lines 10
-        which-key-side-window-slot -10)
-  :config
-  (set-face-attribute 'which-key-local-map-description-face nil :weight 'bold)
-  (which-key-setup-side-window-bottom)
-  (add-hook 'which-key-init-buffer-hook
-            (lambda () (setq-local line-spacing 3)))
-  (setq which-key-replacement-alist
+        which-key-side-window-slot -10
+        which-key-replacement-alist
         '((("left") . ("⬅️"))
           (("right") . ("➡️"))
           (("up") . ("⬆️"))
@@ -112,6 +107,11 @@
           (("\\`DEL\\'") . ("BKSP"))
           (("RET") . ("⏎"))
           ))
+  :config
+    (which-key-setup-side-window-bottom)
+    (set-face-attribute 'which-key-local-map-description-face nil :weight 'bold)
+    (add-hook 'which-key-init-buffer-hook
+              (lambda () (setq-local line-spacing 3)))
   ;; (which-key-setup-minibuffer)
   (with-eval-after-load 'embark
     (setq prefix-help-command #'embark-prefix-help-command))
