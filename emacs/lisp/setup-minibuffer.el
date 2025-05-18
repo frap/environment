@@ -169,17 +169,12 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; `completion-at-point-function'.
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
 
+;; Corfu: completion popup for in-buffer only
 (use-package corfu
-  ;; Optional customizations
   :custom
   (corfu-cycle t) ;; Enable cycling for `corfu-next/previous'
-  ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
-  ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
-  ;; (corfu-preview-current nil)    ;; Disable current candidate preview
-  ;; (corfu-preselect 'prompt)      ;; Preselect the prompt
-  ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
-
-  ;; Enable Corfu only for certain modes. See also `global-corfu-modes'.
+  (corfu-auto t)
+  (corfu-popupinfo-delay 0.3)
   :hook ((prog-mode . corfu-mode)
          (shell-mode . corfu-mode)
          (eshell-mode . corfu-mode))
@@ -197,17 +192,14 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; Capfs and Dabbrev can be used globally (M-/).  See also the customization
   ;; variable `global-corfu-modes' to exclude certain modes.
   (global-corfu-mode)
-
   ;; Enable optional extension modes:
   (corfu-history-mode)
-  (corfu-popupinfo-mode)
-  )
+  (corfu-popupinfo-mode))
 
 ;; corfu-history relies on save-hist
 (use-feature savehist
   :init
   (savehist-mode 1))
-
 
 (use-package kind-icon
   :after corfu
@@ -282,105 +274,49 @@ Additionally, add `cape-file' as early as possible to the list."
   (setq completion-styles '(orderless basic) ;
         ;;  completion-category-defaults nil ;; enable for all categories
         completion-category-defaults '((cider (styles basic)))
-        completion-category-overrides '((file (styles basic partial-completion))))
-  )
+        completion-category-overrides '((file (styles basic partial-completion)))))
 
 
 ;; VERTical Interactive COmpletion for minibuffer
 (use-package vertico
-  :ensure (vertico :files (:defaults "extensions/*")
-                   :includes (vertico-indexed
-                              vertico-flat
-                              vertico-grid
-                              vertico-mouse
-                              vertico-quick
-                              vertico-buffer
-                              vertico-repeat
-                              vertico-reverse
-                              vertico-directory
-                              vertico-multiform
-                              vertico-unobtrusive
-                              ))
-  :bind (:map vertico-map
-              ("<tab>" . vertico-insert ) ; Insert selected candidate into text area
-              ("M-TAB" . minibuffer-complete)
-              ("<escape>" . minibuffer-keyboard-quit ) ; Close minibuffer
-              ;; NOTE 2022-02-05: Cycle through candidate groups
-              ("C-M-n" . vertico-next-group )
-              ("C-M-p" . vertico-previous-group)
-              ("M-RET" . vertico-exit-input)
-              ;; Toggle Vertico multiforms in active minibuffer
-              ("C-'"           . vertico-quick-exit)
-              ("C-i"         . vertico-quick-insert)
-              ;; ("M-G" . vertico-multiform-grid)
-              ;; ("M-F" . vertico-multiform-flat)
-              ;; ("M-R" . vertico-multiform-reverse)
-              ;; ("M-U" . vertico-multiform-unobtrusive)
-              ;;         ("<return>"      . exit-minibuffer)
-              ("C-m"           . vertico-insert)
-              ("C-c SPC"       . vertico-quick-exit)
-              ;;         ("C-<backspace>" . vertico)
-              ("RET" . vertico-directory-enter)
-              ("DEL" . vertico-directory-delete-char)
-              ("M-DEL" . vertico-directory-delete-word) ;
-              )
+  :ensure (vertico :files (:defaults "extensions/*"))
+  :init
+  (vertico-mode)
+  (vertico-multiform-mode)
   :custom
-  (vertico-count 20)                    ; Number of candidates to display
+  (vertico-count 15)
   (vertico-resize t)
-  (vertico-cycle nil) ; Go from last to first candidate and first to last (cycle)?
-  (vertico-grid-separator "       ")
-  (vertico-grid-lookahead 50)
-  (vertico-buffer-display-action '(display-buffer-reuse-window)) ; Default
-  (vertico-multiform-categories         ; Choose a multiform
+  (vertico-cycle nil)
+  (vertico-grid-separator "   ")
+  (vertico-multiform-categories
    '((file reverse)
-     (consult-grep buffer)
-     (consult-location)
+     (buffer unobtrusive)      ;;    (consult-grep buffer)
+     (library reverse indexed) ;;    (consult-location)
+     (command indexed)         ;;    (imenu buffer)
+     (consult-grep buffer)     ;;    (library reverse indexed)
      (imenu buffer)
-     (library reverse indexed)
-     ;;    (org-roam-node reverse indexed)
-     (t reverse)
-     ))
+     (t reverse)))
   (vertico-multiform-commands
    '(("flyspell-correct-*" grid reverse)
      (org-refile grid reverse indexed)
      (consult-yank-pop indexed)
-     (consult-flycheck)
-     (consult-lsp-diagnostics)
+  ;;    (consult-flycheck)
+  ;;    (consult-lsp-diagnostics)
      ))
-  :hook ((rfn-eshadow-update-overlay . vertico-directory-tidy) ; Clean up file path when typing
-         (minibuffer-setup . vertico-repeat-save) ; Make sure vertico state is saved
-         )
-
-  :init
-  (defun kb/vertico-multiform-flat-toggle ()
-    "Toggle between flat and reverse."
-    (interactive)
-    (vertico-multiform--display-toggle 'vertico-flat-mode)
-    (if vertico-flat-mode
-        (vertico-multiform--temporary-mode 'vertico-reverse-mode -1)
-      (vertico-multiform--temporary-mode 'vertico-reverse-mode 1)))
-  (defun kb/vertico-quick-embark (&optional arg)
-    "Embark on candidate using quick keys."
-    (interactive)
-    (when (vertico-quick-jump)
-      (embark-act arg)))
-
-  ;; Workaround for problem with `tramp' hostname completions. This overrides
-  ;; the completion style specifically for remote files! See
-  ;; https://github.com/minad/vertico#tramp-hostname-completion
-  (defun kb/basic-remote-try-completion (string table pred point)
-    (and (vertico--remote-p string)
-         (completion-basic-try-completion string table pred point)))
-  (defun kb/basic-remote-all-completions (string table pred point)
-    (and (vertico--remote-p string)
-         (completion-basic-all-completions string table pred point)))
-  (add-to-list 'completion-styles-alist
-               '(basic-remote           ; Name of `completion-style'
-                 kb/basic-remote-try-completion kb/basic-remote-all-completions nil))
+  :bind (:map vertico-map
+              ("<escape>" . minibuffer-keyboard-quit)
+              ("RET" . vertico-directory-enter)
+              ("DEL" . vertico-directory-delete-char)
+              ("M-DEL" . vertico-directory-delete-word)
+              ("C-'" . vertico-quick-exit)
+              ("C-i" . vertico-quick-insert)
+              ("M-RET" . vertico-exit-input)
+              ("C-M-n" . vertico-next-group)
+              ("C-M-p" . vertico-previous-group)
+              ;; ("<tab>" . vertico-insert ) ; Insert selected candidate into text area
+              ;; ("M-TAB" . minibuffer-complete)
+              )
   :config
-  (vertico-mode)
-  ;; Extensions
-  (vertico-multiform-mode)
   ;; Prefix the current candidate with “» ”. From
   ;; https://github.com/minad/vertico/wiki#prefix-current-candidate-with-arrow
   (defun my/vertico-format-candidate (orig cand prefix suffix index _start)
@@ -393,14 +329,26 @@ Additionally, add `cape-file' as early as possible to the list."
      cand))
 
   (advice-add #'vertico--format-candidate :around #'my/vertico-format-candidate)
-  ;; Prompt indicator for `completing-read-multiple'.
-  (when (< emacs-major-version 31)
-    (advice-add #'completing-read-multiple :filter-args
-                (lambda (args)
-                  (cons (format "[CRM%s] %s"
-                                (string-replace "[ \t]*" "" crm-separator)
-                                (car args))
-                        (cdr args)))))
+  ;; ;; Prompt indicator for `completing-read-multiple'.
+  ;; (when (< emacs-major-version 31)
+  ;;   (advice-add #'completing-read-multiple :filter-args
+  ;;               (lambda (args)
+  ;;                 (cons (format "[CRM%s] %s"
+  ;;                               (string-replace "[ \t]*" "" crm-separator)
+  ;;                               (car args))
+  ;;                       (cdr args)))))
+  ;; Workaround for problem with `tramp' hostname completions. This overrides
+  ;; the completion style specifically for remote files! See
+  ;; https://github.com/minad/vertico#tramp-hostname-completion
+  (defun kb/basic-remote-try-completion (string table pred point)
+    (and (vertico--remote-p string)
+         (completion-basic-try-completion string table pred point)))
+  (defun kb/basic-remote-all-completions (string table pred point)
+    (and (vertico--remote-p string)
+         (completion-basic-all-completions string table pred point)))
+  (add-to-list 'completion-styles-alist
+               '(basic-remote           ; Name of `completion-style'
+                 kb/basic-remote-try-completion kb/basic-remote-all-completions nil))
   )
 
 ;; (use-package vertico-directory
@@ -414,13 +362,12 @@ Additionally, add `cape-file' as early as possible to the list."
 ;;   ;; Tidy shadowed file names
 ;;   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
-;; (use-package vertico-buffer
-;;   :after vertico
-;;   :ensure nil
-;;   :config
-;;   (setq vertico-buffer-display-action '(display-buffer-below-selected
-;;                                         (window-height . ,(+ 3 vertico-count))))
-;;   (vertico-buffer-mode))
+(use-feature vertico-buffer
+  :after vertico
+  :config
+  (setq vertico-buffer-display-action '(display-buffer-below-selected
+                                        (window-height . ,(+ 3 vertico-count))))
+  (vertico-buffer-mode))
 
 ;; (use-package vertico-multiform
 ;;   :after vertico
