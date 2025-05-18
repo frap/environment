@@ -1,3 +1,4 @@
+
 ;;; lisp/init-copilot.el --- CoPiloting -*- lexical-binding: t -*-
 ;; always in copilot-disable-predicates turns off automatic
 ;; completion. We can still reach it from M-`, which is chosen to be
@@ -8,20 +9,20 @@
   (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
   ;; :custom
   ;; (copilot-disable-predicates '(always))
-  ;; :bind
-  ;; (("M-`" . copilot-complete)
-  ;;  :map gas/toggles-map
-  ;;  ("`" . copilot-mode)
-  ;;  :map copilot-completion-map
-  ;;  ("C-g" .  #'copilot-clear-overlay)
-  ;;  ("M-p" . #'copilot-previous-completion)
-  ;;  ("M-n" . #'copilot-next-completion)
-  ;;  ("<tab>" . 'copilot-accept-completion)
-  ;;  ("TAB" . 'copilot-accept-completion)
-  ;;  ("M-f" . #'copilot-accept-completion-by-word)
-  ;;  ("C-TAB" . 'copilot-accept-completion-by-word)
-  ;;  ("C-<tab>" . 'copilot-accept-completion-by-word)
-  ;;  ("M-<return>" . copilot-accept-completion-by-line))
+  :bind
+  (("M-`" . copilot-complete)
+   :map gas/toggles-map
+   ("`" . copilot-mode)
+   :map copilot-completion-map
+   ("C-g" .  #'copilot-clear-overlay)
+   ("M-p" . #'copilot-previous-completion)
+   ("M-n" . #'copilot-next-completion)
+   ("<tab>" . 'copilot-accept-completion)
+   ("TAB" . 'copilot-accept-completion)
+   ("M-f" . #'copilot-accept-completion-by-word)
+   ("C-TAB" . 'copilot-accept-completion-by-word)
+   ("C-<tab>" . 'copilot-accept-completion-by-word)
+   ("M-<return>" . copilot-accept-completion-by-line))
   ;; :hook (prog-mode . copilot-mode)
   ;; :hook (yaml-mode . copilot-mode)
   :config
@@ -85,34 +86,34 @@ is available. Useful if you tend to hammer your keys like I do."
           (next-line))
       (copilot-complete)))
 
-  (define-key copilot-mode-map (kbd "M-C-<next>") #'copilot-next-completion)
-  (define-key copilot-mode-map (kbd "M-C-<prior>") #'copilot-previous-completion)
-  (define-key copilot-mode-map (kbd "M-C-<right>") #'copilot-accept-completion-by-word)
-  (define-key copilot-mode-map (kbd "M-C-<down>") #'copilot-accept-completion-by-line)
-  (define-key global-map (kbd "M-C-<return>") #'rk/copilot-complete-or-accept)
+  ;; (define-key copilot-mode-map (kbd "M-C-<next>") #'copilot-next-completion)
+  ;; (define-key copilot-mode-map (kbd "M-C-<prior>") #'copilot-previous-completion)
+  ;; (define-key copilot-mode-map (kbd "M-C-<right>") #'copilot-accept-completion-by-word)
+  ;; (define-key copilot-mode-map (kbd "M-C-<down>") #'copilot-accept-completion-by-line)
+  ;; (define-key global-map (kbd "M-C-<return>") #'rk/copilot-complete-or-accept)
 
   (defun rk/copilot-tab ()
-  "Try Copilot, then yasnippet, then hippie-expand, then indent."
-  (interactive)
-  (cond
-   ;; Copilot suggestion is visible → accept it
-   ((copilot--overlay-visible)
-    (copilot-accept-completion))
+    "Try Copilot, then yasnippet, then hippie-expand, then indent."
+    (interactive)
+    (cond
+     ;; Copilot suggestion is visible → accept it
+     ((copilot--overlay-visible)
+      (copilot-accept-completion))
 
-   ;; Try expanding a yasnippet
-   ((and (bound-and-true-p yas-minor-mode)
-         (yas-expand)))
+     ;; Try expanding a yasnippet
+     ((and (bound-and-true-p yas-minor-mode)
+           (yas-expand)))
 
-   ;; Try hippie-expand
-   ((hippie-expand nil))
+     ;; Try hippie-expand
+     ((hippie-expand nil))
 
-   ;; Fallback: just indent
-   (t
-    (indent-for-tab-command))))
+     ;; Fallback: just indent
+     (t
+      (indent-for-tab-command))))
 
   (add-hook 'prog-mode-hook
-          (lambda ()
-            (local-set-key (kbd "<tab>") #'rk/copilot-tab)))
+            (lambda ()
+              (local-set-key (kbd "<tab>") #'my/tab-dwim)))
 
   (defun rk/copilot-quit ()
     "Run `copilot-clear-overlay' or `keyboard-quit'. If copilot is
