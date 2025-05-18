@@ -9,11 +9,13 @@
 
 
 (use-feature minibuffer
-  :after common-lisp-modes
+  :after (common-lisp-modes avy)
  ;; :hook (eval-expression-minibuffer-setup . common-lisp-modes-mode)
   ;;   :hook (minibuffer-setup .  cursor-intangible-mode)
   :bind ( :map minibuffer-inactive-mode-map
-          ("<mouse-1>" . ignore))
+          ("<mouse-1>" . ignore)
+          :map minibuffer-local-map
+          ("M-j"  . avy-move-to-minibuffer-lines))
   :preface
   (unless (fboundp 'minibuffer-keyboard-quit)
     (autoload #'minibuffer-keyboard-quit "delsel" nil t))
@@ -70,10 +72,6 @@
         read-minibuffer-restore-windows t
         read-answer-short t
         resize-mini-windows 'grow-only
-        ;; completion-styles '(partial-completion substring initials)
-        ;; completion-category-overrides ;;'((file (styles basic partial-completion initials)))
-        ;; '((file (styles basic partial-completion initials))
-        ;;   (buffer (styles basic flex substring)))
         )
   )
 
@@ -274,8 +272,12 @@ Additionally, add `cape-file' as early as possible to the list."
   (setq completion-styles '(orderless basic) ;
         ;;  completion-category-defaults nil ;; enable for all categories
         completion-category-defaults '((cider (styles basic)))
-        completion-category-overrides '((file (styles basic partial-completion)))))
-
+        completion-category-overrides '((file (styles basic partial-completion initials))
+                                        (buffer (styles basic flex substring))
+                                        (command (styles orderless)) ; affects M-x
+                                        (symbol (styles orderless))
+                                        (project-file (styles orderless))
+                                        )))
 
 ;; VERTical Interactive COmpletion for minibuffer
 (use-package vertico
@@ -300,8 +302,8 @@ Additionally, add `cape-file' as early as possible to the list."
    '(("flyspell-correct-*" grid reverse)
      (org-refile grid reverse indexed)
      (consult-yank-pop indexed)
-  ;;    (consult-flycheck)
-  ;;    (consult-lsp-diagnostics)
+     ;;    (consult-flycheck)
+     ;;    (consult-lsp-diagnostics)
      ))
   :bind (:map vertico-map
               ("<escape>" . minibuffer-keyboard-quit)
@@ -362,12 +364,13 @@ Additionally, add `cape-file' as early as possible to the list."
 ;;   ;; Tidy shadowed file names
 ;;   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
-(use-feature vertico-buffer
-  :after vertico
-  :config
-  (setq vertico-buffer-display-action '(display-buffer-below-selected
-                                        (window-height . ,(+ 3 vertico-count))))
-  (vertico-buffer-mode))
+;; small vertico bugger with 3 vertico options
+;; (use-feature vertico-buffer
+;;   :after vertico
+;;   :config
+;;   (setq vertico-buffer-display-action '(display-buffer-below-selected
+;;                                         (window-height . ,(+ 3 vertico-count))))
+;;   (vertico-buffer-mode))
 
 ;; (use-package vertico-multiform
 ;;   :after vertico
@@ -386,10 +389,10 @@ Additionally, add `cape-file' as early as possible to the list."
 
 ;;   (vertico-multiform-mode))
 
-;; (use-package vertico-repeat
-;;   :after vertico
-;;   :hook (minibuffer-setup . vertico-repeat-save)
-;;   :bind ("M-r" . vertico-repeat))
+(use-feature vertico-repeat
+  :after vertico
+  :hook (minibuffer-setup . vertico-repeat-save)
+  :bind ("M-r" . vertico-repeat))
 
 ;; Enhanced search and navigation commands
 ;; (use-package consult
@@ -401,6 +404,7 @@ Additionally, add `cape-file' as early as possible to the list."
 ;; (global-unset-key (kbd "C-l"))
 
 (use-package consult
+  :after avy
   :commands (consult-completion-in-region)
   :preface
   (defvar consult-prefix-map (make-sparse-keymap))
