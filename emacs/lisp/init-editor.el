@@ -1,6 +1,6 @@
 ;;; lisp/init-editor.el --- Emacs Editor -*- lexical-binding: t -*-
 
-(use-feature defaults
+(use-feature editor-defaults
   :preface
   (setq
    ;; my source directory
@@ -73,7 +73,8 @@
   ;; excellent way to cause aggravation when the variable you keep trying to modify is being set in some ~custom-set-variables~ invocation
   (setq custom-file (make-temp-name "/tmp/"))
   ;;  Emacs stores theme-safety information in that file, we have to disable the warnings entirely
-  (setq custom-safe-themes t))
+  (setq custom-safe-themes t)
+  (provide 'editor-defaults))
 ;;________________________________________________________________
 ;;;;    Custom settings
 ;;________________________________________________________________
@@ -119,9 +120,11 @@
   :commands (avy-goto-char avy-goto-word-0 avy-goto-line avy-goto-char-time)
   :bind (("M-j"    . avy-goto-char-time)
          ("C-M-s"  . #'isearch-forward-other-window)
-         ("C-M-r" . #'isearch-backward-other-window )
+         ("C-M-r"  . #'isearch-backward-other-window )
          :map isearch-mode-map
          ("C-`" . avy-isearch)
+         ;; :map minibuffer-local-map
+         ;; ("C-s" . avy-move-to-minibuffer-lines)
          )
   :config
   (setq avy-keys '(?q ?e ?r ?y ?u ?o ?p
@@ -548,7 +551,7 @@
     (chee/puni-unwrap-sexp open close)))
 
 (use-package puni
-  :elpaca (:host github :repo "AmaiKinono/puni")
+  :ensure (:host github :repo "AmaiKinono/puni")
   :defer t
   ;; :delight " ♾️"
   :hook (((common-lisp-modes-mode nxml-mode) . puni-mode)

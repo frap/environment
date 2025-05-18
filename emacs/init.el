@@ -33,8 +33,10 @@ If you experience stuttering, increase this.")
 ;; Default bindings
 (require 'init-bindings)
 
+;;; Tools - git, project, shell
+;;(require 'setup-shells)
 (require 'init-files-buffers)
-(require 'init-ui)
+(require 'init-tools)
 
 ;;; Minibuffer & Navigation
 (require 'setup-minibuffer)
@@ -42,10 +44,6 @@ If you experience stuttering, increase this.")
 
 ;;; Editor
 (require 'init-editor)
-
-;;; Tools - git, project, shell
-;;(require 'setup-shells)
-(require 'init-tools)
 
 ;;; LSP
 (require 'init-lsp)
@@ -61,12 +59,15 @@ If you experience stuttering, increase this.")
   (setq user-full-name my-full-name)
   (setq user-mail-address my-email-address))
 
+;; UI
+(require 'init-ui)
+
 ;;; Org mode
 (require 'init-org)
 
-(use-package esup
-  :config
-  (setq esup-depth 0))
+;; (use-package esup
+;;   :config
+;;   (setq esup-depth 0))
 
 (provide 'init)
 ;;; init.el ends here
