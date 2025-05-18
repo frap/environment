@@ -70,9 +70,9 @@
         display-line-numbers-type 'relative)
   (column-number-mode)
   ;; Emacs 27 comes with fast current-line highlight functionality, but it can produce some visual feedback in ~vterm~ buffers
-  (require 'hl-line)
-  (add-hook 'prog-mode-hook #'hl-line-mode)
-  (add-hook 'text-mode-hook #'hl-line-mode)
+  ;; (require 'hl-line)
+  ;; (add-hook 'prog-mode-hook #'hl-line-mode)
+  ;; (add-hook 'text-mode-hook #'hl-line-mode)
   ;; excellent way to cause aggravation when the variable you keep trying to modify is being set in some ~custom-set-variables~ invocation
   (setq custom-file (make-temp-name "/tmp/"))
   ;;  Emacs stores theme-safety information in that file, we have to disable the warnings entirely
