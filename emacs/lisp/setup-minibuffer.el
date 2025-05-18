@@ -451,20 +451,13 @@ Additionally, add `cape-file' as early as possible to the list."
 ;;   (("C-s" . consult-line)
 ;;    ("C-M-l" . consult-imenu)))
 
+;; (global-unset-key (kbd "C-l"))
+
 (use-package consult
   :commands (consult-completion-in-region)
   :preface
   (defvar consult-prefix-map (make-sparse-keymap))
   (fset 'consult-prefix-map consult-prefix-map)
-  (global-unset-key (kbd "C-l"))
-  :init
-  (setq completion-in-region-function #'consult-completion-in-region)
-  (setq consult-project-root-function #'vc-root-dir)
-  (setq xref-show-xrefs-function #'consult-xref
-        xref-show-definitions-function #'consult-xref)
-  (setq consult-preview-key "C-l")
-  (setq consult-narrow-key "<"
-        consult-widen-key ">")
 
   :bind
   (;; Global bindings
@@ -560,9 +553,8 @@ Additionally, add `cape-file' as early as possible to the list."
   (setq
    xref-show-xrefs-function #'consult-xref
    xref-show-definitions-function #'consult-xref)
+  (setq completion-in-region-function #'consult-completion-in-region)
 
-  ;; Configure other variables and modes in the :config section,
-  ;; after lazily loading the package.
   :config
   ;; Remap existing commands
   (define-key global-map [remap switch-to-buffer] #'consult-buffer)
@@ -588,21 +580,17 @@ Additionally, add `cape-file' as early as possible to the list."
    consult-ripgrep consult-git-grep consult-grep
    consult-bookmark consult-recent-file consult-xref
    consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
-   :preview-key (list (kbd "C-l") :debounce 0.2))
-
-  ;; Optionally configure the narrowing key.
-  ;; Both < and C-+ work reasonably well.
-  (setq consult-narrow-key "<") ;; (kbd "C-+")
+   :preview-key (list (kbd "M-.") :debounce 0.2))
 
   ;; Optionally make narrowing help available in the minibuffer.
   ;; You may want to use `embark-prefix-help-command' or which-key instead.
   ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
 
   (defun my/project-root ()
-  (or (vc-root-dir)
-      (locate-dominating-file default-directory ".git")
-      (locate-dominating-file default-directory "bb.edn")
-      default-directory))
+    (or (vc-root-dir)
+        (locate-dominating-file default-directory ".git")
+        (locate-dominating-file default-directory "bb.edn")
+        default-directory))
 
   (setq consult-project-root-function #'my/project-root)
 
