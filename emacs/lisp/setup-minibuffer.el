@@ -13,9 +13,7 @@
  ;; :hook (eval-expression-minibuffer-setup . common-lisp-modes-mode)
   ;;   :hook (minibuffer-setup .  cursor-intangible-mode)
   :bind ( :map minibuffer-inactive-mode-map
-          ("<mouse-1>" . ignore)
-          :map minibuffer-local-map
-          ("M-j"  . avy-move-to-minibuffer-lines))
+          ("<mouse-1>" . ignore))
   :preface
   (unless (fboundp 'minibuffer-keyboard-quit)
     (autoload #'minibuffer-keyboard-quit "delsel" nil t))
@@ -39,9 +37,6 @@
   :custom
   ;; Support opening new minibuffers from inside existing minibuffers.
   (enable-recursive-minibuffers t)
-  ;; TAB cycle if there are only few candidates
-  ;; (completion-cycle-threshold 3)
-
   ;; Enable indentation+completion using the TAB key.
   ;; `completion-at-point' is often bound to M-TAB.
   (tab-always-indent 'complete)
@@ -72,8 +67,7 @@
         read-minibuffer-restore-windows t
         read-answer-short t
         resize-mini-windows 'grow-only
-        )
-  )
+        ))
 
 ;;; Completion
 ;; Cape provides Completion At Point Extensions which can be used in combination with Corfu, Company or the default completion UI.
@@ -106,8 +100,8 @@
          )
   :custom
   (cape-dabbrev-min-length 3)
-  :init
-  ;; Elisp
+  :config
+    ;; Elisp
   (defun kb/cape-capf-ignore-keywords-elisp (cand)
     "Ignore keywords with forms that begin with \":\" (e.g.
 :history)."
@@ -156,7 +150,7 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; (defun kb/cape-capf-setup-sh ()
   ;;   (require 'company-shell)
   ;;   (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-shell)))
-  :config
+
   ;; For pcomplete. For now these two advices are strongly recommended to
   ;; achieve a sane Eshell experience. See
   ;; https://github.com/minad/corfu#completing-with-corfu-in-the-shell-or-eshell
@@ -395,17 +389,8 @@ Additionally, add `cape-file' as early as possible to the list."
   :bind ("M-r" . vertico-repeat))
 
 ;; Enhanced search and navigation commands
-;; (use-package consult
-;;   :ensure t
-;;   :bind
-;;   (("C-s" . consult-line)
-;;    ("C-M-l" . consult-imenu)))
-
-;; (global-unset-key (kbd "C-l"))
-
 (use-package consult
-  :after avy
-  :commands (consult-completion-in-region)
+  :after (corfu avy)
   :preface
   (defvar consult-prefix-map (make-sparse-keymap))
   (fset 'consult-prefix-map consult-prefix-map)
@@ -418,9 +403,11 @@ Additionally, add `cape-file' as early as possible to the list."
    ("C-c h"   . consult-history)
    ("C-c k"   . consult-kmacro)
    ("C-c m"   . consult-man)
-   ;; ("C-c m" . consult-mode-command)
    ("C-c i"   . consult-info)
    ("C-c r"   . consult-ripgrep)
+   ;; Isearch integration
+   ("C-s"   . consult-line)
+   ("M-s e" . consult-isearch-history)
    ;; C-x bindings in `ctl-x-map'
    ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
    ("C-x b"   . consult-buffer)              ;; orig. switch-to-buffer
@@ -456,12 +443,9 @@ Additionally, add `cape-file' as early as possible to the list."
    ("M-s m" . consult-multi-occur)
    ("M-s k" . consult-keep-lines)
    ("M-s u" . consult-focus-lines)
-   ;; Isearch integration
-   ("C-s" . consult-line)
-   ("M-s e" . consult-isearch-history)
 
    :map isearch-mode-map
-   ("M-e" . consult-isearch-history)   ;; orig. isearch-edit-string
+   ("M-e"   . consult-isearch-history)   ;; orig. isearch-edit-string
    ("M-s e" . consult-isearch-history) ;; orig. isearch-edit-string
    ("M-s l" . consult-line)       ;; needed by consult-line to detect isearch
    ("M-s L" . consult-line-multi) ;; needed by consult-line to detect isearch
@@ -484,6 +468,7 @@ Additionally, add `cape-file' as early as possible to the list."
    :map minibuffer-local-map
    ("M-s" . consult-history) ;; orig. next-matching-history-element
    ("M-r" . consult-history)
+   ("M-j"  . avy-action-embark)
    )
   ;; Enable automatic preview at point in the *Completions* buffer. This is
   ;; relevant when you use the default completion UI.
@@ -504,9 +489,9 @@ Additionally, add `cape-file' as early as possible to the list."
   (setq
    xref-show-xrefs-function #'consult-xref
    xref-show-definitions-function #'consult-xref)
-  (setq completion-in-region-function #'consult-completion-in-region)
 
   :config
+  (setq completion-in-region-function #'corfu--completion-in-region)
   ;; Remap existing commands
   (define-key global-map [remap switch-to-buffer] #'consult-buffer)
   (define-key global-map [remap imenu] #'consult-imenu)
@@ -579,8 +564,7 @@ Additionally, add `cape-file' as early as possible to the list."
                      '("*vterm* (new)")))))
 
   (add-to-list 'consult-buffer-sources 'eshell-source 'append)
-  (add-to-list 'consult-buffer-sources 'term-source 'append)
-  )
+  (add-to-list 'consult-buffer-sources 'term-source 'append))
 
 (use-package consult-lsp
   :ensure t
