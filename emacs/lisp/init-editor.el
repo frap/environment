@@ -65,9 +65,6 @@
   ;;We also need to turn on a few modes to have behaviour that's even remotely modern.
   ;; Typing over an active section should delete the section.
   (delete-selection-mode t)
-
-  (setq display-line-numbers-width-start t
-        display-line-numbers-type 'relative)
   (column-number-mode)
   ;; Emacs 27 comes with fast current-line highlight functionality, but it can produce some visual feedback in ~vterm~ buffers
   ;; (require 'hl-line)
@@ -103,6 +100,7 @@
 ;;   (load custom-file 'noerror 'nomessage))
 
 (use-feature autorevert
+  :delight auto-revert-mode
   :hook (after-init . global-auto-revert-mode))
 
 ;; DWIM case
@@ -138,6 +136,7 @@
   (setq avy-timeout-seconds 0.5)
   (setq avy-style 'pre)  ; prefixes candidate; otherwise use `at-full'
 
+  ;; avy help
   (defun avy-show-dispatch-help ()
     (let* ((len (length "avy-action-"))
            (fw (frame-width))
@@ -248,7 +247,16 @@
           (isearch-backward)
           (other-window (- next))))))
 
-   (defun avy-action-embark (pt)
+   ;; Enable jumping in minibuffer
+  (defun avy-move-to-minibuffer-line ()
+    "Jump to a line in minibuffer using avy."
+    (interactive)
+    (when (minibufferp)
+      (avy-with avy-goto-line
+        (avy-jump (window-start) (window-end)))))
+
+  ;; avy embark integration
+  (defun avy-action-embark (pt)
     (unwind-protect
         (save-excursion
           (goto-char pt)

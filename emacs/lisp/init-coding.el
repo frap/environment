@@ -79,8 +79,10 @@
   (display-line-numbers-grow-only t)
   (display-line-numbers-width-start t)
   :config
-  (defun toggle-hl-line ()
-    (hl-line-mode (if display-line-numbers-mode 1 -1))))
+  (setq display-line-numbers-width-start t
+        display-line-numbers-type 'relative)
+    (defun toggle-hl-line ()
+      (hl-line-mode (if display-line-numbers-mode 1 -1))))
 
 ;;; Coding helpers
 
