@@ -1,57 +1,30 @@
 ;; -*- lexical-binding: t -*-
 
-;; Fully Emacs-native shell completions, including docstrings parsed on-the-fly
-;; from man-pages or --help output.
-(use-package pcmpl-args
-  :disabled
-  :ensure t
-  :hook ((eshell-mode . my/pcmpl-args-eshell-settings)
-         ((eshell-mode shell-mode) . my/pcmpl-args-capf-ensure))
-  :config
-  (defun my/pcmpl-args-prepare ()
-    (let ((pfunc
-           (thread-first
-             "pcomplete/"
-             (concat (car (pcomplete-parse-arguments)))
-             (intern))))
-      (unless (fboundp pfunc)
-        (defalias pfunc 'pcmpl-args-pcomplete-on-man)))
-    (list nil :exclusive 'no))
-  (defun my/pcmpl-args-capf-ensure ()
-    (add-hook 'completion-at-point-functions
-              'my/pcmpl-args-prepare -90 t))
-  (defun my/pcmpl-args-eshell-settings ()
-    (setq-local pcomplete-try-first-hook
-                '(eshell-complete-host-reference
-                  eshell-complete-history-reference
-                  eshell-complete-user-reference
-                  eshell-complete-variable-assignment
-                  eshell-complete-variable-reference
-                  eshell-complete-lisp-symbols
-                  t))))
-
 ;; * ESHELL
 
 ;; ** Eshell built-ins
-(use-package eshell
+(use-feature eshell
   :hook ((eshell-mode . my/eshell-keys-and-modes)
          (eshell-first-time-mode . my/eshell-first-load-settings))
   :config
   (defun my/eshell-first-load-settings ()
     (setq eshell-visual-commands (append eshell-visual-commands
-                                         '("btm" "fzf" "pulsemixer" "mpv"
-                                           "ncmpcpp" "progress" "julia"
-                                           "ranger" "watch" "bluetoothctl"))
+                                         '("htop" "top" "fzf" "less" "more" "man" "bat"
+                                           "ncdu" "watch" "nmtui" "ssh" "scp"
+                                           "ping" "traceroute" "ranger"
+                                           "brew" "git" "clojure" "bb"
+                                           "python" "node" "python3"
+                                           ))
           ;; eshell-input-filter-functions '(eshell-expand-history-references)
           eshell-hist-ignoredups t
           eshell-destroy-buffer-when-process-dies t
-          eshell-directory-name (dir-concat user-cache-directory "eshell/")
+          eshell-directory-name (file-name-concat user-cache-directory "eshell/")
           eshell-history-file-name (concat (file-name-as-directory
                                             eshell-directory-name)
                                            "history")
           eshell-last-dir-ring-file-name (concat (file-name-as-directory
-                                            eshell-directory-name)
-                                           "lastdir")
+                                                  eshell-directory-name)
+                                                 "lastdir")
           eshell-history-size 4096
           eshell-glob-case-insensitive t
           eshell-error-if-no-glob nil)
@@ -72,12 +45,12 @@
     (define-key eshell-mode-map (kbd "C-<return>") 'my/eshell-send-detached-input)
     (setq-local company-minimum-prefix-length 2)
     ;; (setq-local completion-in-region-function #'consult-completion-in-region)
-    (setq eshell-cmpl-cycle-cutoff-length 2)))
-
+    (setq eshell-cmpl-cycle-cutoff-length 2))
+  )
 
 ;; ** Eshell buffer redirection
-(use-package eshell
-  :defer
+(use-feature eshell
+  :defer t
   :config
   ;; From https://gist.github.com/minad/19df21c3edbd8232f3a7d5430daa103a
   (defun my/eshell-font-lock-and-pop (fun object target)
@@ -110,7 +83,7 @@
                       (buffer-substring-no-properties (line-beginning-position) (point))))))))
   (add-hook 'eshell-parse-argument-hook #'my/eshell-syntax-buffer-redirect))
 
-(use-package esh-mode
+(use-feature esh-mode
   :hook (eshell-mode . common-lisp-modes-mode)
   :preface
   (declare-function eshell-search-path "ext:esh-ext")
@@ -124,16 +97,6 @@
                                          'face (if (string-empty-p (shell-command-to-string "git status --porcelain 2>/dev/null"))
                                                    '(:inherit shadow)
                                                  '(:inherit font-lock-builtin-face))))))
-           (container (cond
-                       ((file-exists-p "/run/.containerenv")
-                        (format " in %s"
-                                (with-temp-buffer
-                                  (save-match-data
-                                    (insert-file-contents "/run/.containerenv")
-                                    (re-search-forward "^name=\"\\([^\"]+\\)\"" nil t)
-                                    (switch-to-buffer (current-buffer))
-                                    (or (match-string-no-properties 1) "podman")))))
-                       ((file-exists-p "/.dockerenv") " in docker")))
            (ssh (when (getenv "SSH_CONNECTION") " via ssh"))
            (info (concat (or branch "")
                          (propertize (concat (or container "")
@@ -148,14 +111,31 @@
   (eshell-prompt-function 'eshell-prompt)
   (eshell-banner-message ""))
 
+(use-package eat
+  :disabled true
+  :after project
+  :bind ([remap project-shell] . eat-project)
+  :hook ((eshell-mode . eat-eshell-mode)
+         (eat-mode . my/eat-keys))
+  :config
+  (defun my/eat-keys ()
+    (remove-hook 'eat-mode-hook 'my/eat-keys)
+    (dolist (key `([?\e ?o] [?\e ?`] ,(kbd "C-`")
+                   [?\e 67108960] [C-M-v]))
+      (push key eat-semi-char-non-bound-keys))
+    (eat-update-semi-char-mode-map)
+    (eat-reload))
+  (setq eat-kill-buffer-on-exit t))
+
 (use-package esh-module
+  :disabled t
   :after eshell
   :custom
   (eshell-modules-list
    (remove 'eshell-term eshell-modules-list)))
 
 ;; * COMINT & SHELL
-(use-package shell
+(use-feature shell
   :defer
   :config
   (setq async-shell-command-buffer 'new-buffer)
@@ -165,10 +145,8 @@
   ;;(add-hook 'shell-mode-hook #'zsh-shell-mode-setup)
   )
 
-(use-package comint
+(use-feature comint
   :commands (comint-mode shell-command-at-line)
-  :bind
-  ("C-!" . shell-command-at-line)
   :bind
   (:map comint-mode-map
         ("SPC" . comint-magic-space))
@@ -217,71 +195,6 @@ output instead."
 ;;   (comint-input-ignoredups t)  ;; remove dups form history
 ;;   (comint-terminfo "ansi")
 ;;   )
-
-
-;; (use-package esh-mode
-;;   :straight nil
-;;   :hook (eshell-mode . common-lisp-modes-mode)
-;;   :preface
-;;   (declare-function eshell-search-path "ext:esh-ext")
-;;   (defun eshell-prompt ()
-;;     (let* ((date (propertize (format-time-string "%a %H:%M") 'face '(:inherit shadow)))
-;;            (path (abbreviate-file-name default-directory))
-;;            (branch (when (and (eshell-search-path "git")
-;;                               (locate-dominating-file default-directory ".git"))
-;;                      (concat (propertize (propertize " on " 'face '(:inherit shadow)))
-;;                              (propertize (string-trim (shell-command-to-string "git branch --show-current"))
-;;                                          'face (if (string-empty-p (shell-command-to-string "git status --porcelain 2>/dev/null"))
-;;                                                    '(:inherit shadow)
-;;                                                  '(:inherit font-lock-builtin-face))))))
-;;            (container (cond
-;;                        ((file-exists-p "/run/.containerenv")
-;;                         (format " in %s"
-;;                                 (with-temp-buffer
-;;                                   (save-match-data
-;;                                     (insert-file-contents "/run/.containerenv")
-;;                                     (re-search-forward "^name=\"\\([^\"]+\\)\"" nil t)
-;;                                     (switch-to-buffer (current-buffer))
-;;                                     (or (match-string-no-properties 1) "podman")))))
-;;                        ((file-exists-p "/.dockerenv") " in docker")))
-;;            (ssh (when (getenv "SSH_CONNECTION") " via ssh"))
-;;            (info (concat (or branch "")
-;;                          (propertize (concat (or container "")
-;;                                              (or ssh ""))
-;;                                      'face '(:inherit shadow))))
-;;            (prompt (if (= eshell-last-command-status 0)
-;;                        "$"
-;;                      (propertize "$" 'face '(:inherit error)))))
-;;       (concat date " " path info "\n" prompt " ")))
-;;   :custom
-;;   (eshell-scroll-show-maximum-output nil)
-;;   (eshell-prompt-function 'eshell-prompt)
-;;   (eshell-banner-message ""))
-
-;; (use-package esh-module
-;;   :straight nil
-;;   :after eshell
-;;   :custom
-;;   (eshell-modules-list
-;;    (cl-remove 'eshell-term eshell-modules-list)))
-
-(use-package eat
-  :ensure t
-  :hook ((eshell-mode . eat-eshell-mode)
-         (eat-mode . my/eat-keys))
-  :config
-  (defun my/eat-keys ()
-    (remove-hook 'eat-mode-hook 'my/eat-keys)
-    (dolist (key `([?\e ?o] [?\e ?`] ,(kbd "C-`")
-                   [?\e 67108960] [C-M-v]))
-      (push key eat-semi-char-non-bound-keys))
-    (eat-update-semi-char-mode-map)
-    (eat-reload))
-  (setq eat-kill-buffer-on-exit t))
-
-(use-package eat
-  :after project
-  :bind ([remap project-shell] . eat-project))
 
 
 (provide 'setup-shells)

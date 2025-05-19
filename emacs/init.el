@@ -30,13 +30,10 @@ If you experience stuttering, increase this.")
 ;;; Package Management
 (require 'init-elpa)
 
+(require 'init-files-buffers)
+
 ;; Default bindings
 (require 'init-bindings)
-
-;;; Tools - git, project, shell
-;;(require 'setup-shells)
-(require 'init-files-buffers)
-(require 'init-tools)
 
 ;;; Minibuffer & Navigation
 (require 'setup-minibuffer)
@@ -44,6 +41,10 @@ If you experience stuttering, increase this.")
 
 ;;; Editor
 (require 'init-editor)
+
+;;; Tools - git, project, shell
+(require 'init-tools)
+
 
 ;;; LSP
 (require 'init-lsp)
@@ -61,6 +62,8 @@ If you experience stuttering, increase this.")
 
 ;; UI
 (require 'init-ui)
+
+(require 'setup-shells)
 
 ;;; Org mode
 (require 'init-org)
