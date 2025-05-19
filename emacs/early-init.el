@@ -62,19 +62,18 @@
                  (org-babel-tangle))
               nil t)))
 
-;; ;; Maximise the Emacs frame on startup
-;; (push '(fullscreen . maximized) initial-frame-alist)
-;; (push '(fullscreen . maximized) default-frame-alist)
+;; UnsetFNHA
+(defvar file-name-handler-alist-original file-name-handler-alist)
+(setq file-name-handler-alist nil)
+;; -UnsetFNHA
 
 ;; ;; Prevent the glimpse of un-styled Emacs by disabling these UI elements early.
 ;; (push '(menu-bar-lines . 0) default-frame-alist)
 ;; (push '(tool-bar-lines . 0) default-frame-alist)
 ;; (push '(vertical-scroll-bars) default-frame-alist)
-
-;; UnsetFNHA
-(defvar file-name-handler-alist-original file-name-handler-alist)
-(setq file-name-handler-alist nil)
-;; -UnsetFNHA
+;; ;; Maximise the Emacs frame on startup
+;; (push '(fullscreen . maximized) initial-frame-alist)
+;; (push '(fullscreen . maximized) default-frame-alist)
 
 (setq-default
  default-frame-alist '((width . 170)
@@ -115,7 +114,6 @@
 (when (featurep 'native-compile)
   (defvar native-comp-async-report-warnings-errors)
   (setq native-comp-async-report-warnings-errors 'silent))
-
 
 (provide 'early-init)
 ;;; early-init.el ends here
