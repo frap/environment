@@ -127,7 +127,6 @@
   (help-window-select t))
 
 (use-package helpful
-  :after (avy)
   :doc "Helpful improves the built-in Emacs help system by providing more contextual information."
   :commands (helpful-callable helpful-variable helpful-command helpful-symbol helpful-key)
   :custom
@@ -147,17 +146,7 @@
    ([remap describe-command]  . helpful-command)
    ([remap describe-variable] . helpful-variable)
    ([remap describe-function] . helpful-callable))
-  :config
-  (defun avy-action-helpful (pt)
-    (save-excursion
-      (goto-char pt)
-      (helpful-at-point))
-    (select-window
-     (cdr (ring-ref avy-ring 0)))
-    t)
-  ;; set H as avy dispatch to Help
-  (setf (alist-get ?H avy-dispatch-alist) 'avy-action-helpful))
-
+)
 
 ;; ───────────────────────── Generic Modified Functions ────────────────────────
 ;;; custom-function
@@ -434,6 +423,7 @@ point reaches the beginning or end of the buffer, stop there."
 (bind-key "C-x 3"             'split-and-follow-vertically)
 (bind-key "C-x 2"             'split-and-follow-horizontally)
 ;; (bind-key "M-o"               'other-window)
+(global-set-key "\M-1" 'delete-other-windows)
 
 ;;;;; resize
 ;; (global-set-key (kbd "M-J") 'shrink-window) ; "C-M-S-j"
@@ -568,11 +558,11 @@ point reaches the beginning or end of the buffer, stop there."
   (bind-key "s-<right>"         'windmove-right)
   (bind-key "s-<down>"          'windmove-down)
   (bind-key "s-<up>"            'windmove-up)
-  (global-set-key (kbd "M-j") 'windmove-down)
-  (global-set-key (kbd "M-k") 'windmove-up)
-  (global-set-key (kbd "M-h") 'windmove-left)
-  (global-set-key (kbd "M-l") 'windmove-right)
-  ;;; copy & eval
+  ;; (global-set-key (kbd "M-j") 'windmove-down) ;; overide avy-got-char
+  ;; (global-set-key (kbd "M-k") 'windmove-up)
+  ;; (global-set-key (kbd "M-h") 'windmove-left)
+  ;; (global-set-key (kbd "M-l") 'windmove-right)
+;;; copy & eval
   (global-set-key (kbd "s-v") 'clipboard-yank)
   (global-set-key (kbd "s-k") 'kill-current-buffer)
   (global-set-key (kbd "s-e") 'eval-region)

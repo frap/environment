@@ -116,7 +116,7 @@
 ;; avy is a GNU Emacs package for jumping to visible text using a
 ;; char-based decision tree
 (use-package avy
-  :ensure t
+  :after helpful
   :commands (avy-goto-char avy-goto-word-0 avy-goto-line avy-goto-char-time)
   :bind (("M-j"    . avy-goto-char-time)
          ("C-M-s"  . #'isearch-forward-other-window)
@@ -161,15 +161,25 @@
                (when (= (mod N per-row) 0) (push "\n" display-strings)))
       (message "%s" (apply #'concat (nreverse display-strings)))))
 
-  ;; Kill text
-  (defun avy-action-kill-whole-line (pt)
-    (save-excursion
-      (goto-char pt)
-      (kill-whole-line))
-    (select-window
-     (cdr
-      (ring-ref avy-ring 0)))
-    t)
+   (defun avy-action-helpful (pt)
+     (save-excursion
+       (goto-char pt)
+       (helpful-at-point))
+     (select-window
+      (cdr (ring-ref avy-ring 0)))
+     t)
+   ;; set H as avy dispatch to Help
+   (setf (alist-get ?H avy-dispatch-alist) 'avy-action-helpful)
+
+    ;; Kill text
+    (defun avy-action-kill-whole-line (pt)
+      (save-excursion
+        (goto-char pt)
+        (kill-whole-line))
+      (select-window
+       (cdr
+        (ring-ref avy-ring 0)))
+      t)
 
   (setf (alist-get ?k avy-dispatch-alist) 'avy-action-kill-stay
         (alist-get ?K avy-dispatch-alist) 'avy-action-kill-whole-line)
@@ -270,9 +280,6 @@
   (setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark)
 
   (setq avy-all-windows t))
-(global-set-key (kbd "M-j") 'avy-goto-char-timer)
-
-(global-set-key "\M-1" 'delete-other-windows)
 
 (use-package breadcrumb
   :ensure t
