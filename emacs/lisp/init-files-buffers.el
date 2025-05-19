@@ -151,13 +151,26 @@
         ;; Don't ask when reverting
         auto-revert-verbose nil))
 
+(use-package ibuffer-vc
+  :ensure t
+  :after ibuffer
+  :hook  (ibuffer-mode . ibuffer-vc-set-filter-groups-by-vc-root))
+
+;; Use human readable Size column instead of original one
+;; (eval-after-load 'ibuffer
+;;   '(progn
+;;      (define-ibuffer-column size-h
+;;        (:name "Size" :inline t)
+;;        (cond
+;;         ((> (buffer-size) 1000000) (format "%7.1fM" (/ (buffer-size) 1000000.0)))
+;;         ((> (buffer-size) 100000) (format "%7.0fk" (/ (buffer-size) 1000.0)))
+;;         ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
+;;         (t (format "%8d" (buffer-size)))))))
+
 (use-feature ibuffer
   :bind (("C-x C-b" . ibuffer)
          ("M-s b" . my/buffers-major-mode)
          ("M-s v" . my/buffers-vc-root))
-  :hook ((ibuffer-mode . hl-line-mode)
-         (ibuffer-mode . my/ibuffer-project-generate-filter-groups)
-         (ibuffer-mode . ibuffer-vc-set-filter-groups-by-vc-root))
   :config
   (setq ibuffer-formats
         '((mark modified read-only " "
@@ -218,7 +231,7 @@
         (switch-to-buffer
          (read-buffer
           (concat prompt mode-string-pretty ": ") nil t
-          (lambda (pair)         ; pair is (name-string . buffer-object)
+          (lambda (pair)                     ; pair is (name-string . buffer-object)
             (with-current-buffer (cdr pair) (derived-mode-p major))))))))
 
   (defun my/buffers-vc-root (&optional arg)
@@ -239,7 +252,7 @@
             (switch-to-buffer
              (read-buffer
               (concat prompt vc-string-pretty ": ") nil t
-              (lambda (pair)          ; pair is (name-string . buffer-object)
+              (lambda (pair)                 ; pair is (name-string . buffer-object)
                 (with-current-buffer (cdr pair) (string= (vc-root-dir) root))))))
         (call-interactively 'switch-to-buffer))))
 
@@ -263,29 +276,18 @@
               (ibuffer-switch-to-saved-filter-groups "default")))
   )
 
-;; Use human readable Size column instead of original one
-(eval-after-load 'ibuffer
-  '(progn
-     (define-ibuffer-column size-h
-       (:name "Size" :inline t)
-       (cond
-        ((> (buffer-size) 1000000) (format "%7.1fM" (/ (buffer-size) 1000000.0)))
-        ((> (buffer-size) 100000) (format "%7.0fk" (/ (buffer-size) 1000.0)))
-        ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
-        (t (format "%8d" (buffer-size)))))))
-
-(use-package ibuffer-project
-  :ensure t
-  :after (ibuffer project)
-  :hook ((ibuffer ibuffer-mode) . my/ibuffer-project-generate-filter-groups)
-  :config
-  (setq ibuffer-project-use-cache t
-        ibuffer-project-root-functions
-        '(((lambda (dir)
-             (project-root (project-current nil dir))) . "Projet")))
-  (defun my/ibuffer-project-generate-filter-groups ()
-    (setq ibuffer-filter-groups
-          (ibuffer-project-generate-filter-groups))))
+;; (use-package ibuffer-project
+;;   :ensure t
+;;   :after (ibuffer project)
+;;   :hook ((ibuffer ibuffer-mode) . my/ibuffer-project-generate-filter-groups)
+;;   :config
+;;   (setq ibuffer-project-use-cache t
+;;         ibuffer-project-root-functions
+;;         '(((lambda (dir)
+;;              (project-root (project-current nil dir))) . "Projet")))
+;;   (defun my/ibuffer-project-generate-filter-groups ()
+;;     (setq ibuffer-filter-groups
+;;           (ibuffer-project-generate-filter-groups))))
 
 ;; Show event history and command history of some or all buffers.
 (use-feature command-log-mode

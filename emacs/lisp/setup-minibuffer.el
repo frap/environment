@@ -176,9 +176,11 @@ Additionally, add `cape-file' as early as possible to the list."
                ("S-TAB" . corfu-previous)
                ([backtab] . corfu-previous)
                ([remap completion-at-point] . corfu-complete)
-               ("RET" . corfu-complete-and-quit)
-               ("<return>" . corfu-complete-and-quit)))
-
+               ;; Use corfu-insert if complete-and-quit not available
+                ([return] . (lambda () (interactive)
+                              (if (fboundp 'corfu-complete-and-quit)
+                                  (corfu-complete-and-quit)
+                                (corfu-insert))))))
   :init
   ;; Recommended: Enable Corfu globally.  Recommended since many modes provide
   ;; Capfs and Dabbrev can be used globally (M-/).  See also the customization
@@ -390,7 +392,7 @@ Additionally, add `cape-file' as early as possible to the list."
 
 ;; Enhanced search and navigation commands
 (use-package consult
-  :after (corfu avy)
+  :after (corfu avy dired)
   :preface
   (defvar consult-prefix-map (make-sparse-keymap))
   (fset 'consult-prefix-map consult-prefix-map)

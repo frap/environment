@@ -350,10 +350,10 @@ mode.")
   (setq git-gutter:update-interval 2)
   (setq git-gutter:modified-sign "†")   ; ✘
   (setq git-gutter:added-sign "†")
-  ;; (setq git-gutter:deleted-sign "†")
-  ;; (set-face-foreground 'git-gutter:added "Green")
+  (setq git-gutter:deleted-sign "✘")
+  (set-face-foreground 'git-gutter:added "Green")
   ;; (set-face-foreground 'git-gutter:modified "Gold")
-  ;; (set-face-foreground 'git-gutter:deleted "Red")
+  (set-face-foreground 'git-gutter:deleted "Red")
   )
 ;;;;; gutter-fringe
 (use-package git-gutter-fringe
@@ -392,7 +392,7 @@ mode.")
   :defer t)
 
 (use-package diff-hl
-  :ensure t
+  :after dired
   :defer t
   :hook ((prog-mode . turn-on-diff-hl-mode)
          (text-mode . turn-on-diff-hl-mode)
