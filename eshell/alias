@@ -1,0 +1,18 @@
+alias .. cd ..
+alias ... cd ../..
+alias .... cd ../../..
+alias gco git checkout
+alias gb git branch
+alias gp git push
+alias ga git add
+alias gc git commit
+alias gl git log --oneline --decorate --graph
+alias gs git status
+alias cls eshell/clear
+alias clear eshell/clear
+alias emc cd ~/.config/emacs
+alias dot cd ~/.config
+alias work cd ~/work
+alias ll eza -la --git
+alias la eza -la
+alias ls eza
