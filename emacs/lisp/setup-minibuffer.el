@@ -175,12 +175,13 @@ Additionally, add `cape-file' as early as possible to the list."
                ("<tab>" . my/tab-dwim)
                ("S-TAB" . corfu-previous)
                ([backtab] . corfu-previous)
+               ;; ([return]  . corfu-complete-and-quit)
                ;; ([remap completion-at-point] . corfu-complete)
                ;; Use corfu-insert if complete-and-quit not available
-               ;; ([return] . (lambda () (interactive)
-               ;;               (if (fboundp 'corfu-complete-and-quit)
-               ;;                   (corfu-complete-and-quit)
-               ;;                 (corfu-insert))))
+               ([return] . (lambda () (interactive)
+                             (if (fboundp 'corfu-complete-and-quit)
+                                 (corfu-complete-and-quit)
+                               (corfu-insert))))
                ))
   :init
   ;; Recommended: Enable Corfu globally.  Recommended since many modes provide
@@ -652,9 +653,9 @@ Additionally, add `cape-file' as early as possible to the list."
   "Complete using Corfu unless in minibuffer."
   (unless (minibufferp)
     (when (and (bound-and-true-p corfu-mode)
-               (or (corfu--active-p)
+               (or (corfu--popup-visible-p)
                    (looking-at "\\_>")))
-      (if (corfu--active-p)
+      (if (corfu--popup-visible-p)
           (corfu-insert)
         (corfu-complete))
       t)))
