@@ -299,8 +299,9 @@
 
 ;; Use Dabbrev with Corfu!
 (use-feature dabbrev
+  :after cape
   ;; Swap M-/ and C-M-/
-  :bind (("M-/" . dabbrev-completion)
+  :bind (("M-/" . cape-dabbrev)
          ("C-M-/" . dabbrev-expand))
   :config
   (add-to-list 'dabbrev-ignored-buffer-regexps "\\` ")

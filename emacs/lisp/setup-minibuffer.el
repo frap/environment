@@ -175,12 +175,13 @@ Additionally, add `cape-file' as early as possible to the list."
                ("<tab>" . my/tab-dwim)
                ("S-TAB" . corfu-previous)
                ([backtab] . corfu-previous)
-               ([remap completion-at-point] . corfu-complete)
+               ;; ([remap completion-at-point] . corfu-complete)
                ;; Use corfu-insert if complete-and-quit not available
-                ([return] . (lambda () (interactive)
-                              (if (fboundp 'corfu-complete-and-quit)
-                                  (corfu-complete-and-quit)
-                                (corfu-insert))))))
+               ;; ([return] . (lambda () (interactive)
+               ;;               (if (fboundp 'corfu-complete-and-quit)
+               ;;                   (corfu-complete-and-quit)
+               ;;                 (corfu-insert))))
+               ))
   :init
   ;; Recommended: Enable Corfu globally.  Recommended since many modes provide
   ;; Capfs and Dabbrev can be used globally (M-/).  See also the customization
@@ -188,7 +189,10 @@ Additionally, add `cape-file' as early as possible to the list."
   (global-corfu-mode)
   ;; Enable optional extension modes:
   (corfu-history-mode)
-  (corfu-popupinfo-mode))
+  (corfu-popupinfo-mode)
+  :config
+  (setq corfu-preselect 'first
+      corfu-quit-at-boundary t))
 
 ;; corfu-history relies on save-hist
 (use-feature savehist
@@ -493,7 +497,7 @@ Additionally, add `cape-file' as early as possible to the list."
    xref-show-definitions-function #'consult-xref)
 
   :config
-  (setq completion-in-region-function #'corfu--completion-in-region)
+  (setq completion-in-region-function #'corfu-completion-in-region)
   ;; Remap existing commands
   (define-key global-map [remap switch-to-buffer] #'consult-buffer)
   (define-key global-map [remap imenu] #'consult-imenu)
@@ -645,25 +649,25 @@ Additionally, add `cape-file' as early as possible to the list."
 
 ;; 🤖 Corfu Completion
 (defun my/corfu-complete ()
-  (when (and (bound-and-true-p corfu-mode)
-             (or (corfu--active-p)
-                 (looking-at "\\_>")))
-    (corfu-complete)
-    t))
+  "Complete using Corfu unless in minibuffer."
+  (unless (minibufferp)
+    (when (and (bound-and-true-p corfu-mode)
+               (or (corfu--active-p)
+                   (looking-at "\\_>")))
+      (if (corfu--active-p)
+          (corfu-insert)
+        (corfu-complete))
+      t)))
 
 (defun my/tab-dwim ()
-  "Intelligent Tab:
-- Accept Copilot if active.
-- Expand Yasnippet if possible.
-- Complete with Corfu if completion active.
-- Otherwise, indent."
+  "Smart Tab: Copilot > Yasnippet > Corfu > indent or complete minibuffer."
   (interactive)
   (or (my/copilot-accept)
       (my/yas-expand)
       (my/corfu-complete)
-      ;; 🔧 Default indent
+      (when (minibufferp)
+        (minibuffer-complete))
       (indent-for-tab-command)))
-
 
 ;; Make yasnippet the first capf (important if you have many)
 (defun my/move-yas-capf-first ()
