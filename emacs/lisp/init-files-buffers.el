@@ -23,133 +23,170 @@
   :hook (on-first-input . ffap-bindings))
 
 (use-feature dired
-  :hook (dired-mode . dired-hide-details-mode)
-  :custom (dired-listing-switches "-lAXhv --group-directories-first")
+  ;; :hook (dired-mode . dired-hide-details-mode)
+  :commands (dired)
   :bind (:map dired-mode-map
-	       ("<backspace>" . dired-up-directory)
-               ("M-<up>" . dired-up-directory)
-               ("~" . dired-home-directory)
-               ("/" . dired-goto-file)
-               ("," . dired-create-directory)
-               ("." . dired-create-empty-file)
-               ;; ("I" . dired-insert-subdir)
-               ("K" . dired-kill-subdir)
-               ;; ("O" . dired-find-file-other-window)
-               ("[" . dired-prev-dirline)
-               ("]" . dired-next-dirline)
-               ;; ("^" . mode-line-other-buffer)
-               ("x" . dired-do-delete)
-               ("X" . dired-do-flagged-delete)
-               ("y" . dired-do-copy))
+	      ("<backspace>" . dired-up-directory)
+              ("M-<up>" . dired-up-directory)
+              ("~" . dired-home-directory)
+              ("/" . dired-goto-file)
+              ("," . dired-create-directory)
+              ("." . dired-create-empty-file)
+              ;; ("I" . dired-insert-subdir)
+              ("K" . dired-kill-subdir)
+              ;; ("O" . dired-find-file-other-window)
+              ("[" . dired-prev-dirline)
+              ("]" . dired-next-dirline)
+              ;; ("^" . mode-line-other-buffer)
+              ("x" . dired-do-delete)
+              ("X" . dired-do-flagged-delete)
+              ("y" . dired-do-copy))
   :init
   (setq dired-omit-files "^\\.[^.]\\|$Rhistory\\|$RData\\|__pycache__|node_modules")
-  (setq dired-listing-switches "-agho --group-directories-first")
+
   (setq ls-lisp-dirs-first t)
   (setq ls-lisp-use-insert-directory-program nil)
   (autoload 'dired-omit-mode "dired-x")
   (put 'dired-find-alternate-file 'disabled nil)
   :config
+  (setq dired-listing-switches "-AGFhlv --group-directories-first --time-style=long-iso")
+  (setq dired-recursive-copies 'always)
+  (setq dired-recursive-deletes 'always)
+  (setq delete-by-moving-to-trash t)
+
+  (setq dired-dwim-target t) ;; other-buffer default target on rename or copy operation
+
+  (setq dired-auto-revert-buffer #'dired-directory-changed-p) ; also see `dired-do-revert-buffer'
+  (setq dired-make-directory-clickable t) ; Emacs 29.1
+  (setq dired-free-space nil) ; Emacs 29.1
+  (setq dired-mouse-drag-files t) ; Emacs 29.1
+
+  (add-hook 'dired-mode-hook #'dired-hide-details-mode)
+  (add-hook 'dired-mode-hook #'hl-line-mode)
+
+  ;; In Emacs 29 there is a binding for `repeat-mode' which lets you
+  ;; repeat C-x C-j just by following it up with j.  For me, this is a
+  ;; problem as j calls `dired-goto-file', which I often use.
+  (define-key dired-jump-map (kbd "j") nil)
+
   (defun dired-home-directory ()
     (interactive)
     (dired (expand-file-name "~/")))
-  (setq-default
-    dired-kill-when-opening-new-dired-buffer t    ; delete dired buffer when opening another directory
-    backward-delete-char-untabify-method 'hungry) ; Alternatives is: 'all (remove all consecutive ws chars, even \n).
+  )
 
-  (setq dired-omit-verbose nil
-      dired-dwim-target t ; Copy and move files netween dired buffers
-      dired-recursive-copies 'always ; "always" means no asking
-      dired-recursive-deletes 'top   ; "top" means ask once for top level directory
-      dired-ls-F-marks-symlinks t ; -F marks links with @
-      dired-hide-details-hide-symlink-targets nil
-      auto-save-list-file-prefix nil ; not create directory .emacs.d/auto-save-list
-      ;; Auto refresh dired, but be quiet about it
-      global-auto-revert-non-file-buffers t
-      wdired-allow-to-change-permissions t
-      auto-revert-verbose nil
-      auto-revert-interval 1
-      delete-by-moving-to-trash t)
-  (setq dired-dwim-target t))
-
-(use-package dired-narrow
-  :ensure t
+(use-package dired-aux
+  :ensure nil
   :after dired
-  :commands (dired-narrow dired-narrow-fuzzy dired-narrow-regexp)
-  :bind (:map dired-mode-map
-              ("C-c C-n" . dired-narrow)
-              ("C-c C-f" . dired-narrow-fuzzy)
-              ("C-c C-N" . dired-narrow-regexp)))
+  :bind
+  ( :map dired-mode-map
+    ("C-+" . dired-create-empty-file)
+    ("M-s f" . nil)
+    ("C-<return>" . dired-do-open) ; Emacs 30
+    ("C-x v v" . dired-vc-next-action)) ; Emacs 28
+  :config
+  (setq dired-isearch-filenames 'dwim)
+  (setq dired-create-destination-dirs 'ask) ; Emacs 27
+  (setq dired-vc-rename-file t)             ; Emacs 27
+  (setq dired-do-revert-buffer (lambda (dir) (not (file-remote-p dir)))) ; Emacs 28
+  (setq dired-create-destination-dirs-on-trailing-dirsep t)) ; Emacs 29
 
-(use-package dired-subtree
-  :ensure t
+(use-feature dired-x
   :after dired
-  :init
-  (defun my/dired-expand-all ()
-    "Expand all subtrees in the dired buffer."
-    (interactive)
-    (let ((has-more t))
-      (while has-more
-        (condition-case ex
-            (progn
-              (dired-next-dirline 1)
-              (dired-subtree-toggle))
-          ('error (setq has-more nil))))))
-  :commands (dired-subtree-toggle dired-subtree-cycle)
-  :bind (:map dired-mode-map
-              ("<tab>" . dired-subtree-toggle)
-              ("S-<tab>" . my/dired-expand-all)
-              ("<backtab>" . dired-subtree-cycle)))
+  :bind
+  ( :map dired-mode-map
+    ("I" . dired-info))
+  :config
+  (setq dired-clean-up-buffers-too t)
+  (setq dired-clean-confirm-killing-deleted-buffers t)
+  (setq dired-x-hands-off-my-keys t)    ; easier to show the keys I use
+  (setq dired-bind-man nil)
+  (setq dired-bind-info nil))
 
-(use-feature files
-  :preface
-  (setq
-   ;; more info in completions
-   completions-detailed t
-   ;; don't let the minibuffer muck up my window tiling
-   read-minibuffer-restore-windows t
-   ;; scope save prompts to individual projects
-   save-some-buffers-default-predicate 'save-some-buffers-root
-   ;;Emacs is super fond of littering filesystems with backups and autosaves. This was valid in 1980. It is no longer the case
-   make-backup-files nil
-   auto-save-default nil
-   create-lockfiles nil
-   warning-minimum-level :error )
-  (setq-default
-   x-select-enable-clipboard t ; Makes killing/yanking interact with the clipboard.
-   save-interprogram-paste-before-kill t ; Save clipboard strings into kill ring before replacing them.
-   apropos-do-all t                     ; Shows all options when running apropos
-   message-log-max 1000
-   fill-column 80
+(use-feature wdired
+  :commands (wdired-change-to-wdired-mode)
+  :config
+  (setq wdired-allow-to-change-permissions t)
+  (setq wdired-create-parent-directories t))
 
-   column-number-mode t              ; show (line,column) in mode-line.
-   cua-selection-mode t              ; delete regions.
-   ;; allow commands to be run on minibuffers.
-   enable-recursive-minibuffers t   )
-  (defvar backup-dir
-    (locate-user-emacs-file ".cache/backups")
-    "Directory to store backups.")
-  (defvar auto-save-dir
-    (locate-user-emacs-file ".cache/auto-save/")
-    "Directory to store auto-save files.")
-  ;; :custom
-  ;; (backup-by-copying t)
-  ;; (create-lockfiles nil)
-  ;; (backup-directory-alist
-  ;;  `(("." . ,backup-dir)))
-  ;; (auto-save-file-name-transforms
-  ;;  `((".*" ,auto-save-dir t)))
-  ;; (auto-save-no-message t)
-  ;; (auto-save-interval 100)
-  ;; (require-final-newline t)
-  :bind ("<f5>" . revert-buffer-quick)
-  :init
-  (unless (file-exists-p auto-save-dir)
-    (make-directory auto-save-dir t))
-  (setq auto-revert-interval 0.5
-        ;; Revert buffers like Dired
-        global-auto-revert-non-file-buffers t
-        ;; Don't ask when reverting
-        auto-revert-verbose nil))
+  ;; (use-package dired-narrow
+  ;;   :ensure t
+  ;;   :after dired
+  ;;   :commands (dired-narrow dired-narrow-fuzzy dired-narrow-regexp)
+  ;;   :bind (:map dired-mode-map
+  ;;               ("C-c C-n" . dired-narrow)
+  ;;               ("C-c C-f" . dired-narrow-fuzzy)
+  ;;               ("C-c C-N" . dired-narrow-regexp)))
+
+  ;; (use-package dired-subtree
+  ;;   :ensure t
+  ;;   :after dired
+  ;;   :init
+  ;;   (defun my/dired-expand-all ()
+  ;;     "Expand all subtrees in the dired buffer."
+  ;;     (interactive)
+  ;;     (let ((has-more t))
+  ;;       (while has-more
+  ;;         (condition-case ex
+  ;;             (progn
+  ;;               (dired-next-dirline 1)
+  ;;               (dired-subtree-toggle))
+  ;;           ('error (setq has-more nil))))))
+  ;;   :commands (dired-subtree-toggle dired-subtree-cycle)
+  ;;   :bind (:map dired-mode-map
+  ;;               ("<tab>" . dired-subtree-toggle)
+  ;;               ("S-<tab>" . my/dired-expand-all)
+  ;;               ("<backtab>" . dired-subtree-cycle)))
+
+  (use-feature files
+    :preface
+    (setq
+     ;; more info in completions
+     completions-detailed t
+     ;; don't let the minibuffer muck up my window tiling
+     read-minibuffer-restore-windows t
+     ;; scope save prompts to individual projects
+     save-some-buffers-default-predicate 'save-some-buffers-root
+     ;;Emacs is super fond of littering filesystems with backups and autosaves. This was valid in 1980. It is no longer the case
+     make-backup-files nil
+     auto-save-default nil
+     create-lockfiles nil
+     warning-minimum-level :error )
+    (setq-default
+     x-select-enable-clipboard t ; Makes killing/yanking interact with the clipboard.
+     save-interprogram-paste-before-kill t ; Save clipboard strings into kill ring before replacing them.
+     apropos-do-all t                   ; Shows all options when running apropos
+     message-log-max 1000
+     fill-column 80
+
+     column-number-mode t            ; show (line,column) in mode-line.
+     cua-selection-mode t            ; delete regions.
+     ;; allow commands to be run on minibuffers.
+     enable-recursive-minibuffers t   )
+    (defvar backup-dir
+      (locate-user-emacs-file ".cache/backups")
+      "Directory to store backups.")
+    (defvar auto-save-dir
+      (locate-user-emacs-file ".cache/auto-save/")
+      "Directory to store auto-save files.")
+    ;; :custom
+    ;; (backup-by-copying t)
+    ;; (create-lockfiles nil)
+    ;; (backup-directory-alist
+    ;;  `(("." . ,backup-dir)))
+    ;; (auto-save-file-name-transforms
+    ;;  `((".*" ,auto-save-dir t)))
+    ;; (auto-save-no-message t)
+    ;; (auto-save-interval 100)
+    ;; (require-final-newline t)
+    :bind ("<f5>" . revert-buffer-quick)
+    :init
+    (unless (file-exists-p auto-save-dir)
+      (make-directory auto-save-dir t))
+    (setq auto-revert-interval 0.5
+          ;; Revert buffers like Dired
+          global-auto-revert-non-file-buffers t
+          ;; Don't ask when reverting
+          auto-revert-verbose nil))
 
 (use-package ibuffer-vc
   :ensure t
