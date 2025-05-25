@@ -100,6 +100,7 @@
 ;; (when (file-exists-p custom-file)
 ;;   (load custom-file 'noerror 'nomessage))
 
+
 (use-feature autorevert
   :delight auto-revert-mode
   :hook (after-init . global-auto-revert-mode))
@@ -298,18 +299,28 @@
   :custom (browse-url-browser-function #'xwidget-webkit-browse-url))
 
 ;; Use Dabbrev with Corfu!
-(use-feature dabbrev
-  :after cape
-  ;; Swap M-/ and C-M-/
-  :bind (("M-/" . cape-dabbrev)
-         ("C-M-/" . dabbrev-expand))
-  :config
-  (add-to-list 'dabbrev-ignored-buffer-regexps "\\` ")
-  ;; Available since Emacs 29 (Use `dabbrev-ignored-buffer-regexps' on older Emacs)
-  (add-to-list 'dabbrev-ignored-buffer-modes 'authinfo-mode)
-  (add-to-list 'dabbrev-ignored-buffer-modes 'doc-view-mode)
-  (add-to-list 'dabbrev-ignored-buffer-modes 'pdf-view-mode)
-  (add-to-list 'dabbrev-ignored-buffer-modes 'tags-table-mode))
+;; (use-feature dabbrev
+;;   :commands (dabbrev-expand dabbrev-completion)
+;;   :after cape
+;;   ;; Swap M-/ and C-M-/
+;;   :bind (("M-/" . cape-dabbrev)
+;;          ("C-M-/" . dabbrev-expand))
+;;   :config
+;;   ;;;; `dabbrev' (dynamic word completion (dynamic abbreviations))
+;;   (setq dabbrev-abbrev-char-regexp "\\sw\\|\\s_")
+;;   (setq dabbrev-abbrev-skip-leading-regexp "[$*/=~']")
+;;   (setq dabbrev-backward-only nil)
+;;   (setq dabbrev-case-distinction 'case-replace)
+;;   (setq dabbrev-case-fold-search nil)
+;;   (setq dabbrev-case-replace 'case-replace)
+;;   (setq dabbrev-check-other-buffers t)
+;;   (setq dabbrev-eliminate-newlines t)
+;;   (setq dabbrev-upcase-means-case-search t)
+;;   ;; Available since Emacs 29 (Use `dabbrev-ignored-buffer-regexps' on older Emacs)
+;;   (add-to-list 'dabbrev-ignored-buffer-modes 'authinfo-mode)
+;;   (add-to-list 'dabbrev-ignored-buffer-modes 'doc-view-mode)
+;;   (add-to-list 'dabbrev-ignored-buffer-modes 'pdf-view-mode)
+;;   (add-to-list 'dabbrev-ignored-buffer-modes 'tags-table-mode))
 
 ;; Supercharge the way hippie-expand behaves, expand as little as
 ;; possible

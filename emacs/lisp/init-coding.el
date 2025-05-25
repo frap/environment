@@ -209,11 +209,6 @@
 
 
 ;;; Languages
-(use-feature abbrev
-  :delight abbrev-mode
-  :custom
-  (save-abbrevs nil))
-
 (use-feature cc-mode
   :hook (c-mode-common . cc-mode-setup)
   :custom

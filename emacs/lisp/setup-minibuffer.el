@@ -9,8 +9,9 @@
 
 
 (use-feature minibuffer
+  :demand t
   :after (common-lisp-modes avy)
- ;; :hook (eval-expression-minibuffer-setup . common-lisp-modes-mode)
+  ;; :hook (eval-expression-minibuffer-setup . common-lisp-modes-mode)
   ;;   :hook (minibuffer-setup .  cursor-intangible-mode)
   :bind ( :map minibuffer-inactive-mode-map
           ("<mouse-1>" . ignore))
@@ -54,20 +55,38 @@
    '(read-only t cursor-intangible t face minibuffer-prompt))
 
   :config
+  (setq completion-auto-deselect nil)
+  (setq completion-auto-help 'always)
+  (setq completion-auto-select 'second-tab)
+  (setq completion-show-help nil)
+  (setq completion-show-inline-help nil)
+  (setq completions-detailed t)
+  (setq completions-format 'one-column)
+  (setq completions-header-format "")
+  ;; (setq completions-header-format (propertize "%s candidates:\n" 'face 'bold-italic))
+  (setq completions-highlight-face 'completions-highlight)
+  (setq completions-max-height 10)
+  (setq completions-sort 'historical)
+  ;; This one is for Emacs 31.  It relies on what I am doing with the `completion-category-overrides'.
+  (setq completion-eager-display 'auto)
+
+  (setq minibuffer-completion-auto-choose t)
+  (setq minibuffer-visible-completions nil) ; Emacs 30
   ;; Minibuffer completion
-  (setq completion-cycle-threshold 2
-        completion-flex-nospace nil
-        completion-pcm-complete-word-inserts-delimiters nil
-        ;;completion-pcm-word-delimiters "-_./:| "
-        completion-show-help nil
-        completion-ignore-case nil
-        read-buffer-completion-ignore-case t
-        read-file-name-completion-ignore-case t
-        completions-format 'vertical    ; *Completions* buffer
-        read-minibuffer-restore-windows t
-        read-answer-short t
-        resize-mini-windows 'grow-only
-        ))
+  ;; (setq completion-cycle-threshold 2
+  ;;       completion-flex-nospace nil
+  ;;       completion-pcm-complete-word-inserts-delimiters nil
+  ;;       ;;completion-pcm-word-delimiters "-_./:| "
+  ;;       completion-show-help nil
+  ;;       completion-ignore-case nil
+  ;;       read-buffer-completion-ignore-case t
+  ;;       read-file-name-completion-ignore-case t
+  ;;       completions-format 'vertical    ; *Completions* buffer
+  ;;       read-minibuffer-restore-windows t
+  ;;       read-answer-short t
+  ;;       resize-mini-windows 'grow-only
+  ;;       )
+  )
 
 ;;; Completion
 ;; Cape provides Completion At Point Extensions which can be used in combination with Corfu, Company or the default completion UI.
@@ -240,20 +259,19 @@ Additionally, add `cape-file' as early as possible to the list."
 ;; adds annotations (file sizes, buffer modes) to minibuffer completions
 ;; easy to setup - vertico is right aligned
 (use-package marginalia
-  :after vertico
+  :hook (after-init . marginalia-mode)
   ;; Either bind `marginalia-cycle` globally or only in the minibuffer
   :bind (:map minibuffer-local-map
               ("M-A" . marginalia-cycle))
-  :custom
-  (marginalia-max-relative-age 0)
-  (marginalia-align 'right)
   :config
-  (marginalia-mode)
-   (setq marginalia-annotators
+  (setq marginalia-max-relative-age 0)
+  (setq marginalia-annotators
         '(marginalia-annotators-heavy marginalia-annotators-light)))
 
 
 (use-package orderless
+  :demand t
+  :after minibuffer
   :init
   ;; Add style dispatcher that removes entries if pattern starts or ends with !
   (defun orderless-without-if-bang (pattern _index _total)
@@ -287,10 +305,7 @@ Additionally, add `cape-file' as early as possible to the list."
   (vertico-mode)
   (vertico-multiform-mode)
   :custom
-  (vertico-count 15)
-  (vertico-resize t)
-  (vertico-cycle nil)
-  (vertico-grid-separator "   ")
+  ;; (vertico-grid-separator "   ")
   (vertico-multiform-categories
    '((file reverse)
      (buffer unobtrusive)      ;;    (consult-grep buffer)
@@ -320,26 +335,30 @@ Additionally, add `cape-file' as early as possible to the list."
               ;; ("M-TAB" . minibuffer-complete)
               )
   :config
+  (setq vertico-scroll-margin 0)
+  (setq vertico-count 5)
+  (setq vertico-resize t)
+  (setq vertico-cycle t)
   ;; Prefix the current candidate with “» ”. From
   ;; https://github.com/minad/vertico/wiki#prefix-current-candidate-with-arrow
-  (defun my/vertico-format-candidate (orig cand prefix suffix index _start)
-    (setq cand (funcall orig cand prefix suffix index _start))
-    (concat
-     (if (and (numberp vertico--index)
-              (= vertico--index index))
-         (propertize "» " 'face 'vertico-current)
-       "  ")
-     cand))
+  ;; (defun my/vertico-format-candidate (orig cand prefix suffix index _start)
+  ;;   (setq cand (funcall orig cand prefix suffix index _start))
+  ;;   (concat
+  ;;    (if (and (numberp vertico--index)
+  ;;             (= vertico--index index))
+  ;;        (propertize "» " 'face 'vertico-current)
+  ;;      "  ")
+  ;;    cand))
 
-  (advice-add #'vertico--format-candidate :around #'my/vertico-format-candidate)
+  ;; (advice-add #'vertico--format-candidate :around #'my/vertico-format-candidate)
   ;; ;; Prompt indicator for `completing-read-multiple'.
-  ;; (when (< emacs-major-version 31)
-  ;;   (advice-add #'completing-read-multiple :filter-args
-  ;;               (lambda (args)
-  ;;                 (cons (format "[CRM%s] %s"
-  ;;                               (string-replace "[ \t]*" "" crm-separator)
-  ;;                               (car args))
-  ;;                       (cdr args)))))
+  (when (< emacs-major-version 31)
+    (advice-add #'completing-read-multiple :filter-args
+                (lambda (args)
+                  (cons (format "[CRM%s] %s"
+                                (string-replace "[ \t]*" "" crm-separator)
+                                (car args))
+                        (cdr args)))))
   ;; Workaround for problem with `tramp' hostname completions. This overrides
   ;; the completion style specifically for remote files! See
   ;; https://github.com/minad/vertico#tramp-hostname-completion
@@ -352,6 +371,13 @@ Additionally, add `cape-file' as early as possible to the list."
   (add-to-list 'completion-styles-alist
                '(basic-remote           ; Name of `completion-style'
                  kb/basic-remote-try-completion kb/basic-remote-all-completions nil))
+
+  (with-eval-after-load 'rfn-eshadow
+    ;; This works with `file-name-shadow-mode' enabled.  When you are in
+    ;; a sub-directory and use, say, `find-file' to go to your home '~/'
+    ;; or root '/' directory, Vertico will clear the old path to keep
+    ;; only your current input.
+    (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy))
   )
 
 ;; (use-package vertico-directory
@@ -398,9 +424,9 @@ Additionally, add `cape-file' as early as possible to the list."
 ;; Enhanced search and navigation commands
 (use-package consult
   :after (corfu avy dired)
-  :preface
-  (defvar consult-prefix-map (make-sparse-keymap))
-  (fset 'consult-prefix-map consult-prefix-map)
+  ;; Enable automatic preview at point in the *Completions* buffer. This is
+  ;; relevant when you use the default completion UI.
+  :hook (completion-list-mode . consult-preview-at-point-mode)
 
   :bind
   (;; Global bindings
@@ -423,14 +449,9 @@ Additionally, add `cape-file' as early as possible to the list."
    ("C-x t b" . consult-buffer-other-tab)   ;; orig. switch-to-buffer-other-tab
    ("C-x r b" . consult-bookmark)           ;; orig. bookmark-jump
    ("C-x p b" . consult-buffer-project)     ;; orig. project-switch-to-buffer
-   ;; Custom M-# bindings for fast register access
-   ("M-#" . consult-register-load)
-   ("M-'" . consult-register-store) ;; orig. abbrev-prefix-mark (unrelated)
-   ("C-M-#" . consult-register)
    ;; Other custom bindings
    ("M-y" . consult-yank-pop) ;; orig. yank-pop
    ;; M-g bindings in `goto-map'
-   ("M-g e" . consult-compile-error)
    ("M-g f" . consult-flymake)     ;; Alternative: consult-flycheck
    ("M-g g" . consult-goto-line)   ;; orig. goto-line
    ("M-g M-g" . consult-goto-line) ;; orig. goto-line
@@ -440,16 +461,18 @@ Additionally, add `cape-file' as early as possible to the list."
    ("M-g i" . consult-imenu)
    ("M-g I" . consult-imenu-multi)
    ;; M-s bindings in `search-map
-   ("M-s f" . consult-find)
-   ("M-s F" . consult-locate)
-   ("M-s g" . consult-grep)
-   ("M-s G" . consult-git-grep)
-   ("M-s r" . consult-ripgrep-project-root)
-   ("M-s l" . consult-line)
-   ("M-s L" . consult-line-multi)
-   ("M-s m" . consult-multi-occur)
-   ("M-s k" . consult-keep-lines)
-   ("M-s u" . consult-focus-lines)
+   ("M-s M-b" . consult-buffer)
+   ("M-s M-f" . consult-find)
+   ("M-s M-g" . consult-grep)
+   ("M-s M-h" . consult-history)
+   ("M-s M-i" . consult-imenu)
+   ("M-s M-l" . consult-line)
+   ("M-s M-m" . consult-mark)
+   ("M-s M-y" . consult-yank-pop)
+   ("M-s M-s" . consult-outline)
+
+   :map consult-narrow-map
+   ("?" . consult-narrow-help)
 
    :map isearch-mode-map
    ("M-e"   . consult-isearch-history)   ;; orig. isearch-edit-string
@@ -459,12 +482,6 @@ Additionally, add `cape-file' as early as possible to the list."
 
    :map ctl-x-map
    ("c" . consult-prefix-map)
-
-   :map consult-prefix-map
-   ("r" . consult-recent-file)
-   ("o" . consult-outline)
-   ("i" . consult-imenu)
-   ("g" . consult-grep)
 
    :map dired-mode-map
    ("O" . consult-file-externally)
@@ -477,53 +494,35 @@ Additionally, add `cape-file' as early as possible to the list."
    ("M-r" . consult-history)
    ("M-j"  . avy-action-embark)
    )
-  ;; Enable automatic preview at point in the *Completions* buffer. This is
-  ;; relevant when you use the default completion UI.
-  :hook (completion-list-mode . consult-preview-at-point-mode)
-
-  :init
-  ;; Optionally configure the register formatting. This improves the register
-  ;; preview for `consult-register', `consult-register-load',
-  ;; `consult-register-store' and the Emacs built-ins.
-  (setq
-   register-preview-delay 0.1
-   register-preview-function #'consult-register-format)
-  ;; Optionally tweak the register preview window.
-  ;; This adds thin lines, sorting and hides the mode line of the window.
-  (advice-add #'register-preview :override #'consult-register-window)
-
-  ;; Use Consult to select xref locations with preview
-  (setq
-   xref-show-xrefs-function #'consult-xref
-   xref-show-definitions-function #'consult-xref)
-
   :config
+  (setq consult-line-numbers-widen t)
+  ;; (setq completion-in-region-function #'consult-completion-in-region)
   (setq completion-in-region-function #'corfu-completion-in-region)
-  ;; Remap existing commands
-  (define-key global-map [remap switch-to-buffer] #'consult-buffer)
-  (define-key global-map [remap imenu] #'consult-imenu)
-  (define-key global-map [remap switch-to-buffer-other-window] #'consult-buffer-other-window)
-  (define-key global-map [remap switch-to-buffer-other-frame] #'consult-buffer-other-frame)
-  (define-key global-map [remap project-switch-to-buffer] #'consult-project-buffer)
-  (define-key global-map [remap bookmark-jump] #'consult-bookmark)
-  (define-key global-map [remap recentf-open] #'consult-recent-file)
-  (define-key global-map [remap yank] nil)
-  (define-key global-map [remap yank-pop] #'consult-yank-pop)
-  (define-key global-map [remap goto-line] #'consult-goto-line)
-  (define-key global-map [remap repeat-complex-command] #'consult-complex-command)
-  (define-key global-map [remap isearch-edit-string] #'consult-isearch-history)
-  (define-key global-map [remap next-matching-history-element] #'consult-history)
-  (define-key global-map [remap previous-matching-history-element] #'consult-history)
-  (define-key global-map [remap Info-search] #'consult-info)
 
-  ;; For some commands and buffer sources it is useful to configure the
-  ;; :preview-key on a per-command basis using the `consult-customize' macro.
-  (consult-customize
-   consult-theme
-   consult-ripgrep consult-git-grep consult-grep
-   consult-bookmark consult-recent-file consult-xref
-   consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
-   :preview-key (list (kbd "M-.") :debounce 0.2))
+  (setq consult-async-min-input 3)
+    (setq consult-async-input-debounce 0.5)
+    (setq consult-async-input-throttle 0.8)
+    (setq consult-narrow-key nil)
+    (setq consult-find-args
+          (concat "find . -not ( "
+                  "-path */.git* -prune "
+                  "-or -path */.cache* -prune )"))
+    (setq consult-preview-key 'any)
+    (setq consult-project-function nil) ; always work from the current directory (use `cd' to switch directory)
+
+    (add-to-list 'consult-mode-histories '(vc-git-log-edit-mode . log-edit-comment-ring))
+
+    (require 'consult-imenu)          ; the `imenu' extension is in its own file
+
+
+    ;; For some commands and buffer sources it is useful to configure the
+    ;; :preview-key on a per-command basis using the `consult-customize' macro.
+    (consult-customize
+     consult-theme
+     consult-ripgrep consult-git-grep consult-grep
+     consult-bookmark consult-recent-file consult-xref
+     consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
+     :preview-key (list (kbd "M-.") :debounce 0.2))
 
   ;; Optionally make narrowing help available in the minibuffer.
   ;; You may want to use `embark-prefix-help-command' or which-key instead.
