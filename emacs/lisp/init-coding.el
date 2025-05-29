@@ -7,18 +7,10 @@
 ;;  compilation-scroll-output t
 ;;  )
 
-;;; comment-dwim-2
-;;; comment/un-comment
-(use-package comment-dwim-2
-  :ensure t
-  :bind ("M-;" . 'comment-dwim-2)
-  :delight)
-
-
 ;; Common Lisp Mode
 (use-package common-lisp-modes
   :ensure (:host github :repo "andreyorst/common-lisp-modes.el")
-  :commands common-lisp-modes-mode
+  ;; :commands common-lisp-modes-mode ;; minor mode
   :delight " δ"
   :preface
   (defun indent-sexp-or-fill ()
@@ -26,29 +18,25 @@
     (interactive)
     (let ((ppss (syntax-ppss)))
       (if (or (nth 3 ppss)
-              (nth 4 ppss))
-          (fill-paragraph)
-        (save-excursion
-          (mark-sexp)
-          (indent-region (point) (mark))))))
-  :bind ( :map common-lisp-modes-mode-map
-          ("M-q" . indent-sexp-or-fill))
+	      (nth 4 ppss))
+	  (fill-paragraph)
+	(save-excursion
+	  (mark-sexp)
+	  (indent-region (point) (mark))))))
+  :bind ( :map common-lisp-modes-mode-map ;; not lisp-mode-shared-map  ?
+	  ("M-q" . indent-sexp-or-fill))
   :config
   (dolist (hook '(common-lisp-mode-hook
                 clojure-mode-hook
                 cider-repl-mode
-                racket-mode-hook
-                eshell-mode-hook
                 eval-expression-minibuffer-setup-hook))
-    (add-hook hook 'common-lisp-modes-mode)))
-
+  (add-hook hook 'common-lisp-modes-mode)))
 
 ;; Indent S-Exp As I Type
 (use-package isayt
   :ensure (:host gitlab :repo "andreyorst/isayt.el")
   :delight
   :hook (common-lisp-modes-mode . isayt-mode))
-
 
 ;; Subword mode helps us move around camel-case languages, and is
 ;; mostly configured as a hook in those major modes. The only thing we
@@ -71,18 +59,18 @@
 (use-package envrc
   :hook (after-init . envrc-global-mode))
 
-(use-feature display-line-numbers
-  :hook (display-line-numbers-mode . toggle-hl-line)
-  :hook prog-mode
-  :custom
-  (display-line-numbers-width 2)
-  (display-line-numbers-grow-only t)
-  (display-line-numbers-width-start t)
-  :config
-  (setq display-line-numbers-width-start t
-        display-line-numbers-type 'relative)
-    (defun toggle-hl-line ()
-      (hl-line-mode (if display-line-numbers-mode 1 -1))))
+;; (use-feature display-line-numbers
+;;   :hook (display-line-numbers-mode . toggle-hl-line)
+;;   :hook prog-mode
+;;   :custom
+;;   (display-line-numbers-width 2)
+;;   (display-line-numbers-grow-only t)
+;;   (display-line-numbers-width-start t)
+;;   :config
+;;   (setq display-line-numbers-width-start t
+;;         display-line-numbers-type 'relative)
+;;     (defun toggle-hl-line ()
+;;       (hl-line-mode (if display-line-numbers-mode 1 -1))))
 
 ;;; Coding helpers
 
@@ -122,6 +110,17 @@
   (flymake-mode-line-lighter "FlyM")
   :config
   (setq elisp-flymake-byte-compile-load-path (cons "./" load-path)))
+
+(use-feature outline
+  :hook (common-lisp-modes-mode . lisp-outline-minor-mode)
+  :delight
+  ;; :delight '(:eval (propertize " Ξ" 'face 'font-lock-function-name-face))
+  :custom
+  (outline-minor-mode-cycle t)
+  :preface
+  (defun lisp-outline-minor-mode ()
+    (setq-local outline-regexp "^;;;;*[[:space:]]\\w")
+    (outline-minor-mode)))
 
 ;; treesitter
 (defun treesit-p ()
@@ -189,12 +188,12 @@
 ;;       (profiler-cpu-stop))))
 
 ;;;;; rainbow
-(use-package rainbow-mode
-  :ensure t
-  :defer t
-  :hook ((prog-mode . rainbow-mode)
-         (web-mode . rainbow-mode)
-         (css-mode . rainbow-mode)))
+;; (use-package rainbow-mode
+;;   :ensure t
+;;   :defer t
+;;   :hook ((prog-mode . rainbow-mode)
+;;          (web-mode . rainbow-mode)
+;;          (css-mode . rainbow-mode)))
 
 (use-package rainbow-delimiters
   :ensure t

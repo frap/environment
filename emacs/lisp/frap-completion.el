@@ -38,8 +38,6 @@
 ;; though they can also be regular expressions, and even styles that are the same as
 ;; the aforementioned flex and initials.
 
-(require  'prot-common )
-
 (use-package minibuffer
   :ensure nil
   :config
@@ -270,7 +268,22 @@
   (setq dabbrev-eliminate-newlines t)
   (setq dabbrev-upcase-means-case-search t)
   (setq dabbrev-ignored-buffer-modes
-        '(archive-mode image-mode docview-mode pdf-view-mode)))
+        '(archive-mode image-mode docview-mode pdf-view-mode))
+  ;; Supercharge the way hippie-expand behaves, expand as little as
+  ;; possible
+  (setq hippie-expand-try-functions-list
+	'(try-expand-dabbrev-visible
+          try-expand-dabbrev
+          try-expand-dabbrev-all-buffers
+          try-complete-file-name-partially
+          try-complete-file-name
+          try-expand-all-abbrevs
+          try-expand-list
+          try-expand-line
+          try-expand-whole-kill
+          try-expand-dabbrev-from-kill
+          try-complete-lisp-symbol-partially
+          try-complete-lisp-symbol)))
 
 (use-package abbrev
   :ensure nil

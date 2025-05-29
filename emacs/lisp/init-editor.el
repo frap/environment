@@ -322,23 +322,23 @@
 ;;   (add-to-list 'dabbrev-ignored-buffer-modes 'pdf-view-mode)
 ;;   (add-to-list 'dabbrev-ignored-buffer-modes 'tags-table-mode))
 
-;; Supercharge the way hippie-expand behaves, expand as little as
-;; possible
-(setq hippie-expand-try-functions-list
-      '(try-expand-dabbrev-visible
-        try-expand-dabbrev
-        try-expand-dabbrev-all-buffers
-        try-complete-file-name-partially
-        try-complete-file-name
-        try-expand-all-abbrevs
-        try-expand-list
-        try-expand-line
-        try-expand-whole-kill
-        try-expand-dabbrev-from-kill
-        try-complete-lisp-symbol-partially
-        try-complete-lisp-symbol))
-
 ;;  delete-auto-save-files t           ; deletes buffer's auto save file when it is saved or killed with no changes in it
+
+  ;; Supercharge the way hippie-expand behaves, expand as little as
+  ;; possible
+;; (setq hippie-expand-try-functions-list
+;; 	'(try-expand-dabbrev-visible
+;;         try-expand-dabbrev
+;;         try-expand-dabbrev-all-buffers
+;;         try-complete-file-name-partially
+;;         try-complete-file-name
+;;         try-expand-all-abbrevs
+;;         try-expand-list
+;;         try-expand-line
+;;         try-expand-whole-kill
+;;         try-expand-dabbrev-from-kill
+;;         try-complete-lisp-symbol-partially
+;;         try-complete-lisp-symbol))
 
 (use-feature doc-view
   :defer t
@@ -361,18 +361,6 @@
   :bind
   (:map ltl/toggles-map
    ("$" . jinx-mode)))
-
-
-(use-feature outline
-  :hook (common-lisp-modes-mode . lisp-outline-minor-mode)
-  :delight
-  ;; :delight '(:eval (propertize " Ξ" 'face 'font-lock-function-name-face))
-  :custom
-  (outline-minor-mode-cycle t)
-  :preface
-  (defun lisp-outline-minor-mode ()
-    (setq-local outline-regexp "^;;;;*[[:space:]]\\w")
-    (outline-minor-mode)))
 
 
 ;; move where I mean
