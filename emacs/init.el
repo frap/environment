@@ -1,8 +1,8 @@
 ;;; init.el --- Main configuration file -*- lexical-binding: t; no-byte-compile: t-*-
 
-;; Author: Red Elvis
+;; Author: Jesus Elvis
 ;; Keywords: Emacs configuration
-;; Homepage: https://github.com/frap/environment.git
+;; Homepage: https://github.com/frap/dotfiles.git
 
 ;;; Commentary:
 ;; Emacs 30+ configuration.
@@ -12,39 +12,84 @@
 ;; startup issues
 ;;(setq debug-on-error t)
 
-;; Avoid garbage collection during startup.
-(defvar better-gc-cons-threshold 402653184
-  "If you experience freezing, decrease this.
-If you experience stuttering, increase this.")
+;; Disable backups and lockfiles
+(setq make-backup-files nil)
+(setq backup-inhibited nil) ; Not sure if needed, given `make-backup-files'
+(setq create-lockfiles nil)
+
+;; native complilation is silent
+;; Make native compilation silent and prune its cache.
+(when (native-comp-available-p)
+  (setq native-comp-async-report-warnings-errors 'silent) ; Emacs 28 with native compilation
+  (setq native-compile-prune-cache t))                    ; Emacs 29
+
+;; Disable the damn thing by making it disposable.
+;; (setq custom-file (make-temp-file "emacs-custom-"))
+
+
+;; some emacs commands are disabled by default
+;; Enable these
+(mapc
+ (lambda (command)
+   (put command 'disabled nil))
+ '(list-timers narrow-to-region narrow-to-page upcase-region downcase-region))
+
+;; And disable these
+(mapc
+ (lambda (command)
+   (put command 'disabled t))
+ '(eshell project-eshell overwrite-mode iconify-frame diary))
+
+;; start with *scratch* buffer
+(setq initial-buffer-choice t)
+(setq initial-major-mode 'lisp-interaction-mode)
+(setq initial-scratch-message
+      (format ";; This is `%s'.  Use `%s' to evaluate and print results.\n\n"
+              'lisp-interaction-mode
+              (propertize
+               (substitute-command-keys "\\<lisp-interaction-mode-map>\\[eval-print-last-sexp]")
+               'face 'help-key-binding)))
 
 ;; * PATHS
-;; Adds ~/.config/emacs/lisp to the load-path
-(push (file-name-concat user-emacs-directory "lisp/") load-path)
+;; Adds ~/.config/emacs/lisp and protesilaos modules to the load-path
+(mapc
+ (lambda (string)
+   (add-to-list 'load-path (locate-user-emacs-file string)))
+ '("prot-lisp" "lisp"))
 
 ;; * CORE
-
-;; Optimisations and Defaults to make Emacs more responsive. These are mostly copied from
-;; Doom Emacs.
-(require 'setup-core)
 
 ;;; Package Management
 (require 'init-elpa)
 
-(require 'init-files-buffers)
-
+;; Optimisations and Defaults to make Emacs more responsive. These are mostly copied from
+;; Doom Emacs.
+;; (require 'setup-core)
+(require 'shell)
+(require 'frap-essentials)
 ;; Default bindings
-(require 'init-bindings)
+;; (require 'init-bindings)
+
+;; UI
+(require 'init-ui)
+(require 'frap-modeline)
 
 ;;; Minibuffer & Navigation
-(require 'setup-minibuffer)
+;; (require 'setup-minibuffer)
 ;; (require 'minimal-minibuffer)
+(require  'frap-completion)
+(require  'frap-search )
+
+;; (require 'init-files-buffers)
+(require 'prot-emacs-dired)
 
 ;;; Editor
-(require 'init-editor)
+;;(require 'init-editor)
+(require 'prot-emacs-window)
 
 ;;; Tools - git, project, shell
-(require 'init-tools)
-
+(require 'frap-git)
+;;(require 'init-tools)                   
 
 ;;; LSP
 (require 'init-lsp)
@@ -60,13 +105,10 @@ If you experience stuttering, increase this.")
   (setq user-full-name my-full-name)
   (setq user-mail-address my-email-address))
 
-;; UI
-(require 'init-ui)
-
-(require 'setup-shells)
+;; (require 'setup-shells)
 
 ;;; Org mode
-(require 'init-org)
+;; (require 'init-org)
 
 ;; (use-package esup
 ;;   :config
