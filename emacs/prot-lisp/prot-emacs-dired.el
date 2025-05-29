@@ -127,9 +127,9 @@
 ;; One of my packages: <https://protesilaos.com/emacs>
 (use-package dired-preview
   :ensure t
-  ;; :hook (dired-mode . (lambda ()
-  ;;                       (when (string-match-p "Pictures" default-directory)
-  ;;                         (dired-preview-mode 1))))
+  :hook (dired-mode . (lambda ()
+                        (when (string-match-p "Pictures" default-directory)
+                          (dired-preview-mode 1))))
   :defer 1
   :hook (after-init . dired-preview-global-mode)
   :bind
@@ -152,7 +152,6 @@
 
   (setq dired-preview-display-action-alist #'dired-preview-display-action-alist-below))
 
-
 ;;; dired-like mode for the trash (trashed.el)
 (use-package trashed
   :ensure t
@@ -162,7 +161,5 @@
   (setq trashed-use-header-line t)
   (setq trashed-sort-key '("Date deleted" . t))
   (setq trashed-date-format "%Y-%m-%d %H:%M:%S"))
-
-
 
 (provide 'prot-emacs-dired)
