@@ -185,6 +185,95 @@
     (">" . enlarge-window-horizontally)
     ("<" . shrink-window-horizontally)))
 
+;; (keymap-global-set "M-o" 'other-window-mru)
+
+;; (use-feature window
+;;   :unless (fboundp 'switchy-window-minor-mode)
+;;   :bind (("M-o" . my/other-window-mru)
+;;          ("M-O" . my/other-window-prev)
+;;          :map other-window-repeat-map
+;;          ("o" . my/other-window)
+;;          ("O" . my/other-window-prev))
+;;   :config
+;;   (defalias 'my/other-window
+;;     (let ((direction 1))
+;;       (lambda (&optional arg)
+;;         "Call `other-window', switching directions each time."
+;;         (interactive)
+;;         (if (equal last-command 'my/other-window)
+;;             (other-window (* direction (or arg 1)))
+;;           (setq direction (- direction))
+;;           (other-window (* direction (or arg 1)))))))
+;;   (add-to-list
+;;    'display-buffer-alist
+;;    '("\\*Calendar*" (display-buffer-at-bottom)))
+;;   (defun my/other-window-prev (&optional arg all-frames)
+;;     (interactive "p")
+;;     (other-window (if arg (- arg) -1) all-frames))
+;;   (put 'my/other-window 'repeat-map 'other-window-repeat-map)
+;;   (put 'my/other-window-prev 'repeat-map 'other-window-repeat-map))
+;; 
+;; (use-package ace-window
+;;   :ensure t
+;;   :bind
+;;   (("C-x o" . ace-window)
+;;    ("s-o"   . ace-window)
+;;    ("C-M-0" . ace-window-prefix)
+;;    :map ctl-x-4-map
+;;    ("o" . ace-window-prefix))
+;;   :custom-face
+;;   (aw-leading-char-face ((t (:height 2.5 :weight normal))))
+;;   :defer 2
+;;   :init (ace-window-display-mode 1)
+;;   :custom-face (aw-mode-line-face ((t (:inherit (bold mode-line-emphasis)))))
+;;   :config
+;;   (defun my/aw-take-over-window (window)
+;;     "Move from current window to WINDOW.
+;; 
+;; Delete current window in the process."
+;;     (let ((buf (current-buffer)))
+;;       (if (one-window-p)
+;;           (delete-frame)
+;;         (delete-window))
+;;       (aw-switch-to-window window)
+;;       (switch-to-buffer buf)))
+;;   (defun ace-window-prefix ()
+;;     "Use `ace-window' to display the buffer of the next command.
+;; The next buffer is the buffer displayed by the next command invoked
+;; immediately after this command (ignoring reading from the minibuffer).
+;; Creates a new window before displaying the buffer.
+;; When `switch-to-buffer-obey-display-actions' is non-nil,
+;; `switch-to-buffer' commands are also supported."
+;;     (interactive)
+;;     (display-buffer-override-next-command
+;;      (lambda (buffer _)
+;;        (let (window type)
+;;          (setq
+;;           window (aw-select (propertize " ACE" 'face 'mode-line-highlight))
+;;           type 'reuse)
+;;          (cons window type)))
+;;      nil "[ace-window]")
+;;     (message "Use `ace-window' to display next command buffer..."))
+;;   (setq aw-swap-invert t)
+;;   (setq aw-dispatch-always t
+;;         aw-scope 'global
+;;         aw-background nil
+;;         aw-display-mode-overlay nil
+;;         aw-keys '(?q ?w ?e ?r ?t ?y ?u ?i ?p))
+;;   (setq aw-dispatch-alist
+;;         '((?k aw-delete-window "Delete Window")
+;;           (?x aw-swap-window "Swap Windows")
+;;           (?m my/aw-take-over-window "Move Window")
+;;           (?c aw-copy-window "Copy Window")
+;;           (?j aw-switch-buffer-in-window "Select Buffer")
+;;           (?o aw-flip-window)
+;;           (?b aw-switch-buffer-other-window "Switch Buffer Other Window")
+;;           (?c aw-split-window-fair "Split Fair Window")
+;;           (?s aw-split-window-vert "Split Vert Window")
+;;           (?v aw-split-window-horz "Split Horz Window")
+;;           (?o delete-other-windows "Delete Other Windows")
+;;           (?? aw-show-dispatch-help))))
+
 ;;; Frame-isolated buffers
 ;; Another package of mine.  Read the manual:
 ;; <https://protesilaos.com/emacs/beframe>.
@@ -198,18 +287,18 @@
   ;; way `use-package' does it is by wrapping a lambda around it that
   ;; then breaks `describe-key' for those keys.
   (prot-emacs-keybind global-map
-    ;; Override the `set-fill-column' that I have no use for.
-    "C-x f" #'other-frame-prefix
-    ;; Bind Beframe commands to a prefix key. Notice the -map as I am
-    ;; binding keymap here, not a command.
-    "C-c b" #'beframe-prefix-map
-    ;; Replace the generic `buffer-menu'.  With a prefix argument, this
-    ;; commands prompts for a frame.  Call the `buffer-menu' via M-x if
-    ;; you absolutely need the global list of buffers.
-    "C-x C-b" #'beframe-buffer-menu
-    ;; Not specific to Beframe, but since it renames frames (by means
-    ;; of `beframe-mode') it is appropriate to have this here:
-    "C-x B" #'select-frame-by-name))
+		      ;; Override the `set-fill-column' that I have no use for.
+		      "C-x f" #'other-frame-prefix
+		      ;; Bind Beframe commands to a prefix key. Notice the -map as I am
+		      ;; binding keymap here, not a command.
+		      "C-c b" #'beframe-prefix-map
+		      ;; Replace the generic `buffer-menu'.  With a prefix argument, this
+		      ;; commands prompts for a frame.  Call the `buffer-menu' via M-x if
+		      ;; you absolutely need the global list of buffers.
+		      "C-x C-b" #'beframe-buffer-menu
+		      ;; Not specific to Beframe, but since it renames frames (by means
+		      ;; of `beframe-mode') it is appropriate to have this here:
+		      "C-x B" #'select-frame-by-name))
 
 ;;; Frame history (undelete-frame-mode)
 (use-package frame

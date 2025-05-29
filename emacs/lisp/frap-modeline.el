@@ -1,5 +1,6 @@
 ;;; Mode line
 (use-package prot-modeline
+  :disabled t
   :ensure nil
   :config
   (setq mode-line-compact nil) ; Emacs 28
@@ -39,6 +40,37 @@
     (prot/modeline-spacious-indicators)
 
     (add-hook 'spacious-padding-mode-hook #'prot/modeline-spacious-indicators)))
+
+;; We also want to “delight” most minor-mode indicators on the mode
+;; line. They’re only interesting if they’re in an unexpected state.
+(use-package delight
+  :ensure t
+  :doc "A feature that removes certain minor-modes from mode-line."
+  :config
+  (delight '((abbrev-mode " Abv" abbrev)
+           (auto-fill-function " AF")
+           (visual-line-mode)
+           (smart-tab-mode " \\t" smart-tab)
+           (eldoc-mode nil "Ɛldoc")
+           (rainbow-mode)
+           (clojure-mode "clj")
+           (overwrite-mode " Ov" t)
+           (emacs-lisp-mode "Ɛlisp" :major)))
+ :delight)
+
+(use-package doom-modeline
+  :ensure t
+  :init
+  (setq doom-modeline-buffer-file-name-style 'truncate-upto-project
+        doom-modeline-modal-icon nil
+        doom-modeline-height 26
+        doom-modeline-persp-name t
+        doom-modeline-major-mode-icon t
+        doom-modeline-minor-modes t
+        doom-modeline-buffer-encoding nil
+        doom-modeline-window-width-limit (- fill-column 10))
+  :config
+  (doom-modeline-mode 1))
 
 ;;; Keycast mode
 (use-package keycast

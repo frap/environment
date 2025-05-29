@@ -539,6 +539,89 @@ unreadable. Returns the names of envvars that were changed."
                 scroll-margin 0
                 next-screen-context-lines 0))
 
+;; 
+;; (use-feature mouse
+;;   :bind (("<mode-line> <mouse-2>" . nil)
+;;          ("<mode-line> <mouse-3>" . nil))
+;;   :config
+;;   (setq
+;;    mac-right-command-modifier 'nil
+;;    mac-command-modifier 'super
+;;    mac-option-modifier 'meta
+;;    mac-right-option-modifier 'nil
+;; 
+;;    ))
+
+;; (use-feature mwheel
+;;   :bind (("S-<down-mouse-1>" . nil)
+;;          ("S-<mouse-3>" . nil)
+;;          ("<mouse-4>" . mwheel-scroll)
+;;          ("<mouse-5>" . mwheel-scroll))
+;;   :custom
+;;   (mouse-wheel-flip-direction (not (featurep 'pgtk)))
+;;   (mouse-wheel-tilt-scroll t)
+;;   (mouse-wheel-progressive-speed nil)
+;;   :preface
+;;   (defun window-font-width-unscaled ()
+;;     (let (face-remapping-alist)
+;;       (window-font-width)))
+;;   (defun truncated-lines-p ()
+;;     "Non-nil if any line is longer than `window-width' + `window-hscroll'.
+;; 
+;; Returns t if any line exceeds the right border of the window.
+;; Used for stopping scroll from going beyond the longest line.
+;; Based on `so-long-detected-long-line-p'."
+;;     (let ((buffer (current-buffer))
+;;           (tabwidth tab-width)
+;;           (start (window-start))
+;;           (end (window-end)))
+;;       (let* ((window-width
+;;               ;; this computes a more accurate width rather than `window-width', and
+;;               ;; respects `text-scale-mode' font width.
+;;               (/ (window-body-width nil t) (window-font-width)))
+;;              (hscroll-offset
+;;               ;; `window-hscroll' returns columns that are not affected by
+;;               ;; `text-scale-mode'.  Because of that, we have to recompute the correct
+;;               ;; `window-hscroll' by multiplying it with a non-scaled value and
+;;               ;; dividing it with a scaled width value, rounding it to the upper
+;;               ;; boundary.
+;;               (ceiling (/ (* (window-hscroll) (window-font-width-unscaled))
+;;                           (float (window-font-width)))))
+;;              (line-number-width
+;;               ;; compensate line numbers width
+;;               (if (bound-and-true-p display-line-numbers-mode)
+;;                   (- display-line-numbers-width)
+;;                 0))
+;;              (threshold (+ window-width hscroll-offset line-number-width
+;;                            -2)))   ; compensate imprecise calculations
+;;         (with-temp-buffer
+;;           (insert-buffer-substring buffer start end)
+;;           (let ((tab-width tabwidth))
+;;             (untabify (point-min) (point-max)))
+;;           (goto-char (point-min))
+;;           (catch 'excessive
+;;             (while (not (eobp))
+;;               (let ((start (point)))
+;;                 (save-restriction
+;;                   (narrow-to-region start (min (+ start 1 threshold)
+;;                                                (point-max)))
+;;                   (forward-line 1))
+;;                 (unless (or (bolp)
+;;                             (and (eobp) (<= (- (point) start)
+;;                                             threshold)))
+;;                   (throw 'excessive t)))))))))
+;;   (define-advice scroll-left (:before-while (&rest _) prevent-overscroll)
+;;     (and truncate-lines
+;;          (not (memq major-mode no-hscroll-modes))
+;;          (truncated-lines-p)))
+;;   :init
+;;   (if (fboundp #'context-menu-mode)
+;;       (context-menu-mode 1)
+;;     (global-set-key (kbd "<mouse-3>") menu-bar-edit-menu))
+;;   (unless (display-graphic-p)
+;;     (xterm-mouse-mode t)))
+
+
 ;;;; Repeatable key chords (repeat-mode)
 (use-package repeat
   :ensure nil
@@ -602,6 +685,7 @@ unreadable. Returns the names of envvars that were changed."
 ;;;; Tooltips (tooltip-mode)
 (use-package tooltip
   :ensure nil
+  :when IS-GUI?
   :hook (after-init . tooltip-mode)
   :config
   (setq tooltip-delay 0.5
@@ -613,13 +697,25 @@ unreadable. Returns the names of envvars that were changed."
           (border-width . 0)
           (no-special-glyphs . t))))
 
+;; (use-feature tooltip
+;;   :straight nil
+;;   :when IS-GUI?
+;;   :custom
+;;   (tooltip-x-offset 0)
+;;   (tooltip-y-offset (line-pixel-height))
+;;   (tooltip-frame-parameters
+;;    `((name . "tooltip")
+;;      (internal-border-width . 2)
+;;      (border-width . 1)
+;;      (no-special-glyphs . t))))
+
 ;;;; Display current time
 (use-package time
   :ensure nil
   :hook (after-init . display-time-mode)
   :config
   (setq display-time-format " %a %e %b, %H:%M ")
-  ;;;; Covered by `display-time-format'
+;;;; Covered by `display-time-format'
   ;; (setq display-time-24hr-format t)
   ;; (setq display-time-day-and-date t)
   (setq display-time-interval 60)
@@ -837,6 +933,7 @@ word.  Fall back to regular `expreg-expand'."
   :hook (shell-mode . prot-shell-mode))
 
 (use-package which-key
+  :delight
   :ensure nil ; built into Emacs 30
   :hook (after-init . which-key-mode)
   :config
