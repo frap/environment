@@ -159,6 +159,138 @@
   ;; I still prefer `setq' for consistency.
   (setq lin-face 'lin-cyan))
 
+;;;; Increase padding of windows/frames
+;; Yet another one of my packages:
+;; <https://protesilaos.com/codelog/2023-06-03-emacs-spacious-padding/>.
+(use-package spacious-padding
+  :ensure t
+  :if (display-graphic-p)
+  :hook (after-init . spacious-padding-mode)
+  :bind ("<f8>" . spacious-padding-mode)
+  :init
+  ;; These are the defaults, but I keep it here for visiibility.
+  (setq spacious-padding-widths
+        `( :internal-border-width 30
+           :header-line-width 4
+           :mode-line-width 6
+           :tab-width 4
+           :right-divider-width 30
+           :scroll-bar-width ,(if x-toolkit-scroll-bars 8 6)
+           :left-fringe-width 20
+           :right-fringe-width 20))
+
+  ;; (setq spacious-padding-subtle-mode-line nil)
+
+  ;; Read the doc string of `spacious-padding-subtle-mode-line' as it
+  ;; is very flexible.  Here we make the mode lines be a single
+  ;; overline.
+  (setq spacious-padding-subtle-mode-line
+        '( :mode-line-active spacious-padding-subtle-mode-line-active
+           :mode-line-inactive spacious-padding-subtle-mode-line-inactive)))
+
+;;;; Rainbow mode for colour previewing (rainbow-mode.el)
+(use-package rainbow-mode
+  :ensure t
+  :init
+  (setq rainbow-ansi-colors nil)
+  (setq rainbow-x-colors nil)
+
+  (defun prot/rainbow-mode-in-themes ()
+    (when-let* ((file (buffer-file-name))
+                ((derived-mode-p 'emacs-lisp-mode))
+                ((string-match-p "-theme" file)))
+      (rainbow-mode 1)))
+  :bind ( :map ctl-x-x-map
+          ("c" . rainbow-mode)) ; C-x x c
+  :hook ((emacs-lisp-mode . prot/rainbow-mode-in-themes)
+         (css-mode . rainbow-mode )))
+
+;;; Cursor appearance (cursory)
+;; Read the manual: <https://protesilaos.com/emacs/cursory>.
+(use-package cursory
+  :ensure t
+  :demand t
+  :if (display-graphic-p)
+  :config
+  (setq cursory-presets
+        '((box
+           :blink-cursor-interval 1.2)
+          (box-no-blink
+           :blink-cursor-mode -1)
+          (bar
+           :cursor-type (bar . 2)
+           :blink-cursor-interval 0.8)
+          (bar-no-other-window
+           :inherit bar
+           :cursor-in-non-selected-windows nil)
+          (bar-no-blink
+           :cursor-type (bar . 2)
+           :blink-cursor-mode -1)
+          (underscore
+           :cursor-type (hbar . 3)
+           :blink-cursor-interval 0.3
+           :blink-cursor-blinks 50)
+          (underscore-no-other-window
+           :inherit underscore
+           :cursor-in-non-selected-windows nil)
+          (underscore-thick
+           :cursor-type (hbar . 8)
+           :blink-cursor-interval 0.3
+           :blink-cursor-blinks 50
+           :cursor-in-non-selected-windows (hbar . 3))
+          (underscore-thick-no-blink
+           :blink-cursor-mode -1
+           :cursor-type (hbar . 8)
+           :cursor-in-non-selected-windows (hbar . 3))
+          (t ; the default values
+           :cursor-type box
+           :cursor-in-non-selected-windows hollow
+           :blink-cursor-mode 1
+           :blink-cursor-blinks 10
+           :blink-cursor-interval 0.2
+           :blink-cursor-delay 0.2)))
+
+  ;; I am using the default values of `cursory-latest-state-file'.
+
+  ;; Set last preset or fall back to desired style from `cursory-presets'.
+  (cursory-set-preset (or (cursory-restore-latest-preset) 'box))
+
+  (cursory-mode 1)
+  :bind
+  ;; We have to use the "point" mnemonic, because C-c c is often the
+  ;; suggested binding for `org-capture' and is the one I use as well.
+  ("C-c p" . cursory-set-preset))
+
+;;;; Theme buffet
+(use-package theme-buffet
+  :ensure t
+  :after (:any modus-themes ef-themes)
+  :defer 1
+  :config
+  (let ((modus-themes-p (featurep 'modus-themes))
+        (ef-themes-p (featurep 'ef-themes)))
+    (setq theme-buffet-menu 'end-user)
+    (setq theme-buffet-end-user
+          (cond
+           ((and modus-themes-p ef-themes-p)
+            '( :night     (modus-vivendi ef-dark ef-winter ef-autumn ef-night ef-duo-dark ef-symbiosis)
+               :morning   (modus-operandi ef-light ef-cyprus ef-spring ef-frost ef-duo-light)
+               :afternoon (modus-operandi-tinted ef-arbutus ef-day ef-kassio ef-summer ef-elea-light ef-maris-light ef-melissa-light ef-trio-light ef-reverie)
+               :evening   (modus-vivendi-tinted ef-rosa ef-elea-dark ef-maris-dark ef-melissa-dark ef-trio-dark ef-dream)))
+           (ef-themes-p
+            '( :night     (ef-dark ef-winter ef-autumn ef-night ef-duo-dark ef-symbiosis ef-owl)
+               :morning   (ef-light ef-cyprus ef-spring ef-frost ef-duo-light ef-eagle)
+               :afternoon (ef-arbutus ef-day ef-kassio ef-summer ef-elea-light ef-maris-light ef-melissa-light ef-trio-light ef-reverie)
+               :evening   (ef-rosa ef-elea-dark ef-maris-dark ef-melissa-dark ef-trio-dark ef-dream)))
+           (modus-themes-p
+            '( :night     (modus-vivendi modus-vivendi-tinted modus-vivendi-tritanopia modus-vivendi-deuteranopia)
+               :morning   (modus-operandi modus-operandi-tinted modus-operandi-tritanopia modus-operandi-deuteranopia)
+               :afternoon (modus-operandi modus-operandi-tinted modus-operandi-tritanopia modus-operandi-deuteranopia)
+               :evening   (modus-vivendi modus-vivendi-tinted modus-vivendi-tritanopia modus-vivendi-deuteranopia)))))
+
+    (when (or modus-themes-p ef-themes-p)
+      (theme-buffet-timer-hours 1))))
+
 ;;;; Show Font (preview fonts)
 ;; Read the manual: <https://protesilaos.com/emacs/show-font>
 (use-package show-font
