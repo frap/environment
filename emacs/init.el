@@ -24,7 +24,7 @@
   (setq native-compile-prune-cache t))                    ; Emacs 29
 
 ;; Disable the damn thing by making it disposable.
-;; (setq custom-file (make-temp-file "emacs-custom-"))
+(setq custom-file (make-temp-file "emacs-custom-"))
 
 
 ;; some emacs commands are disabled by default

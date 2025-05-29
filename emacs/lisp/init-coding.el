@@ -113,8 +113,7 @@
 
 (use-feature outline
   :hook (common-lisp-modes-mode . lisp-outline-minor-mode)
-  :delight
-  ;; :delight '(:eval (propertize " Ξ" 'face 'font-lock-function-name-face))
+  :delight outline-minor-mode
   :custom
   (outline-minor-mode-cycle t)
   :preface
