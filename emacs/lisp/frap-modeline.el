@@ -1,6 +1,6 @@
 ;;; Mode line
 (use-package prot-modeline
-  :disabled t
+  ;; :disabled t
   :ensure nil
   :config
   (setq mode-line-compact nil) ; Emacs 28
@@ -44,6 +44,7 @@
 ;; We also want to “delight” most minor-mode indicators on the mode
 ;; line. They’re only interesting if they’re in an unexpected state.
 (use-package delight
+  :disabled t
   :ensure t
   :doc "A feature that removes certain minor-modes from mode-line."
   :init
@@ -59,6 +60,7 @@
  :delight)
 
 (use-package doom-modeline
+  :disabled t
   :ensure t
   :init
   (setq doom-modeline-buffer-file-name-style 'truncate-upto-project

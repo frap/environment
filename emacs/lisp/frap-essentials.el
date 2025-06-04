@@ -9,7 +9,11 @@
 
 ;;; Code:
 
-(when (equal system-type 'darwin)
+(defconst IS-MAC?     (eq system-type 'darwin))
+(defconst IS-LINUX?   (eq system-type 'gnu/linux))
+(defconst IS-GUI?     (display-graphic-p))
+
+(when IS-MAC?
   ;; Configure mac modifiers to be what I expect
   (with-no-warnings
     (setq  ns-command-modifier 'super
@@ -27,10 +31,6 @@
 ;; ;; If it's a daemon instance run setup-input each new frame
 (add-hook 'server-after-make-frame-hook 'setup-input)
 (add-hook 'after-init-hook 'setup-input)
-
-(defconst IS-MAC?     (eq system-type 'darwin))
-(defconst IS-LINUX?   (eq system-type 'gnu/linux))
-(defconst IS-GUI?     (display-graphic-p))
 
 (defvar user-cache-directory "~/.cache/emacs/"
   "Location where files created by emacs are placed.")
@@ -539,7 +539,7 @@ unreadable. Returns the names of envvars that were changed."
                 scroll-margin 0
                 next-screen-context-lines 0))
 
-;; 
+;;
 ;; (use-feature mouse
 ;;   :bind (("<mode-line> <mouse-2>" . nil)
 ;;          ("<mode-line> <mouse-3>" . nil))
@@ -549,7 +549,7 @@ unreadable. Returns the names of envvars that were changed."
 ;;    mac-command-modifier 'super
 ;;    mac-option-modifier 'meta
 ;;    mac-right-option-modifier 'nil
-;; 
+;;
 ;;    ))
 
 ;; (use-feature mwheel
@@ -567,7 +567,7 @@ unreadable. Returns the names of envvars that were changed."
 ;;       (window-font-width)))
 ;;   (defun truncated-lines-p ()
 ;;     "Non-nil if any line is longer than `window-width' + `window-hscroll'.
-;; 
+;;
 ;; Returns t if any line exceeds the right border of the window.
 ;; Used for stopping scroll from going beyond the longest line.
 ;; Based on `so-long-detected-long-line-p'."
@@ -828,7 +828,7 @@ unreadable. Returns the names of envvars that were changed."
   (define-key global-map (kbd "C-c r") #'substitute-prefix-map))
 
 ;; moves the cursor to the point where the last change happened
-(use-package goto-chg
+(use-package goto-ch
   :ensure t
   :bind
   (("C-(" . goto-last-change)
