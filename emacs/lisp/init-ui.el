@@ -21,16 +21,16 @@
 ;;   (setq-default
 ;;    ;; Emacs "updates" its ui more often than it needs to, so slow it down slightly
 ;;    idle-update-delay 1.0                ; default is 0.5.
-;; 
+;;
 ;;    indent-tabs-mode nil
 ;;    load-prefer-newer t
 ;;    truncate-lines t
 ;;    bidi-paragraph-direction 'left-to-right
 ;;    frame-title-format  '(buffer-file-name "Ɛmacs: %b (%f)" "Ɛmacs: %b") ; name of the file I am editing as the name of the window.
-;; 
+;;
 ;;    mouse-yank-at-point t ; Mouse yank commands yank at point instead of at click.
 ;;    make-pointer-invisible t             ; hide cursor when writing.
-;; 
+;;
 ;;    ad-redefinition-action 'accept ; Silence warnings for redefinition.
 ;;    confirm-kill-emacs 'yes-or-no-p     ; Confirm before exiting Emacs.
 ;;    cursor-in-non-selected-windows nil ; Hide the cursor in inactive windows.
@@ -62,16 +62,16 @@
 ;;    ;; the documentation advises against setting this variable
 ;;    ;; the documentation can get bent imo
 ;;    use-short-answers t
-;; 
+;;
 ;;    display-line-numbers-type 'relative
-;; 
+;;
 ;;    speedbar-show-unknown-files t ; browse source tree with Speedbar file browser
 ;;    mode-line-percent-position nil
 ;;    enable-recursive-minibuffers t)
 ;;   (when (version<= "27.1" emacs-version)
 ;;     (setq bidi-inhibit-bpa t))
 ;;   (provide 'ui-defaults)
-;; 
+;;
 ;;   :config
 ;;   (setq initial-major-mode #'emacs-lisp-mode)
 ;;   (setq initial-scratch-message
@@ -354,7 +354,7 @@ x×X .,·°;:¡!¿?`'‘’   ÄAÃÀ TODO
 ;;        (format "ssh -4 -N -L %s:localhost:%s %s" (or local-port port) port host)
 ;;        (concat " " name))))
 ;;   (provide 'functions))
-;; 
+;;
 ;; (use-feature local-config
 ;;   :no-require
 ;;   :preface
@@ -397,11 +397,132 @@ x×X .,·°;:¡!¿?`'‘’   ÄAÃÀ TODO
                 (cdr (overlay-get ov 'display))
                 :scale (+ 1.0 (* 0.25 text-scale-mode-amount)))))))))
 
+;;;; Fontaine (font configurations)
+;; Read the manual: <https://protesilaos.com/emacs/fontaine>
+(use-package fontaine
+  :ensure t
+  :hook
+  ;; Persist the latest font preset when closing/starting Emacs.
+  ((after-init . fontaine-mode)
+   (after-init . (lambda ()
+                   ;; Set last preset or fall back to desired style from `fontaine-presets'.
+                   (fontaine-set-preset (or (fontaine-restore-latest-preset) 'regular)))))
+  :bind (("C-c f" . fontaine-set-preset)
+         ("C-c F" . fontaine-toggle-preset))
+  :config
+  ;; This is defined in Emacs C code: it belongs to font settings.
+  (setq x-underline-at-descent-line nil)
+
+  ;; And this is for Emacs28.
+  (setq-default text-scale-remap-header-line t)
+
+  ;; This is the default value.  Just including it here for
+  ;; completeness.
+  (setq fontaine-latest-state-file (locate-user-emacs-file "fontaine-latest-state.eld"))
+
+  ;; The font family is my design: <https://github.com/protesilaos/aporetic>.
+  (setq fontaine-presets
+        '((small
+           :default-height 80)
+          (regular) ; like this it uses all the fallback values and is named `regular'
+          (medium
+           :default-family "Aporetic Serif Mono"
+           :default-height 115
+           :fixed-pitch-family "Aporetic Serif Mono"
+           :variable-pitch-family "Aporetic Sans")
+          (large
+           :default-height 150)
+          (presentation
+           :default-height 180)
+          (jumbo
+           :inherit medium
+           :default-height 260)
+          (t
+           ;; I keep all properties for didactic purposes, but most can be
+           ;; omitted.  See the fontaine manual for the technicalities:
+           ;; <https://protesilaos.com/emacs/fontaine>.
+           :default-family "Aporetic Sans Mono"
+           :default-weight regular
+           :default-slant normal
+           :default-width normal
+           :default-height 100
+
+           :fixed-pitch-family "Aporetic Sans Mono"
+           :fixed-pitch-weight nil
+           :fixed-pitch-slant nil
+           :fixed-pitch-width nil
+           :fixed-pitch-height 1.0
+
+           :fixed-pitch-serif-family nil
+           :fixed-pitch-serif-weight nil
+           :fixed-pitch-serif-slant nil
+           :fixed-pitch-serif-width nil
+           :fixed-pitch-serif-height 1.0
+
+           :variable-pitch-family "Aporetic Serif"
+           :variable-pitch-weight nil
+           :variable-pitch-slant nil
+           :variable-pitch-width nil
+           :variable-pitch-height 1.0
+
+           :mode-line-active-family nil
+           :mode-line-active-weight nil
+           :mode-line-active-slant nil
+           :mode-line-active-width nil
+           :mode-line-active-height 1.0
+
+           :mode-line-inactive-family nil
+           :mode-line-inactive-weight nil
+           :mode-line-inactive-slant nil
+           :mode-line-inactive-width nil
+           :mode-line-inactive-height 1.0
+
+           :header-line-family nil
+           :header-line-weight nil
+           :header-line-slant nil
+           :header-line-width nil
+           :header-line-height 1.0
+
+           :line-number-family nil
+           :line-number-weight nil
+           :line-number-slant nil
+           :line-number-width nil
+           :line-number-height 1.0
+
+           :tab-bar-family nil
+           :tab-bar-weight nil
+           :tab-bar-slant nil
+           :tab-bar-width nil
+           :tab-bar-height 1.0
+
+           :tab-line-family nil
+           :tab-line-weight nil
+           :tab-line-slant nil
+           :tab-line-width nil
+           :tab-line-height 1.0
+
+           :bold-family nil
+           :bold-slant nil
+           :bold-weight bold
+           :bold-width nil
+           :bold-height 1.0
+
+           :italic-family nil
+           :italic-weight nil
+           :italic-slant italic
+           :italic-width nil
+           :italic-height 1.0
+
+           :line-spacing nil)))
+
+  (with-eval-after-load 'pulsar
+    (add-hook 'fontaine-set-preset-hook #'pulsar-pulse-line)))
+
 (use-feature font
   :no-require
   :hook (after-init . setup-fonts)
   :preface
-  (global-font-lock-mode 1)             ; Use font-lock everywhere.
+  (global-font-lock-mode 1)		; Use font-lock everywhere.
   (setq font-lock-maximum-decoration t) ; We have CPU to spare; highlight all syntax categories.
   (defun font-installed-p (font-name)
     "Check if a font with FONT-NAME is available."
@@ -419,8 +540,8 @@ x×X .,·°;:¡!¿?`'‘’   ÄAÃÀ TODO
   (set-face-background 'glyphless-char "red")
   (defun setup-fonts ()
     (when (font-installed-p my/fixed-width-font)
-           (set-face-attribute 'default nil :font (font-spec :family my/fixed-width-font :height 180 :weight 'light))
-           (set-face-attribute 'fixed-pitch nil :font (font-spec :family my/fixed-width-font :height 190 :weight 'light)))
+      (set-face-attribute 'default nil :font (font-spec :family my/fixed-width-font :height 180 :weight 'light))
+      (set-face-attribute 'fixed-pitch nil :font (font-spec :family my/fixed-width-font :height 190 :weight 'light)))
 
     ;; For variable pitched fonts Iosevka Aile is used if available.
     (when (font-installed-p my/variable-width-font)
@@ -441,13 +562,13 @@ x×X .,·°;:¡!¿?`'‘’   ÄAÃÀ TODO
     (set-fontset-font t 'symbol "Segoe UI Emoji" nil 'append)
     (set-fontset-font t 'symbol "Symbola" nil 'append))
 
-    ;; presentation-mode
-    ;; Load org-faces to make sure we can set appropriate faces
+  ;; presentation-mode
+  ;; Load org-faces to make sure we can set appropriate faces
   ;; (require 'org-faces)
-  ;; 
+  ;;
   ;; ;; Hide emphasis markers on formatted text
   ;; (setq org-hide-emphasis-markers t)
-  ;; 
+  ;;
   ;;                                     ; Resize Org headings
   ;; (dolist (face '((org-level-1 . 1.2)
   ;;                 (org-level-2 . 1.1)
@@ -458,10 +579,10 @@ x×X .,·°;:¡!¿?`'‘’   ÄAÃÀ TODO
   ;;                 (org-level-7 . 1.1)
   ;;                 (org-level-8 . 1.1)))
   ;;   (set-face-attribute (car face) nil :font my/variable-width-font :weight 'medium :height (cdr face)))
-  ;; 
+  ;;
   ;; ;; Make the document title a bit bigger
   ;; (set-face-attribute 'org-document-title nil :font my/variable-width-font :weight 'bold :height 1.3)
-  ;; 
+  ;;
   ;; ;; Make sure certain org faces use the fixed-pitch face when variable-pitch-mode is on
   ;; (set-face-attribute 'org-block nil :foreground
   ;;                     "unspecified" :inherit 'fixed-pitch)
@@ -476,12 +597,12 @@ x×X .,·°;:¡!¿?`'‘’   ÄAÃÀ TODO
 
 ;; (defvar gas/toggles-map (make-sparse-keymap)
 ;;   "Keymap for toggle commands.")
-;; 
+;;
 ;; (use-feature frame
 ;;   :requires seq
 ;;   :bind   ((:map gas/toggles-map
 ;;                 ("t" . toggle-transparency)
-;; 
+;;
 ;;                 ("C-z" . ignore)
 ;;                 ("C-x C-z" . ignore)))
 ;;   :config
