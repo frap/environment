@@ -46,16 +46,16 @@
 (use-package delight
   :ensure t
   :doc "A feature that removes certain minor-modes from mode-line."
-  :config
+  :init
   (delight '((abbrev-mode " Abv" abbrev)
-           (auto-fill-function " AF")
-           (visual-line-mode)
-           (smart-tab-mode " \\t" smart-tab)
-           (eldoc-mode nil "Ɛldoc")
-           (rainbow-mode)
-           (clojure-mode "clj")
-           (overwrite-mode " Ov" t)
-           (emacs-lisp-mode "Ɛlisp" :major)))
+             (auto-fill-function " AF")
+             (visual-line-mode)
+             (smart-tab-mode " \\t" smart-tab)
+             (eldoc-mode nil "Ɛldoc")
+             (rainbow-mode)
+             (clojure-mode "clj")
+             (overwrite-mode " Ov" t)
+             (emacs-lisp-mode "Ɛlisp" :major)))
  :delight)
 
 (use-package doom-modeline
@@ -64,7 +64,7 @@
   (setq doom-modeline-buffer-file-name-style 'truncate-upto-project
         doom-modeline-modal-icon nil
         doom-modeline-height 26
-        doom-modeline-persp-name t
+        doom-modeline-persp-name nil
         doom-modeline-major-mode-icon t
         doom-modeline-minor-modes t
         doom-modeline-buffer-encoding nil
