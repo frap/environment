@@ -18,8 +18,10 @@
   (("C-x p ." . project-dired)
    ("C-x p C-g" . keyboard-quit)
    ("C-x p <return>" . project-dired)
-   ("C-x p <delete>" . project-forget-project))
+   ("C-x p <delete>" . project-forget-project)
+   ("C-x p q" . project-query-replace-regexp))
   :config
+  (setq project-list-file (file-name-concat user-cache-directory "projects"))
   (setopt project-switch-commands
           '((project-find-file "Find file")
             (project-find-regexp "Find regexp")
@@ -28,7 +30,7 @@
             (project-vc-dir "VC-Dir")
             (project-shell "Shell")
             (keyboard-quit "Quit")))
-  (setq project-vc-extra-root-markers '(".project")) ; Emacs 29
+  (setq project-vc-extra-root-markers '(".project" "bb.edn"  "package.json" "pyproject.toml" "trove-ci.yml"  "deps.edn")) ; Emacs 29
   (setq project-key-prompt-style t) ; Emacs 30
 
   (advice-add #'project-switch-project :after #'prot-common-clear-minibuffer-message))
@@ -211,23 +213,82 @@
   (setq magit-section-visibility-indicator '(magit-fringe-bitmap> . magit-fringe-bitmapv))
   :config
   (setq git-commit-summary-max-length 50)
-  ;; NOTE 2023-01-24: I used to also include `overlong-summary-line'
-  ;; in this list, but I realised I do not need it.  My summaries are
-  ;; always in check.  When I exceed the limit, it is for a good
-  ;; reason.
   (setq git-commit-style-convention-checks '(non-empty-second-line))
 
   (setq magit-diff-refine-hunk t)
+  ;; properly kill leftover magit buffers on quit
+  (define-key magit-status-mode-map
+	      [remap magit-mode-bury-buffer]
+	      #'vcs-quit)
+   (setq magit-revision-show-gravatars
+         '("^Author:     " . "^Commit:     "))
+   ;; (setq magit-commit-show-diff nil)
+   ;; (setq magit-delete-by-moving-to-trash nil)
+   (setq magit-display-buffer-function
+         #'magit-display-buffer-same-window-except-diff-v1)
+   ;; (setq magit-log-auto-more t)
+   (setq magit-log-margin-show-committer-date t)
+   ;; (setq magit-revert-buffers 'silent)
+   ;; (setq magit-save-repository-buffers 'dontask)
+   ;; (setq magit-wip-after-apply-mode t)
+   ;; (setq magit-wip-after-save-mode t)
+   ;; (setq magit-wip-before-change-mode t)
+   (setq transient-values
+         '((magit-log:magit-log-mode "--graph" "--color" "--decorate")))
 
-  ;; Show icons for files in the Magit status and other buffers.
-  (with-eval-after-load 'magit
-    (setq magit-format-file-function #'magit-format-file-nerd-icons)))
+
+   (defun magit-extract-jira-tag (branch-name)
+     "Extract and uppercase JIRA tag from BRANCH-NAME, e.g., 'abc-123' -> 'ABC-123: '"
+     (let ((ticket-pattern "\\([[:alpha:]]+-[[:digit:]]+\\)"))
+       (when (string-match ticket-pattern branch-name)
+	 (let ((ticket (match-string 1 branch-name)))
+           (concat (upcase ticket) ": ")))))
+  (defun magit-git-commit-insert-branch ()
+    "Insert the branch tag in the commit buffer if feasible."
+    (when-let ((tag (magit-extract-jira-tag (magit-get-current-branch))))
+      (insert tag)
+      (forward-char -1)))
+  (add-hook 'git-commit-mode-hook #'magit-git-commit-insert-branch)
+
+  (defun vcs-quit (&optional _kill-buffer)
+  "Clean up magit buffers after quitting `magit-status'.
+    And don't forget to refresh version control in all buffers of
+    current workspace."
+  (interactive)
+  (quit-window)
+  (unless (cdr
+           (delq nil
+                 (mapcar (lambda (win)
+                           (with-selected-window win
+                             (eq major-mode 'magit-status-mode)))
+                         (window-list))))
+    (when (fboundp 'magit-mode-get-buffers)
+      (mapc #'vcs--kill-buffer (magit-mode-get-buffers)))))
+
+  (defun vcs--kill-buffer (buffer)
+    "Gracefully kill `magit' BUFFER.
+    If any alive process is related to this BUFFER, wait for 5
+    seconds before nuking BUFFER and the process. If it's dead -
+    don't wait at all."
+    (when (and (bufferp buffer) (buffer-live-p buffer))
+      (let ((process (get-buffer-process buffer)))
+	(if (not (processp process))
+            (kill-buffer buffer)
+          (with-current-buffer buffer
+            (if (process-live-p process)
+		(run-with-timer 5 nil #'vcs--kill-buffer buffer)
+              (kill-process process)
+              (kill-buffer buffer)))))))
+
+;; Show icons for files in the Magit status and other buffers.
+(with-eval-after-load 'magit
+  (setq magit-format-file-function #'magit-format-file-nerd-icons)))
 
 (use-package magit-repos
   :ensure nil ; part of `magit'
   :commands (magit-list-repositories)
   :init
   (setq magit-repository-directories
-        '(("~/work" . 1))))
+        '(("~/work" . 2))))
 
 (provide 'frap-git)
