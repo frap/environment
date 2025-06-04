@@ -77,5 +77,5 @@ export GITHUB_AUTH="$(gh auth token)"
 # |   TROVE     |
 # +-------------+
 trove-ca-login() {
-    uv run --no-project --with pip  $HOME/work/tempo/trove-scripts/codeartifact/codeartifact_auth.py
+    python3 $HOME/work/tempo/trove-scripts/codeartifact/codeartifact_auth.py
 }
