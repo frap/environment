@@ -8,6 +8,14 @@
   (setq-default tab-width 4
                 indent-tabs-mode nil))
 
+;;;; editorconfig for emacs
+(use-package editorconfig
+  :ensure t
+  :delight
+  :hook prog-mode text-mode
+  :config
+  (editorconfig-mode 1))
+
 ;;;; Disable "electric" behaviour
 (use-package electric
   :ensure nil

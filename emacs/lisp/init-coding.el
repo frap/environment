@@ -595,36 +595,35 @@ created with `json-hs-extra-create-overlays'."
   :custom
   (python-indent-offset 4) ;; 4 spaces standard
   (python-shell-interpreter "python") ;; uv creates venv, expects python available
-  (python-ts-mode-indent-offset 4))
+  (python-ts-mode-indent-offset 4)
+  :config
+  ;; Formatter: Ruff (instead of Black, yapf)
+  (defun my/ruff-format-buffer ()
+    "Format the current Python buffer with ruff."
+    (interactive)
+    (when (eq major-mode 'python-ts-mode)
+      (let ((tmpfile (make-temp-file "ruff-format" nil ".py"))
+            (patchbuf (get-buffer-create "*Ruff Patch*"))
+            (errbuf (get-buffer-create "*Ruff Errors*"))
+            (coding-system-for-read 'utf-8)
+            (coding-system-for-write 'utf-8))
+	(unwind-protect
+            (save-restriction
+              (widen)
+              (write-region nil nil tmpfile)
+              (if (zerop (call-process "ruff" nil errbuf nil "format" tmpfile))
+                  (progn
+                    (erase-buffer)
+                    (insert-file-contents tmpfile)
+                    (message "Applied ruff formatting"))
+		(message "Ruff format failed: see *Ruff Errors* buffer")))
+          (kill-buffer patchbuf)
+          (delete-file tmpfile)))))
+  ;; Format on save using ruff
+  (add-hook 'python-ts-mode-hook
+            (lambda ()
+              (add-hook 'before-save-hook #'my/ruff-format-buffer nil t))))
 
-;; Formatter: Ruff (instead of Black, yapf)
-(defun my/ruff-format-buffer ()
-  "Format the current Python buffer with ruff."
-  (interactive)
-  (when (eq major-mode 'python-ts-mode)
-    (let ((tmpfile (make-temp-file "ruff-format" nil ".py"))
-          (patchbuf (get-buffer-create "*Ruff Patch*"))
-          (errbuf (get-buffer-create "*Ruff Errors*"))
-          (coding-system-for-read 'utf-8)
-          (coding-system-for-write 'utf-8))
-      (unwind-protect
-          (save-restriction
-            (widen)
-            (write-region nil nil tmpfile)
-            (if (zerop (call-process "ruff" nil errbuf nil "format" tmpfile))
-                (progn
-                  (erase-buffer)
-                  (insert-file-contents tmpfile)
-                  (message "Applied ruff formatting"))
-              (message "Ruff format failed: see *Ruff Errors* buffer")))
-        (kill-buffer patchbuf)
-        (delete-file tmpfile)))))
-
-
-;; Format on save using ruff
-(add-hook 'python-ts-mode-hook
-          (lambda ()
-            (add-hook 'before-save-hook #'my/ruff-format-buffer nil t)))
 
 ;;  Optionally: Flycheck with Ruff for linting
 (use-package flycheck
@@ -688,8 +687,7 @@ created with `json-hs-extra-create-overlays'."
                (setq indent-tabs-mode nil)
                (setq tab-width 2)
                (setq yaml-indent-offset 2)
-               (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
-  )
+               (define-key yaml-mode-map "\C-m" 'newline-and-indent))))
 
 ;; (use-package web-mode
 ;;   :ensure t
