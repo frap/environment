@@ -115,14 +115,16 @@
   (setq grep-save-buffers nil)
   (setq grep-use-headings t) ; Emacs 30
 
-  (let ((executable (or (executable-find "rg") "grep"))
-        (rgp (string-match-p "rg" grep-program)))
-    (setq grep-program executable)
-    (setq grep-template
-          (if rgp
-              "/usr/bin/rg -nH --null -e <R> <F>"
-            "/usr/bin/grep <X> <C> -nH --null -e <R> <F>"))
-    (setq xref-search-program (if rgp 'ripgrep 'grep))))
+  (let* ((rg-path (executable-find "rg"))
+       (grep-path (executable-find "grep"))
+       (is-rg (and rg-path (string-match-p "rg" rg-path)))
+       (executable (or rg-path grep-path)))
+  (setq grep-program executable)
+  (setq grep-template
+        (if is-rg
+            (format "%s -nH --null -e <R> <F>" rg-path)
+          (format "%s <X> <C> -nH --null -e <R> <F>" grep-path)))
+  (setq xref-search-program (if is-rg 'ripgrep 'grep))))
 
 ;;; wgrep (writable grep)
 ;; See the `grep-edit-mode' for the new built-in feature.
