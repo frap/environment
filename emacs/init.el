@@ -83,19 +83,22 @@
 ;; (require 'init-files-buffers)
 (require 'prot-emacs-dired)
 
-;;; Editor
-;;(require 'init-editor)
+
 (require 'prot-emacs-window)
 
 ;;; Tools - git, project, shell
 (require 'frap-git)
-;;(require 'init-tools)                   
+;;(require 'init-tools)
+
+;;; Editor Text
+;;(require 'init-editor)
+(require 'frap-editor)
 
 ;;; LSP
-(require 'init-lsp)
+;;(require 'init-lsp)
 
 ;;; Coding Languages
-(require 'init-coding)
+(require 'frap-coding)
 
 (require 'init-copilot)
 
