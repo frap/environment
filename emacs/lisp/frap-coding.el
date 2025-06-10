@@ -119,7 +119,8 @@
   :commands (eglot)
   :config
   (setq eglot-sync-connect nil)
-  (setq eglot-autoshutdown t))
+  (setq eglot-autoshutdown t)
+  (add-hook 'clojure-mode-hook #'eglot-ensure))
 
 ;;;; Eldoc (Emacs live documentation feedback)
 (use-package eldoc
