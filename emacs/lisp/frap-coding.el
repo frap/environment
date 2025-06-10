@@ -16,13 +16,12 @@
   :ensure (:host github :repo "AmaiKinono/puni")
   :defer t
   ;; :delight " ♾️"
-  :hook (((common-lisp-modes-mode nxml-mode) . puni-mode)
-         (puni-mode . electric-pair-local-mode))
+  :hook ((puni-mode . electric-pair-local-mode))
   :init
-					; The autoloads of Puni are set up so you can enable `puni-mode` or
+  ;; The autoloads of Puni are set up so you can enable `puni-mode` or
   ;; `puni-global-mode` before `puni` is actually loaded. Only after you press
   ;; any key that calls Puni commands, it's loaded.
-  (puni-global-mode)
+  ;;(puni-global-mode)
   (add-hook 'term-mode-hook #'puni-disable-puni-mode)
   (add-hook 'eshell-mode-hook #'puni-disable-puni-mode)
   ;; paredit-like keys
@@ -102,14 +101,7 @@
 
 (use-package rainbow-delimiters
   :ensure t
-  :delight t
-  :hook ((common-lisp-modes-mode
-          emacs-lisp-mode
-          lisp-data-mode
-          sly-mrepl-mode
-          lisp-interaction-mode
-          inferior-emacs-lisp-mode)
-         . rainbow-delimiters-mode))
+  :delight t)
 
 ;;; linting, environment and lSp setup
 ;;;; Eglot (built-in client for the language server protocol)
@@ -138,7 +130,7 @@
   :ensure nil
   :preface
   (defvar prot/flymake-mode-projects-path
-    (file-name-as-directory (expand-file-name "Projects" "~/Git/"))
+    (file-name-as-directory (expand-file-name "frap" "~/work/"))
     "Path to my Git projects.")
 
   (defun prot/flymake-mode-lexical-binding ()
@@ -222,15 +214,17 @@ word.  Fall back to regular `expreg-expand'."
 	 ((equal (bounds-of-thing-at-point 'word) symbol)
 	  (prot/expreg-expand 1))
 	 (symbol (prot/expreg-expand 2))
-	 (t (expreg-expand)))))))
+	 (t (expreg-expand))))))
 
-(use-package treesit-auto
+  (use-package treesit-auto
   :ensure t
   :custom
   (treesit-auto-install 'prompt) ;; auto install missing grammars with prompt
   :config
+  (setq treesit-font-lock-level 4)
+  (add-to-list 'major-mode-remap-alist '(clojure-mode . clojure-ts-mode))
   (treesit-auto-add-to-auto-mode-alist 'all) ;; all known remappings
-  (global-treesit-auto-mode))
+  (global-treesit-auto-mode)))
 
 ;;; lang major modes
 
@@ -256,8 +250,14 @@ word.  Fall back to regular `expreg-expand'."
   (dolist (hook '(common-lisp-mode-hook
                   clojure-mode-hook
                   cider-repl-mode
+                  racket-mode-hook
+                  fennel-mode-hook
+                  shell-mode-hook
                   eval-expression-minibuffer-setup-hook))
-    (add-hook hook 'common-lisp-modes-mode)))
+    (add-hook hook 'common-lisp-modes-mode))
+  (add-hook 'common-lisp-modes-mode-hook #'puni-mode)
+  (add-hook 'common-lisp-modes-mode-hook #'rainbow-delimiters-mode)
+  )
 
 ;;;; CSS Web
 (use-feature css-mode
