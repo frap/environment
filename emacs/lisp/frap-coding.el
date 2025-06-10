@@ -315,25 +315,25 @@ word.  Fall back to regular `expreg-expand'."
           ("C-c C-S-o" . cider-find-and-clear-repl-buffer)
           ("C-c C-p" . cider-pprint-eval-last-sexp-to-comment))
   :custom
-  (cider-repl-display-help-banner nil)
   (cider-allow-jack-in-without-project t)
   ;; (cider-use-fringe-indicators nil)
-  ;; (nrepl-log-messages nil)
-  (nrepl-hide-special-buffers t)
   (cider-enrich-classpath t)
   (cider-repl-history-file (expand-file-name "~/.cache/cider-history"))
-  (cider-repl-prompt-function #'cider-repl-prompt-newline)
   (cider-clojure-cli-global-options "-J-XX:-OmitStackTraceInFastThrow")
-  (cider-font-lock-dynamically '(macro var deprecated))
   ;; (cider-use-tooltips nil)
-  (cider-auto-inspect-after-eval nil)
-  (cider-auto-select-error-buffer t)
+  ;; (cider-auto-inspect-after-eval nil)
+  ;; (cider-auto-select-error-buffer t)
   ;; :custom-face
   ;; (cider-result-overlay-face ((t (:box (:line-width -1 :color "grey50")))))
   ;; (cider-error-highlight-face ((t (:inherit flymake-error))))
   ;; (cider-warning-highlight-face ((t (:inherit flymake-warning))))
   ;; (cider-reader-conditional-face ((t (:inherit font-lock-comment-face))))
   :config
+  (setq nrepl-log-messages t)
+  (setq nrepl-hide-special-buffers t)
+  (setq cider-prefer-local-resources t) ;; with tramp
+  (setq cider-font-lock-dynamically '(macro core function var deprecated))
+  (remove-hook 'eldoc-documentation-functions #'cider-eldoc) ;; clojure-lsp does it
   (defun cider-jack-in-babashka ()
     "Start babashka REPL for quick scratch."
     (interactive)
