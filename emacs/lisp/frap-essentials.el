@@ -321,30 +321,31 @@ unreadable. Returns the names of envvars that were changed."
 (use-package no-littering
   :ensure (:wait t)
   :preface
-  (setq no-littering-etc-directory "~/.cache/emacs/etc/"
-	no-littering-var-directory "~/.cache/emacs/var/"))
+  (setq no-littering-etc-directory (expand-file-name "etc/" user-cache-directory)
+        no-littering-var-directory (expand-file-name "var/" user-cache-directory)))
 
 (use-package recentf
   :ensure nil
   :hook (after-init . recentf-mode)
   :config
+  (setq recentf-save-file (expand-file-name "recentf" user-cache-directory))
   (setq recentf-max-saved-items 100)
   (setq recentf-max-menu-items 25) ; I don't use the `menu-bar-mode', but this is good to know
   ;; prot defaults below commented out as he doesnt use it
-  ;; (setq recentf-save-file-modes nil)
-  ;; (setq recentf-keep nil)
-  ;; (setq recentf-auto-cleanup nil)
-  ;; (setq recentf-initialize-file-name-history nil)
-  ;; (setq recentf-filename-handlers nil)
-  ;; (setq recentf-show-file-shortcuts-flag nil)
-  (add-to-list 'recentf-exclude "\\.gpg\\")
-  (dolist (dir (list (locate-user-emacs-file ".cache/")
-                     (locate-user-emacs-file "workspace/.cache/")))
-    (add-to-list 'recentf-exclude (concat (regexp-quote dir) ".*"))
-    (add-to-list 'recentf-exclude
-	         (recentf-expand-file-name no-littering-var-directory))
-    (add-to-list 'recentf-exclude
-	         (recentf-expand-file-name no-littering-etc-directory))))
+  (setq recentf-save-file-modes nil)
+  (setq recentf-keep nil)
+  (setq recentf-auto-cleanup nil)
+  (setq recentf-initialize-file-name-history nil)
+  (setq recentf-filename-handlers nil)
+  (setq recentf-show-file-shortcuts-flag nil)
+
+  ;; Exclude common noisy entries
+  (setq recentf-exclude
+        (list
+         "\\.gpg\\"
+         (concat (regexp-quote (locate-user-emacs-file ".cache/")) ".*")
+         (recentf-expand-file-name no-littering-var-directory)
+         (recentf-expand-file-name no-littering-etc-directory))))
 
 ;;;; Mouse and mouse wheel behaviour
 (use-package mouse
