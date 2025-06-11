@@ -11,6 +11,8 @@
   :ensure nil
   :commands (dired)
   :config
+  (setq dired-free-space nil) ; Emacs 29.1
+  (setq dired-mouse-drag-files t) ; Emacs 29.1
   (setq dired-listing-switches
         "-AGFhlv --group-directories-first --time-style=long-iso"))
 
@@ -25,9 +27,9 @@
   :commands (dired)
   :config
   (setq dired-guess-shell-alist-user ; those are the suggestions for ! and & in Dired
-        '(("\\.\\(png\\|jpe?g\\|tiff\\)" "feh" "xdg-open")
-          ("\\.\\(mp[34]\\|m4a\\|ogg\\|flac\\|webm\\|mkv\\)" "mpv" "xdg-open")
-          (".*" "xdg-open"))))
+        '(("\\.\\(png\\|jpe?g\\|tiff\\)" "magick display" "open")
+          ("\\.\\(mp[34]\\|m4a\\|ogg\\|flac\\|webm\\|mkv\\)" "/Applications/VLC.app/Contents/MacOS/VLC" "open")
+          (".*" "open"))))
 
 (use-package dired
   :ensure nil
@@ -80,6 +82,9 @@
   :hook (dired-mode . prot-dired-setup-imenu)
   :bind
   ( :map dired-mode-map
+    ("<backspace>" . dired-up-directory)
+    ("M-<up>" . dired-up-directory)
+    ("~" . dired-home-directory)
     ("i" . prot-dired-insert-subdir) ; override `dired-maybe-insert-subdir'
     ("/" . prot-dired-limit-regexp)
     ("C-c C-l" . prot-dired-limit-regexp)
@@ -116,8 +121,10 @@
   ( :map image-dired-thumbnail-mode-map
     ("<return>" . image-dired-thumbnail-display-external))
   :config
+  (setq image-dired-cmd-create-thumbnail-program "magick")
+  (setq image-dired-cmd-create-thumbnail-options '("-thumbnail" "%wx%h" "%f" "PNG:%t"))
   (setq image-dired-thumbnail-storage 'standard)
-  (setq image-dired-external-viewer "xdg-open")
+  (setq image-dired-external-viewer "open")
   (setq image-dired-thumb-size 80)
   (setq image-dired-thumb-margin 2)
   (setq image-dired-thumb-relief 0)

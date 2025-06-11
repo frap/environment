@@ -82,8 +82,6 @@
 
 ;; (require 'init-files-buffers)
 (require 'prot-emacs-dired)
-
-
 (require 'prot-emacs-window)
 
 ;;; Tools - git, project, shell
