@@ -14,7 +14,6 @@
 
 (use-package puni
   :ensure (:host github :repo "AmaiKinono/puni")
-  :defer t
   ;; :delight " ♾️"
   :hook ((puni-mode . electric-pair-local-mode))
   :init
@@ -26,10 +25,14 @@
   (add-hook 'eshell-mode-hook #'puni-disable-puni-mode)
   ;; paredit-like keys
   :bind
-  (("C-b"  . backword-word)
-   ("C-f"  . forward-word)
-   ("M-b"  . puni-backward-sexp-or-up-list)
-   ("M-f"  . puni-forward-sexp-or-up-list)
+  (("C-a"    . frap/puni-smart-bol)
+   ("C-M-a"  . frap/smart-top-level-begin)
+   ("C-b"    . backword-word)
+   ("C-e"    . frap/puni-smart-eol)
+   ("C-M-e"  . frap/smart-top-level-end)
+   ("C-f"    . forward-word)
+   ("M-b"    . puni-backward-sexp-or-up-list)
+   ("M-f"    . puni-forward-sexp-or-up-list)
    :map region-bindings-mode-map
    ("(" . puni-wrap-round)
    ("[" . puni-wrap-square)
@@ -74,23 +77,77 @@
       (if (bound-and-true-p indent-line-function)
           (funcall indent-line-function)
         (back-to-indentation))))
-  (defun chee/puni-unwrap-sexp (&optional open close)
-  (interactive)
-  (save-excursion
-    (let* ((bounds (puni-bounds-of-sexp-around-point))
-           (beg (+ (car bounds) 1))
-           (end (- (cdr bounds) 1)))
-      (puni-kill-region beg end)
-      (puni-backward-delete-char)
-      (if open (insert-char open))
-      (yank)
-      (if close (insert-char close)))))
 
-(defun chee/puni-rewrap-sexp nil
-  (interactive)
-  (let ((open (read-char "Opening character? "))
-        (close (read-char "Closing character? ")))
-    (chee/puni-unwrap-sexp open close))))
+  (defun frap/back-to-indentation-or-beginning ()
+  "Go to indentation or beginning of line if already at indentation."
+  (let ((pt (point)))
+    (back-to-indentation)
+    (when (= pt (point))
+      (move-beginning-of-line 1))))
+
+  (defun frap/goto-puni-bound-if-in-sexp (bound-type fallback)
+  "If in a sexp, go to its BOUND-TYPE (:car or :cdr), otherwise call FALLBACK."
+  (let ((bounds (puni-bounds-of-sexp-around-point)))
+    (if bounds
+        (goto-char (funcall (if (eq bound-type :car) #'car #'cdr) bounds))
+      (funcall fallback))))
+
+  (defmacro define-common-lisp-modes-command (name docstring lisp-body fallback-body)
+    "Define a command NAME with DOCSTRING.
+Runs LISP-BODY when `common-lisp-modes-mode` and `puni-mode` are active,
+otherwise runs FALLBACK-BODY."
+    `(defun ,name ()
+       ,docstring
+       (interactive)
+       (if (and (bound-and-true-p common-lisp-modes-mode)
+                (bound-and-true-p puni-mode))
+           ,lisp-body
+         ,fallback-body)))
+   
+  (defun chee/puni-unwrap-sexp (&optional open close)
+    (interactive)
+    (save-excursion
+      (let* ((bounds (puni-bounds-of-sexp-around-point))
+             (beg (+ (car bounds) 1))
+             (end (- (cdr bounds) 1)))
+        (puni-kill-region beg end)
+        (puni-backward-delete-char)
+        (if open (insert-char open))
+        (yank)
+        (if close (insert-char close)))))
+
+  (defun chee/puni-rewrap-sexp nil
+    (interactive)
+    (let ((open (read-char "Opening character? "))
+          (close (read-char "Closing character? ")))
+      (chee/puni-unwrap-sexp open close)))
+
+  (define-common-lisp-modes-command
+  frap/puni-smart-bol
+  "Smart C-a: Go to start of outermost sexp if in one, otherwise smart BOL."
+  (frap/goto-puni-bound-if-in-sexp :car #'frap/back-to-indentation-or-beginning)
+  #'frap/back-to-indentation-or-beginning)
+
+  (define-common-lisp-modes-command
+   frap/puni-smart-eol
+   "Smart C-e: Go to end of outermost sexp if in one, otherwise end-of-line."
+   (frap/goto-puni-bound-if-in-sexp :cdr #'end-of-line)
+   #'end-of-line)
+
+(define-common-lisp-modes-command
+ frap/smart-top-level-begin
+ "Move to beginning of top-level form. Uses `beginning-of-defun` in common-lisps-mode-mode."                              
+ (beginning-of-defun)
+ (let ((pt (point)))
+   (back-to-indentation)
+   (when (= pt (point))
+     (move-beginning-of-line 1))))
+
+  (define-common-lisp-modes-command
+   frap/smart-top-level-end
+   "Move to end of top-level form. Uses `end-of-defun` incommon-lisps-mode-mode."
+   (end-of-defun)
+   (end-of-line)))
 
 (use-package puni
   :when IS-GUI?
@@ -221,7 +278,7 @@ word.  Fall back to regular `expreg-expand'."
   (treesit-auto-install 'prompt) ;; auto install missing grammars with prompt
   :config
   (setq treesit-font-lock-level 4)
-  (add-to-list 'major-mode-remap-alist '(clojure-mode . clojure-ts-mode))
+  ;; (add-to-list 'major-mode-remap-alist '(clojure-mode . clojure-ts-mode))
   (treesit-auto-add-to-auto-mode-alist 'all) ;; all known remappings
   (global-treesit-auto-mode)))
 
@@ -230,7 +287,7 @@ word.  Fall back to regular `expreg-expand'."
 ;;;; Common Lisp Modes Mode
 (use-package common-lisp-modes
   :ensure (:host github :repo "andreyorst/common-lisp-modes.el")
-  ;; :commands common-lisp-modes-mode ;; minor mode
+  :commands common-lisp-modes-mode ;; minor mode
   :delight " δ"
   :preface
   (defun indent-sexp-or-fill ()
@@ -245,11 +302,12 @@ word.  Fall back to regular `expreg-expand'."
 	  (indent-region (point) (mark))))))
     (dolist (hook '(common-lisp-mode-hook
                     clojure-ts-mode-hook
-                     cider-repl-mode
-                     racket-mode-hook
-                  fennel-mode-hook
-                  shell-mode-hook
-                  eval-expression-minibuffer-setup-hook))
+                    cider-repl-mode
+                    emacs-lisp-mode-hook
+                    racket-mode-hook
+                    fennel-mode-hook
+                    ;; shell-mode-hook
+                    eval-expression-minibuffer-setup-hook))
     (add-hook hook 'common-lisp-modes-mode))
   :bind ( :map common-lisp-modes-mode-map ;; not lisp-mode-shared-map  ?
 	  ("M-q" . indent-sexp-or-fill))
@@ -280,6 +338,7 @@ word.  Fall back to regular `expreg-expand'."
   (require 'flycheck-clj-kondo))
 
 (use-package clojure-mode
+  :disabled t
   :ensure t
   :after flycheck-clj-kondo
   ;; :delight "λ clj"
@@ -355,7 +414,7 @@ word.  Fall back to regular `expreg-expand'."
           (list :repl-buffer server-buf
 		:project-dir default-directory
 		:repl-init-function (lambda ()
-                                      (rename-buffer "*babashka-repl*")))))))))
+                              (rename-buffer "*babashka-repl*")))))))))
 
 (use-feature js
   :mode ("\\.js\\'" . js-ts-mode)

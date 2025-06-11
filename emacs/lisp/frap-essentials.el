@@ -8,10 +8,16 @@
 ;; Emacs 30+ configuration.
 
 ;;; Code:
+(defvar user-cache-directory "~/.cache/emacs/"
+  "Location where files created by emacs are placed.")
 
-(defconst IS-MAC?     (eq system-type 'darwin))
-(defconst IS-LINUX?   (eq system-type 'gnu/linux))
-(defconst IS-GUI?     (display-graphic-p))
+(defvar doom-local-dir
+  (expand-file-name ".local/" (or (getenv-internal "XDG_CONFIG_HOME") "~/.config/emacs/")))
+
+(defconst doom-env-file (file-name-concat doom-local-dir  "env" ))
+(defconst IS-MAC?       (eq system-type 'darwin))
+(defconst IS-LINUX?     (eq system-type 'gnu/linux))
+(defconst IS-GUI?       (display-graphic-p))
 
 (when IS-MAC?
   ;; Configure mac modifiers to be what I expect
@@ -19,7 +25,7 @@
     (setq  ns-command-modifier 'super
            ns-option-modifier 'meta
            ns-right-option-modifier 'nil
-           ns-right-command-modifier 'nil)))
+           ns-right-command-modifier 'super)))
 
 ;; In Emacs for history reasons C-i is the same key as TAB. This is a problem inherited from terminal emulators. Using GUI we can do better
 ;; Fix TAB and C-i (only in GUI)
@@ -31,14 +37,6 @@
 ;; ;; If it's a daemon instance run setup-input each new frame
 (add-hook 'server-after-make-frame-hook 'setup-input)
 (add-hook 'after-init-hook 'setup-input)
-
-(defvar user-cache-directory "~/.cache/emacs/"
-  "Location where files created by emacs are placed.")
-
-(defvar doom-local-dir
-  (expand-file-name ".local/" (or (getenv-internal "XDG_CONFIG_HOME") "~/.config/emacs/")))
-
-(defconst doom-env-file (file-name-concat doom-local-dir  "env" ))
 
 (defun doom-load-envvars-file (file &optional noerror)
   "Read and set envvars from FILE.
@@ -181,7 +179,11 @@ unreadable. Returns the names of envvars that were changed."
   ;; (add-hook 'prot-simple-file-to-register-jump-hook #'pulsar-reveal-entry))
   :bind
   ( :map prot-simple-override-mode-map
-    ;;    ("C-a" . prot-simple-duplicate-line-or-region) ; "again" mnemonic, overrides `move-beginning-of-line'
+    ("C-a"    . frap/puni-smart-bol) ; overrides  move-beginning-of-line
+    ("C-M-a"  . frap/smart-top-level-begin)
+    ("C-e"    . frap/puni-smart-eol)
+    ("C-M-e"  . frap/smart-top-level-end)
+
     ("C-d" . prot-simple-delete-line) ; overrides `delete-char'
 
     ("C-v" . prot-simple-multi-line-below) ; overrides `scroll-up-command'
@@ -289,7 +291,7 @@ unreadable. Returns the names of envvars that were changed."
 
 
 ;;;; Comments (prot-comment.el)
-(use-package prot-comment
+(use-package prot-comment               ;
   :ensure nil
   :init
   (setq comment-empty-lines t)
@@ -378,13 +380,7 @@ unreadable. Returns the names of envvars that were changed."
 ;;   :bind (("<mode-line> <mouse-2>" . nil)
 ;;          ("<mode-line> <mouse-3>" . nil))
 ;;   :config
-;;   (setq
-;;    mac-right-command-modifier 'nil
-;;    mac-command-modifier 'super
-;;    mac-option-modifier 'meta
-;;    mac-right-option-modifier 'nil
-;;
-;;    ))
+)
 
 ;; (use-feature mwheel
 ;;   :bind (("S-<down-mouse-1>" . nil)
