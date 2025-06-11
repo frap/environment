@@ -503,10 +503,11 @@ Additionally, add `cape-file' as early as possible to the list."
     (setq consult-async-input-debounce 0.5)
     (setq consult-async-input-throttle 0.8)
     (setq consult-narrow-key nil)
-    (setq consult-find-args
-          (concat "find . -not ( "
-                  "-path */.git* -prune "
-                  "-or -path */.cache* -prune )"))
+    (setq consult-find-args "fd --type f --hidden --exclude .git --exclude .cache")
+    ;; (setq consult-find-args
+    ;;       (concat "find . -not ( "
+    ;;               "-path */.git* -prune "
+    ;;               "-or -path */.cache* -prune )"))
     (setq consult-preview-key 'any)
     (setq consult-project-function nil) ; always work from the current directory (use `cd' to switch directory)
 

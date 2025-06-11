@@ -120,31 +120,7 @@
   ;; Remember to check my `completion-styles' and the
   ;; `completion-category-overrides'.
   (setq orderless-matching-styles '(orderless-prefixes orderless-regexp))
-  (setq orderless-smart-case nil)
-
-  (defun prot-orderless-literal (word _index _total)
-  "Read WORD= as a literal string."
-  (when (string-suffix-p "=" word)
-    ;; The `orderless-literal' is how this should be treated by
-    ;; orderless.  The `substring' form omits the `=' from the
-    ;; pattern.
-    `(orderless-literal . ,(substring word 0 -1))))
-
-  (defun prot-orderless-file-ext (word _index _total)
-    "Expand WORD. to a file suffix when completing file names."
-    (when (and minibuffer-completing-file-name
-               (string-suffix-p "." word))
-      `(orderless-regexp . ,(format "\\.%s\\'" (substring word 0 -1)))))
-
-  (defun prot-orderless-beg-or-end (word _index _total)
-    "Expand WORD~ to \\(^WORD\\|WORD$\\)."
-    (when-let* (((string-suffix-p "~" word))
-                (word (substring word 0 -1)))
-      `(orderless-regexp . ,(format "\\(^%s\\|%s$\\)" word word))))
-  (setq orderless-style-dispatchers
-        '(prot-orderless-literal
-          prot-orderless-file-ext
-          prot-orderless-beg-or-end)))
+  (setq orderless-smart-case nil))
 
 (setq completion-ignore-case t)
 (setq read-buffer-completion-ignore-case t)
@@ -247,7 +223,7 @@
   :ensure nil
   :hook (after-init . savehist-mode)
   :config
-  (setq savehist-file (locate-user-emacs-file "savehist"))
+  (setq savehist-file (expand-file-name "savehist" user-cache-directory))
   (setq history-length 100)
   (setq history-delete-duplicates t)
   (setq savehist-save-minibuffer-history t)
@@ -355,10 +331,18 @@
   (setq consult-async-input-debounce 0.5)
   (setq consult-async-input-throttle 0.8)
   (setq consult-narrow-key nil)
+   ;; fd for file finding
   (setq consult-find-args
-        (concat "find . -not ( "
-                "-path */.git* -prune "
-                "-or -path */.cache* -prune )"))
+        "fd --type f --hidden --exclude .git --exclude .cache")
+  ;; (setq consult-find-args
+  ;;       (concat "find . -not ( "
+  ;;               "-path */.git* -prune "
+  ;;               "-or -path */.cache* -prune )"))
+
+  ;; rg for searching
+  (setq consult-ripgrep-args
+        "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / --smart-case --hidden --glob '!.git/*' --glob '!.cache/*'")
+
   (setq consult-preview-key 'any)
   (setq consult-project-function nil) ; always work from the current directory (use `cd' to switch directory)
 
