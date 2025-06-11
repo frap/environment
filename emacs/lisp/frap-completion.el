@@ -403,9 +403,12 @@ Additionally, add `cape-file' as early as possible to the list."
     ("M-g M-g" . consult-goto-line)
     ("M-K" . consult-keep-lines)        ; M-S-k is similar to M-S-5 (M-%)
     ("M-F" . consult-focus-lines)       ; same principle
+    ("C-x b"   . consult-buffer)
     ("M-s M-b" . consult-buffer)
     ("M-s M-f" . consult-find)
     ("M-s M-g" . consult-grep)
+    ("M-s M-r" . consult-ripgrep)
+    ("M-s r"   . consult-ripgrep)
     ("M-s M-h" . consult-history)
     ("M-s M-i" . consult-imenu)
     ("M-s M-l" . consult-line)
@@ -417,10 +420,18 @@ Additionally, add `cape-file' as early as possible to the list."
   :config
   (setq consult-line-numbers-widen t)
   ;; (setq completion-in-region-function #'consult-completion-in-region)
-  (setq consult-async-min-input 3)
-  (setq consult-async-input-debounce 0.5)
-  (setq consult-async-input-throttle 0.8)
+  (setq consult-async-min-input 2)
+  (setq consult-async-input-debounce 0.2)
+  (setq consult-async-input-throttle 0.5)
   (setq consult-narrow-key nil)
+
+  ;; (setq consult-buffer-sources
+  ;;     '(consult--source-hidden-buffer
+  ;;       consult--source-buffer
+  ;;       consult--source-recent-file
+  ;;       consult--source-bookmark
+  ;;       consult--source-project-buffer
+  ;;       consult--source-project-recent-file))
    ;; fd for file finding
   (setq consult-find-args
         "fd --type f --hidden --exclude .git --exclude .cache")
@@ -433,7 +444,7 @@ Additionally, add `cape-file' as early as possible to the list."
   (setq consult-ripgrep-args
         "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / --smart-case --hidden --glob '!.git/*' --glob '!.cache/*'")
 
-  (setq consult-preview-key 'any)
+  (setq consult-preview-key 'any)  ;; live preview always
   (setq consult-project-function nil) ; always work from the current directory (use `cd' to switch directory)
 
   (add-to-list 'consult-mode-histories '(vc-git-log-edit-mode . log-edit-comment-ring))
@@ -476,6 +487,8 @@ Additionally, add `cape-file' as early as possible to the list."
     ("M-DEL" . vertico-directory-delete-word)
     ("M-," . vertico-quick-insert)
     ("M-." . vertico-quick-exit)
+    ("RET" . vertico-exit)         ;; 🔥 Fix: always exit cleanly
+    ("<return>" . vertico-exit)    ;; 🔥 Fix: always exit cleanly
     :map vertico-multiform-map
     ("RET" . prot-vertico-private-exit)
     ("<return>" . prot-vertico-private-exit)
@@ -578,13 +591,15 @@ Else do `vertico-exit'."
       (vertico-exit))))
   :config
   (setq vertico-scroll-margin 0)
-  (setq vertico-count 5)
+  (setq vertico-count 10)
   (setq vertico-resize t)
   (setq vertico-cycle t)
+  (setq vertico-preselect 'directory) ;; optionally for file prompts
 
   ;; vertico mutliform
   (setq vertico-multiform-commands
-        `(("consult-\\(.*\\)?\\(find\\|grep\\|ripgrep\\)" ,@prot-vertico-multiform-maximal)))
+        `(("consult-\\(.*\\)?\\(find\\|grep\\|ripgrep\\)" ,@prot-vertico-multiform-maximal)
+          ("consult-buffer" (vertico-grid-mode . 1))))
   (setq vertico-multiform-categories
         `(;; Maximal
           (embark-keybinding ,@prot-vertico-multiform-maximal)

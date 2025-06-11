@@ -111,8 +111,7 @@
   :commands (eglot)
   :config
   (setq eglot-sync-connect nil)
-  (setq eglot-autoshutdown t)
-  (add-hook 'clojure-mode-hook #'eglot-ensure))
+  (setq eglot-autoshutdown t))
 
 ;;;; Eldoc (Emacs live documentation feedback)
 (use-package eldoc
@@ -245,9 +244,9 @@ word.  Fall back to regular `expreg-expand'."
 	  (mark-sexp)
 	  (indent-region (point) (mark))))))
     (dolist (hook '(common-lisp-mode-hook
-                  clojure-mode-hook
-                  cider-repl-mode
-                  racket-mode-hook
+                    clojure-ts-mode-hook
+                     cider-repl-mode
+                     racket-mode-hook
                   fennel-mode-hook
                   shell-mode-hook
                   eval-expression-minibuffer-setup-hook))
@@ -269,18 +268,28 @@ word.  Fall back to regular `expreg-expand'."
   :ensure t
   :commands (csv-align-mode))
 
+(use-package clojure-ts-mode
+  :mode (("\\.clj\\'" . clojure-ts-mode)
+         ("\\.cljs\\'" . clojure-ts-mode)
+         ("\\.cljc\\'" . clojure-ts-mode)
+         ("\\.edn\\'" . clojure-ts-mode)
+         ("\\.bb\\'"  . clojure-ts-mode))
+  :after flycheck-clj-kondo
+  :hook ((clojure-ts-mode . eglot-ensure))
+  :config
+  (require 'flycheck-clj-kondo))
+
 (use-package clojure-mode
   :ensure t
   :after flycheck-clj-kondo
-  :delight "λ clj"
-  :hook ((clojure-mode clojurec-mode clojurescript-mode)
-         . (lambda ()
-             (common-lisp-modes-mode)
-             (clojure-lisp-pretty-symbols)
-             (flycheck-mode)
-             ))
+  ;; :delight "λ clj"
+  ;; :hook ((clojure-mode clojurec-mode clojurescript-mode)
+  ;;        . (lambda ()
+  ;;            (common-lisp-modes-mode)
+  ;;            (clojure-lisp-pretty-symbols)
+  ;;            (flycheck-mode)
+  ;;            ))
   :config
-  (require 'flycheck-clj-kondo)
   (defun clojure-lisp-pretty-symbols ()
     "Prettify common Clojure symbols."
     (setq prettify-symbols-alist
