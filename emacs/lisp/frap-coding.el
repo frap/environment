@@ -244,10 +244,7 @@ word.  Fall back to regular `expreg-expand'."
 	(save-excursion
 	  (mark-sexp)
 	  (indent-region (point) (mark))))))
-  :bind ( :map common-lisp-modes-mode-map ;; not lisp-mode-shared-map  ?
-	  ("M-q" . indent-sexp-or-fill))
-  :config
-  (dolist (hook '(common-lisp-mode-hook
+    (dolist (hook '(common-lisp-mode-hook
                   clojure-mode-hook
                   cider-repl-mode
                   racket-mode-hook
@@ -255,9 +252,11 @@ word.  Fall back to regular `expreg-expand'."
                   shell-mode-hook
                   eval-expression-minibuffer-setup-hook))
     (add-hook hook 'common-lisp-modes-mode))
+  :bind ( :map common-lisp-modes-mode-map ;; not lisp-mode-shared-map  ?
+	  ("M-q" . indent-sexp-or-fill))
+  :config
   (add-hook 'common-lisp-modes-mode-hook #'puni-mode)
-  (add-hook 'common-lisp-modes-mode-hook #'rainbow-delimiters-mode)
-  )
+  (add-hook 'common-lisp-modes-mode-hook #'rainbow-delimiters-mode))
 
 ;;;; CSS Web
 (use-feature css-mode
