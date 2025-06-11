@@ -285,6 +285,96 @@
   ;; do I want it.
   (remove-hook 'save-some-buffers-functions #'abbrev--possibly-save))
 
+(use-package cape
+  :ensure t
+  :after corfu
+  :hook  ((common-lisp-modes .  kb/cape-capf-setup-elisp)
+          ;; (lsp-completion-mode . kb/cape-capf-setup-lsp)
+          ;; (org-mode . kb/cape-capf-setup-org)
+          ;; (eshell-mode . kb/cape-capf-setup-eshell)
+          (git-commit-mode . kb/cape-capf-setup-git-commit)
+          ;;   (LaTeX-mode . kb/cape-capf-setup-latex)
+          ;; (sh-mode . kb/cape-capf-setup-eshell)
+          )
+  ;; :bind (("C-c p p" . completion-at-point) ;; capf
+  ;;        ("C-c p t" . complete-tag)        ;; etags
+  ;;        ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
+  ;;        ("C-c p h" . cape-history)
+  ;;        ("C-c p f" . cape-file)
+  ;;        ("C-c p k" . cape-keyword)
+  ;;        ("C-c p s" . cape-symbol)
+  ;;        ("C-c p a" . cape-abbrev)
+  ;;        ("C-c p l" . cape-line)
+  ;;        ("C-c p w" . cape-dict)
+  ;;        ("C-c p \\" . cape-tex)
+  ;;        ("C-c p _" . cape-tex)
+  ;;        ("C-c p ^" . cape-tex)
+  ;;        ("C-c p &" . cape-sgml)
+  ;;        ("C-c p r" . cape-rfc1345)
+  ;;        )
+  :custom
+  (cape-dabbrev-min-length 3)
+  :config
+    ;; Elisp
+  (defun kb/cape-capf-ignore-keywords-elisp (cand)
+    "Ignore keywords with forms that begin with \":\" (e.g.
+:history)."
+    (or (not (keywordp cand))
+        (eq (char-after (car completion-in-region--data)) ?:)))
+  (defun kb/cape-capf-setup-elisp ()
+    "Replace the default `elisp-completion-at-point'
+completion-at-point-function. Doing it this way will prevent
+disrupting the addition of other capfs (e.g. merely setting the
+variable entirely, or adding to list).
+
+Additionally, add `cape-file' as early as possible to the list."
+    (setf (elt (cl-member 'elisp-completion-at-point completion-at-point-functions) 0)
+          #'elisp-completion-at-point)
+    (add-to-list 'completion-at-point-functions #'cape-symbol)
+    ;; I prefer this being early/first in the list
+    (add-to-list 'completion-at-point-functions #'cape-file)
+    (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+    (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-yasnippet)))
+
+  ;; LSP
+  (defun kb/cape-capf-setup-lsp ()
+    "Replace the default `lsp-completion-at-point' with its
+`cape-capf-buster' version. Also add `cape-file' and
+`company-yasnippet' backends."
+    (setf (elt (cl-member 'lsp-completion-at-point completion-at-point-functions) 0)
+          (cape-capf-buster #'lsp-completion-at-point))
+    ;; TODO 2022-02-28: Maybe use `cape-wrap-predicate' to have candidates
+    ;; listed when I want?
+    (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-yasnippet))
+    (add-to-list 'completion-at-point-functions #'cape-dabbrev t))
+
+  ;; Eshell
+  (defun kb/cape-capf-setup-eshell ()
+    (let ((result))
+      (dolist (element '(pcomplete-completions-at-point cape-file) result)
+        (add-to-list 'completion-at-point-functions element))
+      ))
+
+  ;; Git-commit
+  (defun kb/cape-capf-setup-git-commit ()
+    (let ((result))
+      (dolist (element '(cape-symbol cape-dabbrev) result)
+        (add-to-list 'completion-at-point-functions element))))
+  ;; sh
+  ;; (defun kb/cape-capf-setup-sh ()
+  ;;   (require 'company-shell)
+  ;;   (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-shell)))
+
+  ;; For pcomplete. For now these two advices are strongly recommended to
+  ;; achieve a sane Eshell experience. See
+  ;; https://github.com/minad/corfu#completing-with-corfu-in-the-shell-or-eshell
+
+  ;; Silence the pcomplete capf, no errors or messages!
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
+  ;; Ensure that pcomplete does not write to the buffer and behaves as a pure
+  ;; `completion-at-point-function'.
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
+
 ;;; Corfu (in-buffer completion popup)
 (use-package corfu
   :ensure t
