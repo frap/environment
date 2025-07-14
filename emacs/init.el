@@ -65,7 +65,6 @@
 ;; Optimisations and Defaults to make Emacs more responsive. These are mostly copied from
 ;; Doom Emacs.
 ;; (require 'setup-core)
-(require 'shell)
 (require 'frap-essentials)
 ;; Default bindings
 ;; (require 'init-bindings)
@@ -84,19 +83,16 @@
 (require 'prot-emacs-dired)
 (require 'prot-emacs-window)
 
-;;; Tools - git, project, shell
-(require 'frap-git)
-;;(require 'init-tools)
-
 ;;; Editor Text
 ;;(require 'init-editor)
 (require 'frap-editor)
 
-;;; LSP
-;;(require 'init-lsp)
-
 ;;; Coding Languages
 (require 'frap-coding)
+
+;;; Tools - git, project, shell
+(require 'frap-git)
+;;(require 'init-tools)
 
 (require 'init-copilot)
 
