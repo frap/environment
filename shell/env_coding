@@ -8,7 +8,7 @@ export LIBRARY_PATH="/opt/homebrew/lib:/opt/homebrew/opt/gcc/lib/gcc/current:$LI
 # +-------------+
 # |   GNUPG     |
 # +-------------+
-if quiet_which gpg; then
+if cmd_exists gpg; then
     export GNUPGHOME=${XDG_CONFIG_HOME}/gnupg
 fi
 
@@ -28,13 +28,13 @@ alias less='less -m -N -g -i -J --underline-special --SILENT'
 # +-------------+
 # |    EMACS    |
 # +-------------+
-if quiet_which emacs; then
+if cmd_exists emacs; then
     function em() {
-        if [ -z "$DISPLAY" ]; then
+        if [[ -z "$DISPLAY" ]]; then
             emacsclient -nw -a "" "$@"
         else
             emacsclient -n -e "(> (length (frame-list)) 1)" | grep t
-            if [ "$?" = "1" ]; then
+            if [[ "$?" = "1" ]]; then
                 emacsclient -c -n -a "" "$@"
             else
                 emacsclient -n -a "" "$@"
@@ -51,7 +51,7 @@ if quiet_which emacs; then
     alias mt="m -t"
     alias et="e -t"
 
-    export EDITOR=emacs
+    export EDITOR=em
     export VISUAL="${EDITOR}"
     export ALTERNATE_EDITOR="vim"
     function aws_envs() {
@@ -63,12 +63,13 @@ if quiet_which emacs; then
     }
 else
     export EDITOR="vim"
+    export VISUAL=$EDITOR
 fi
 
 # +-------------+
 # |    VIM      |
 # +-------------+
-if quiet_which vim; then
+if cmd_exists vim; then
     export VIMDOTDIR="$XDG_CONFIG_HOME/vim"
     export VIMINIT='let $MYVIMRC="$VIMDOTDIR/vimrc" | source $MYVIMRC'
 fi
@@ -77,7 +78,7 @@ fi
 # +-----+
 # | GO  |
 # +-----+
-if quiet_which go; then
+if cmd_exists go; then
     export GOPATH="$HOME/Dev/go"
     export GOBIN="$HOME/Dev/go/bin"
     export GOCACHE="$XDG_CACHE_HOME/go-build"
@@ -89,7 +90,7 @@ fi
 # +-------------+
 # |    RUST     |
 # +-------------+
-if quiet_which rust; then
+if cmd_exists rust; then
     export RUSTUP_HOME="$XDG_CONFIG_HOME/rustup"
     export CARGO_HOME="$XDG_DATA_HOME/cargo"
     prepend_to_path "${CARGO_HOME}/bin"
@@ -113,7 +114,7 @@ fi
 # +-------------+
 # |  RIPGREP    |
 # +-------------+
-if quiet_which rg; then
+if cmd_exists rg; then
     rgf() {
         if [ -z "$2" ]; then
             rg --files | rg "$1"
@@ -126,7 +127,7 @@ fi
 # +-------------+
 # |    JSON     |
 # +-------------+
-if quiet_which jq; then
+if cmd_exists jq; then
     json() {
         [ -n "$1" ] || return
         cat "$1" | jq .
@@ -137,7 +138,7 @@ fi
 # |    NODE     |
 # +-------------+
 export NVM_DIR="${XDG_CACHE_HOME}/nvm"
-if [ $MACOS ]; then
+if [[ -n "$MACOS" ]]; then
     ssource "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh" # This loads nvm
     ssource "${HOMEBREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"
 fi
@@ -145,7 +146,7 @@ fi
 # +-------------+
 # |    JAVA     |
 # +-------------+
-if quiet_which jenv; then
+if cmd_exists jenv; then
     force_append_to_path "$XDG_CACHE_HOME/.jenv/bin"
     eval "$(jenv init -)"
 fi
@@ -153,7 +154,7 @@ fi
 # +-------------+
 # |    LUA      |
 # +-------------+
-if quiet_which luarocks; then
+if cmd_exists luarocks; then
     eval "$(luarocks path)"
 
     #  for path in "$XDG_DATA_HOME"/lua/*; do
@@ -166,9 +167,8 @@ fi
 # +-------------+
 # |   PYTHON    |
 # +-------------+
-# export PYENV_ROOT="$XDG_CACHE_HOME/pyenv"
-# dir_exists $PYENV_ROOT/bin && append_to_path "$PYENV_ROOT/bin"
-# eval "$(pyenv init -)"
+
+
 
 # +-------------+
 # |  BABASHKA   |
@@ -185,15 +185,27 @@ fi
 # |   DIRENV    |
 # +-------------+
 if [[ "$SHELL" == */bash ]]; then
-    quiet_which direnv && eval "$(direnv hook bash)"
+    cmd_exists direnv && eval "$(direnv hook bash)"
     ssource "/opt/homebrew/etc/profile.d/bash_completion.sh"
 else
-    quiet_which direnv && eval "$(direnv hook zsh)"
+    cmd_exists direnv && eval "$(direnv hook zsh)"
 fi
 # +-------------+
 # |    MAKE     |
 # +-------------+
-if [ "$CPUCOUNT" -gt 1 ]; then
+if [[ "$CPUCOUNT" -gt 1 ]]; then
     export MAKEFLAGS="-j$CPUCOUNT"
     export BUNDLE_JOBS="$CPUCOUNT"
 fi
+
+# +-------------+
+# |  GITHUB     |
+# +-------------+
+cmd_exists gh && export GITHUB_AUTH="$(gh auth token)"
+
+# +-------------+
+# |   TROVE     |
+# +-------------+
+trove-ca-login() {
+    python3 $HOME/work/tempo/trove-scripts/codeartifact/codeartifact_auth.py
+}

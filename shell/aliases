@@ -20,14 +20,14 @@ alias count='find . -type f | wc -l'
 alias df='df -H'
 
 alias du='du -ch'
-if quiet_which ncdu; then
+if cmd_exists ncdu; then
     alias du="ncdu --color dark -rr"
 fi
 
 alias make="nice make"
 alias rsync="rsync --partial --progress --human-readable --compress"
 
-if quiet_which htop; then
+if cmd_exists htop; then
     alias top="sudo htop"
 fi
 # show top cpu consuming processes
@@ -39,7 +39,7 @@ alias topm="ps -e -o pmem,pid,user,tty,args | sort -n -k 1 -r | head"
 # | grep |
 # +------+
 
-if quiet_which rg; then
+if cmd_exists rg; then
     export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/ripgreprc"
     alias rgc="rg --colors 'match:style:nobold' --colors 'path:style:nobold'"
     alias grep="rgc"
@@ -70,7 +70,7 @@ alias lt='du -sh * | sort -h'
 # | ls |
 # +----+
 
-if quiet_which eza; then
+if cmd_exists eza; then
     alias l="eza -lf -all --sort=modified"
     alias la="eza -la --sort=modified"
     alias ll="eza -la"
@@ -83,7 +83,7 @@ if quiet_which eza; then
     alias lrgd="eza --git-ignore -l --sort=modified --reverse --group-directories-first"
     alias ls='eza -al --color=always --sort=size'
     alias lsa='eza -al --color=always --sort=size'
-elif [ "$MACOS" ] && quiet_which gls; then
+elif [ "$MACOS" ] && cmd_exists gls; then
     alias ls="gls --color  -sAF"
     alias la="gls --color -Atr"
     alias ll="gls --color -AlhFtr"
@@ -111,7 +111,7 @@ alias cpv='rsync -ah --info=progress2'
 # | ping |
 # +------+
 
-if quiet_which prettyping; then
+if cmd_exists prettyping; then
     alias ping="prettyping --nolegend --awkbin gawk"
 fi
 alias pg='ping 8.8.8.8'
@@ -119,7 +119,7 @@ alias pg='ping 8.8.8.8'
 # +-----+
 # | bat |
 # +-----+
-if quiet_which bat; then
+if cmd_exists bat; then
     export BAT_THEME="gruvbox-light"
     alias bdl="bat -l diff"
     alias bj="bat -l json"
@@ -137,7 +137,7 @@ fi
 # +--------+
 # | Golang |
 # +--------+
-if quiet_which go; then
+if cmd_exists go; then
     alias gob="go build"
     alias gor="go run"
     alias goc="go clean -i"
@@ -166,7 +166,7 @@ function pull {
     git stash pop
 }
 
-if quiet_which git; then
+if cmd_exists git; then
     # git
     # export GIT_REVIEW_BASE=master # See gitconfig
     git_branch() {
@@ -185,7 +185,7 @@ if quiet_which git; then
     alias gstatus='git status'
     alias gf='git status --porcelain | cut -c4-'
     alias gf-new='git status --porcelain | grep "^??" | cut -c4-'
-    alias gf-changed='git status --porcelain | grep "^ M" | cut -c4-'
+    alias gf-chg='git status --porcelain | grep "^ M" | cut -c4-'
 
     # Helper function to get the current branch name
     git_current_branch() {
@@ -239,7 +239,7 @@ if quiet_which git; then
     alias gshow='git stash show -p stash@{0}'
 fi
 
-if quiet_which gh; then
+if cmd_exists gh; then
     #    gh config set pager 'delta -s'
     alias gpr='gh pr create'
 fi
@@ -247,7 +247,7 @@ fi
 # +----------+
 # | docker |
 # +----------+
-if quiet_which docker; then
+if cmd_exists docker; then
     alias docki="docker inspect"                                                  # display the information about a container
     alias docke='docker exec -t -i'                                               # going inside a container
     alias dockDE='docker rm $(docker ps -a -q) && docker rmi $(docker images -q)' # delete every containers / images
@@ -269,7 +269,7 @@ fi
 # +----------+
 # |  tools  |
 # +----------+
-if quiet_which terraform; then
+if cmd_exists terraform; then
     alias tf=terraform
     alias tff="terraform -fmt recursive"
 fi
@@ -283,7 +283,8 @@ alias work="$HOME/work"
 alias dev="$HOME/dev"
 alias doc="$HOME/Documents"
 alias dow="$HOME/Downloads"
-alias dot="$XDG_CONFIG_HOME/"
+alias xdg="$XDG_CONFIG_HOME/"
+alias edot="$XDG_CONFIG?HOME/emacs"
 
 # +---------+
 # | network |

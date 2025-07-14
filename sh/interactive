@@ -1,6 +1,6 @@
 # -*- mode: sh; -*-
 # bash invoked with name sh
 #
-echo "in: sh/interactive"
+#echo "in: sh/interactive"
 # loop below?
-#. ~/.config/shell/interactive
+. ~/.config/shell/interactive

@@ -1,5 +1,7 @@
 # -*- mode: sh; -*-
 
+# echo "in: shell/env_fns"
+
 # Setup paths
 remove_from_path() {
   [ -d "$1" ] || return
@@ -51,12 +53,12 @@ function dir_exists() {
 
 # Usage: ssource filename
 function ssource() {
-  if [ -r "$1" ]; then
+  if [[ -r "$1" ]]; then
     . "$1"
   fi
 }
 
-# Usage: quiet_which starship
-function quiet_which() {
+# Usage: cmd_exists starship
+function cmd_exists() {
   hash $1 &>/dev/null
 }

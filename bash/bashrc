@@ -15,6 +15,9 @@
 # however, we assume that #2 is a recovery mode, so we don't want to do much.
 # (also, my google-fu didn't find a way to distinguish them)
 
+#if Emacs set inputrc to null
+[[ "$TERM" == "dumb" && "$INSIDE_EMACS" ]] && export INPUTRC=/dev/null
+
 # 1. get *_to_path fns, ssource, umask and export  HIST*
 . ~/.config/bash/env
 # 2.call shell/interactive and setup DIRENV, FZF for ! ESHELL

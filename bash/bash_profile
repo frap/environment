@@ -8,6 +8,8 @@
 # --noprofile option may be used when the shell is started to inhibit this
 # behaviour.
 
+# echo "in: bash/bash_profile"
+
 # linux loads bash_profile on login and bashrc for xterm (aka already logged in)
 # Mac OS X terminal loads .bash_profile on starting Terminal :(
 
@@ -38,7 +40,7 @@ fi
 # +-------------+
 # |    AWS      |
 # +-------------+
-alias assume="source assume"
+cmd_exists assume && alias assume="source assume"
 
 # to avoid non-zero exit code
 true

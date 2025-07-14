@@ -45,7 +45,7 @@ force_add_to_path_start() {
   export PATH="$1:$PATH"
 }
 
-quiet_which() {
+cmd_exists() {
   command -v "$1" >/dev/null
 }
 
@@ -65,7 +65,7 @@ then
   alias finder-hide="setfile -a V"
 
   # don't repeated create dock icons
-  quiet_which code && alias code='open -b com.microsoft.VSCode "$@"'
+  cmd_exists code && alias code='open -b com.microsoft.VSCode "$@"'
 
   # make no-argument find Just Work.
   find() {
@@ -88,7 +88,7 @@ then
   #pgrep -fq rbenv-nodenv-homebrew-sync || rbenv-nodenv-homebrew-sync
 elif [ "$LINUX" ]
 then
-  quiet_which keychain && eval "$(keychain -q --eval --agents ssh id_rsa)"
+  cmd_exists keychain && eval "$(keychain -q --eval --agents ssh id_rsa)"
 
   add_to_path_end "/data/github/shell/bin"
 
@@ -103,23 +103,23 @@ then
 fi
 
 # Set up editor
-if quiet_which code
+if cmd_exists code
 then
   export EDITOR="code"
   export GIT_EDITOR="$EDITOR -w"
   export SVN_EDITOR="$GIT_EDITOR"
   # don't repeated create dock icons
   alias code='open -b com.microsoft.VSCode "$@"'
-elif quiet_which vim
+elif cmd_exists vim
 then
   export EDITOR="vim"
-elif quiet_which vi
+elif cmd_exists vi
 then
   export EDITOR="vi"
 fi
 
 # Run dircolors if it exists
-quiet_which dircolors && eval "$(dircolors -b)"
+cmd_exists dircolors && eval "$(dircolors -b)"
 
 # More colours with grc
 # shellcheck disable=SC1090

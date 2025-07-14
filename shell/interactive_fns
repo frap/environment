@@ -9,7 +9,7 @@ cd() {
 function cl() {
   DIR="$*"
   # if no DIR given, go home
-  if [ $# -lt 1 ]; then
+  if [[ $# -lt 1 ]]; then
     DIR=$HOME
   fi
   builtin cd "${DIR}" &&
@@ -23,6 +23,6 @@ function md() {
 }
 
 # state on last working dir
-[ -s ${XDG_STATE_HOME}/lastpwd ] && [ "$PWD" = "$HOME" ] && builtin cd "$(cat ${XDG_STATE_HOME}/lastpwd)" 2>/dev/null
+[[ -s ${XDG_STATE_HOME}/lastpwd ]] && [[ "$PWD" = "$HOME" ]] && builtin cd "$(cat ${XDG_STATE_HOME}/lastpwd)" 2>/dev/null
 # if terminalapp & not emacs then update terminal icons
-[ $TERMINALAPP ] && [[ -z "$INSIDE_EMACS" ]] && set_terminal_app_pwd
+[[ -n "${TERMINALAPP}" ]] && [[ -z "$INSIDE_EMACS" ]] && set_terminal_app_pwd

@@ -1,54 +1,11 @@
 # -*- mode: sh; -*-
 # Put your environment variables here and login scripts
-#echo "in: shell/login"
+
+# echo "in: shell/login"
 
 # Personal information
 export NAME='Andrés Gasson'
 export EMAIL='gas@tuatara.red'
-
-# +-------------+
-# |    EMACS    |
-# +-------------+
-if quiet_which emacs; then
-    function em() {
-        if [ -z "$DISPLAY" ]; then
-            emacsclient -nw -a "" "$@"
-        else
-            emacsclient -n -e "(> (length (frame-list)) 1)" | grep t
-            if [ "$?" = "1" ]; then
-                emacsclient -c -n -a "" "$@"
-            else
-                emacsclient -n -a "" "$@"
-            fi
-        fi
-    }
-    function ef() {
-        CFLAG=""
-        [[ -z "$@" ]] && CFLAG="--create-frame"
-        emacsclient $CFLAG --alternate-editor=emacs --no-wait "$@"
-    }
-    export EDITOR=em
-    export VISUAL="${EDITOR}"
-    export ALTERNATE_EDITOR="vim"
-    function aws_envs() {
-        fn=tempfile
-        echo "Updating AWS ENVs"
-        env | grep "AWS" >"$fn"
-        echo "$fn"
-        emacsclient -nw -e '(update-aws-envs "'"$fn"'")' "$@" >/dev/null
-    }
-else
-    export EDITOR="vim"
-    export VISUAL=$EDITOR
-fi
-
-# +-------------+
-# |    VIM      |
-# +-------------+
-if quiet_which vim; then
-    export VIMDOTDIR="$XDG_CONFIG_HOME/vim"
-    export VIMINIT='let $MYVIMRC="$VIMDOTDIR/vimrc" | source $MYVIMRC'
-fi
 
 # Preferred programs
 export PAGER=less
@@ -56,17 +13,9 @@ export PAGER=less
 # Path settings
 prepend_to_path ~/opt/homebrew/bin PATH
 
-
 # The current directory should never be in $PATH
 remove_from_path . PATH
 remove_from_path "" PATH
-
-# +-------------+
-# |   PYTHON    |
-# +-------------+
-# export PYENV_ROOT="$XDG_CACHE_HOME/pyenv"
-# dir_exists $PYENV_ROOT/bin && append_to_path "$PYENV_ROOT/bin"
-# eval "$(pyenv init -)"
 
 # Language
 export LANG='en_NZ.UTF-8'

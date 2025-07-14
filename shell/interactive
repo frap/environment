@@ -6,30 +6,33 @@
 # with the -i option.
 
 # An interactive shell generally reads from and writes to a user’s terminal.
+# exit NOW! if emacs shell
+
+# echo "in: shell/interactive"
+
+[[ "$TERM" == "dumb" && "$INSIDE_EMACS" ]] && ssource "$XDG_CONFIG_HOME/shell/emacs_shell" && return
 
 # OS variables
-[ "$(uname -s)" = "Darwin" ] && export MACOS=1 && export UNIX=1
-
-if ! [ $MACOS ]; then
-  [ "$(uname -s)" = "Linux" ] && export LINUX=1 && export UNIX=1
+if [[ "$(uname -s)" = "Darwin" ]]; then
+    export MACOS=1 && export UNIX=1
+else
+  [[ "$(uname -s)" = "Linux" ]] && export LINUX=1 && export UNIX=1
   uname -s | grep -q "_NT-" && export WINDOWS=1
   grep -q "Microsoft" /proc/version 2>/dev/null && export WSL2=1
-  exists /etc/bastion && export BASTION=1
+  exists /etc/bastion && export BASTION=1  
 fi
 
 # Fix systems missing $USER
-[ -z "$USER" ] && export USER="$(whoami)"
+[[ -z "$USER" ]] && export USER="$(whoami)"
 
 # set up homebrew
-if [ $MACOS ]; then
+if [[ "$MACOS" ]]; then
   # set different version of homebrew PATHS
     force_append_to_path "/opt/homebrew/bin:/usr/local/bin"
   # Setup Homebrew
     eval $(brew shellenv) # exports HBREW PREFIX & PATH
-  # loadup any OSX specific Interactive shit
-  [[ -z  "$INSIDE_EMACS" ]] && ssource "${XDG_CONFIG_HOME}/shell/osx_interactive"
   export CPUCOUNT="$(/usr/sbin/sysctl -n hw.ncpu)"
-elif [ $LINUX ]; then
+elif [[ -n "$LINUX" ]]; then
   export CPUCOUNT="$(getconf _NPROCESSORS_ONLN)"
 else
   export CPUCOUNT=1
@@ -38,14 +41,25 @@ fi
 # add local interactive binaries
 append_to_path "${HOME}/.local/bin"
 
-# XDG Setup for some apps
-ssource ${XDG_CONFIG_HOME}/shell/env_coding
+ # if NOT emacs shell
+if [[ -z "$INSIDE_EMACS" ]]; then
+    if [[ "$MACOS" ]]; then
+        ssource "${XDG_CONFIG_HOME}/shell/osx_interactive"
+    fi
+    # bash tools setup ofr interactive terms
+    ssource ${XDG_CONFIG_HOME}/shell/env_coding
 
-# source shell interactive functions unless eshell
-[[ -z "$INSIDE_EMACS" ]] && ssource $XDG_CONFIG_HOME/shell/interactive_fns
+    # source shell interactive functions unless emacs
+    ssource $XDG_CONFIG_HOME/shell/interactive_fns
 
-# put your aliases here unless eshell
-[[ -z "$INSIDE_EMACS" ]] &&  ssource $XDG_CONFIG_HOME/shell/aliases
+    # put your aliases here unless emacs
+    ssource $XDG_CONFIG_HOME/shell/aliases
+
+    # After env_coding, aliases, etc.
+    if [[ -r "$XDG_CONFIG_HOME/bash/inputrc" ]]; then
+      export INPUTRC="$XDG_CONFIG_HOME/bash/inputrc"
+    fi
+fi
 
 # other users shouldn't be able to message by default
 mesg n
@@ -53,29 +67,14 @@ mesg n
 # +------------+
 # | PROMPT     |
 # +------------+
-#if in a terminal
-if [ -t 0 ]  && quiet_which starship; then
-  case "$TERM" in
-      xterm* | screen*)
-          if [[ "$SHELL" == */bash ]]; then
-              eval "$(starship init bash)"
-          else
-              eval "$(starship init zsh)"
-          fi
-    ;;
-  *)
-    export PS1='\[\e[0;36m\] :\W ➜ \[\e[m\]'
-    ;;
-  esac
+if [[ -t 0 ]] && cmd_exists starship && [[ "$TERM" != "dumb" ]]; then
+  [[ "$SHELL" == */bash ]] && eval "$(starship init bash)"
+elif [[ "$TERM" == "dumb" ]]; then
+  export PS1='\[\e[0;36m\] :\W ➜ \[\e[m\]'
 fi
 
 # start-up ssh-agent
-[ -z "$SSH_AUTH_SOCK" ] && eval "$(ssh-agent -s)"
+[[ -z "$SSH_AUTH_SOCK" ]] && eval "$(ssh-agent -s)"
 
-export GITHUB_AUTH="$(gh auth token)"
-# +-------------+
-# |   TROVE     |
-# +-------------+
-trove-ca-login() {
-    python3 $HOME/work/tempo/trove-scripts/codeartifact/codeartifact_auth.py
-}
+
+

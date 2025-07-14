@@ -1,9 +1,9 @@
 # -*- mode: sh; -*-
 
-#echo "in: osx_interactive"
+# echo "in: osx_interactive"
 
 # Enable Terminal.app folder icons
-[ "$TERM_PROGRAM" = "Apple_Terminal" ] && export TERMINALAPP=1
+[[ "$TERM_PROGRAM" = "Apple_Terminal" ]] && export TERMINALAPP=1
 
 
 if [[ $TERMINALAPP ]] && [[ -z "$INSIDE_EMACS" ]]; then
