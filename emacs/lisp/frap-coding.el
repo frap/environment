@@ -14,6 +14,7 @@
 
 (use-package puni
   :ensure (:host github :repo "AmaiKinono/puni")
+  :defer t
   ;; :delight " ♾️"
   :hook ((puni-mode . electric-pair-local-mode))
   :init
@@ -40,6 +41,8 @@
    ("<" . puni-wrap-angle)
    ;; paredit-like keys
    :map puni-mode-map
+   ("C-M-a"  . frap/smart-top-level-begin)
+   ("C-M-e"  . frap/smart-top-level-end)
    ;; ("C-=" . chee/puni-unwrap-sexp)
    ;; ("C-." . chee/puni-rewrap-sexp)
    ("C-M-f" . puni-forward-sexp-or-up-list)

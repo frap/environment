@@ -350,8 +350,10 @@ unreadable. Returns the names of envvars that were changed."
          (recentf-expand-file-name no-littering-etc-directory))))
 
 ;;;; Mouse and mouse wheel behaviour
-(use-package mouse
+(use-feature mouse
   :ensure nil
+  ;;   :bind (("<mode-line> <mouse-2>" . nil)
+  ;;          ("<mode-line> <mouse-3>" . nil))
   :hook (after-init . mouse-wheel-mode)
   :config
   ;; Some of these variables are defined in places other than
@@ -374,13 +376,6 @@ unreadable. Returns the names of envvars that were changed."
                 scroll-conservatively 1 ; affects `scroll-step'
                 scroll-margin 0
                 next-screen-context-lines 0))
-
-;;
-;; (use-feature mouse
-;;   :bind (("<mode-line> <mouse-2>" . nil)
-;;          ("<mode-line> <mouse-3>" . nil))
-;;   :config
-)
 
 ;; (use-feature mwheel
 ;;   :bind (("S-<down-mouse-1>" . nil)
