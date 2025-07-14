@@ -281,7 +281,6 @@ word.  Fall back to regular `expreg-expand'."
   (treesit-auto-install 'prompt) ;; auto install missing grammars with prompt
   :config
   (setq treesit-font-lock-level 4)
-  ;; (add-to-list 'major-mode-remap-alist '(clojure-mode . clojure-ts-mode))
   (treesit-auto-add-to-auto-mode-alist 'all) ;; all known remappings
   (global-treesit-auto-mode)))
 
@@ -298,22 +297,22 @@ word.  Fall back to regular `expreg-expand'."
     (interactive)
     (let ((ppss (syntax-ppss)))
       (if (or (nth 3 ppss)
-	      (nth 4 ppss))
-	  (fill-paragraph)
-	(save-excursion
-	  (mark-sexp)
-	  (indent-region (point) (mark))))))
-    (dolist (hook '(common-lisp-mode-hook
-                    clojure-ts-mode-hook
-                    cider-repl-mode
-                    emacs-lisp-mode-hook
-                    racket-mode-hook
-                    fennel-mode-hook
-                    ;; shell-mode-hook
-                    eval-expression-minibuffer-setup-hook))
+	          (nth 4 ppss))
+	      (fill-paragraph)
+	    (save-excursion
+	      (mark-sexp)
+	      (indent-region (point) (mark))))))
+  (dolist (hook '(common-lisp-mode-hook
+                  clojure-ts-mode-hook
+                  cider-repl-mode
+                  emacs-lisp-mode-hook
+                  racket-mode-hook
+                  fennel-mode-hook
+                  ;; shell-mode-hook
+                  eval-expression-minibuffer-setup-hook))
     (add-hook hook 'common-lisp-modes-mode))
   :bind ( :map common-lisp-modes-mode-map ;; not lisp-mode-shared-map  ?
-	  ("M-q" . indent-sexp-or-fill))
+	      ("M-q" . indent-sexp-or-fill))
   :config
   (add-hook 'common-lisp-modes-mode-hook #'puni-mode)
   (add-hook 'common-lisp-modes-mode-hook #'rainbow-delimiters-mode))
@@ -377,9 +376,6 @@ word.  Fall back to regular `expreg-expand'."
   :commands cider-find-and-clear-repl-buffer
   :functions (cider-nrepl-request:eval cider-find-and-clear-repl-output)
   ;; :hook ((cider-mode cider-repl-mode) . eldoc-mode)
-  :hook (((cider-repl-mode cider-mode) . eldoc-mode)
-         (cider-repl-mode . common-lisp-modes-mode)
-         (cider-popup-buffer-mode . cider-disable-linting))
   :bind ( :map cider-repl-mode-map
           ("C-c C-S-o" . cider-repl-clear-buffer)
           :map cider-mode-map
@@ -393,7 +389,7 @@ word.  Fall back to regular `expreg-expand'."
   (cider-clojure-cli-global-options "-J-XX:-OmitStackTraceInFastThrow")
   ;; (cider-use-tooltips nil)
   ;; (cider-auto-inspect-after-eval nil)
-  ;; (cider-auto-select-error-buffer t)
+  (cider-auto-select-error-buffer t)
   ;; :custom-face
   ;; (cider-result-overlay-face ((t (:box (:line-width -1 :color "grey50")))))
   ;; (cider-error-highlight-face ((t (:inherit flymake-error))))
@@ -401,10 +397,14 @@ word.  Fall back to regular `expreg-expand'."
   ;; (cider-reader-conditional-face ((t (:inherit font-lock-comment-face))))
   :config
   (setq nrepl-log-messages t)
+  (setq cider-repl-display-help-banner nil)
   (setq nrepl-hide-special-buffers t)
   (setq cider-prefer-local-resources t) ;; with tramp
   (setq cider-font-lock-dynamically '(macro core function var deprecated))
   (remove-hook 'eldoc-documentation-functions #'cider-eldoc) ;; clojure-lsp does it
+  (defun frap/disable-flycheck-in-cider-popups ()
+    (flycheck-mode -1))
+  (add-hook 'cider-popup-buffer-mode-hook #'frap/disable-flycheck-in-cider-popups)
   (defun cider-jack-in-babashka ()
     "Start babashka REPL for quick scratch."
     (interactive)
@@ -413,27 +413,28 @@ word.  Fall back to regular `expreg-expand'."
        default-directory
        "bb --nrepl-server 0"
        (lambda (server-buf)
-	 (cider-nrepl-connect
+	     (cider-nrepl-connect
           (list :repl-buffer server-buf
-		:project-dir default-directory
-		:repl-init-function (lambda ()
-                              (rename-buffer "*babashka-repl*")))))))))
+		        :project-dir default-directory
+		        :repl-init-function (lambda ()
+                                      (rename-buffer "*babashka-repl*")))))))))
+
 
 (use-feature js
   :mode ("\\.js\\'" . js-ts-mode)
-  :hook (js-ts-mode . lsp-deferred)
+  :hook (js-ts-mode . eglot-ensure)
   :custom
   (js-indent-level 2))
 
 (use-feature json-ts-mode
   :mode ("\\.json\\'" . json-ts-mode)
-  :hook (json-ts-mode . lsp-deferred))
+  :hook (json-ts-mode . eglot-ensure))
 
 ;; Setup Python with tree-sitter and LSP
 (use-feature python
   :mode ("\\.py\\'" . python-ts-mode)
   :interpreter ("python" . python-ts-mode)
-  :hook (python-ts-mode . lsp-deferred)
+  :hook (python-ts-mode . eglot-ensure)
   :custom
   (python-indent-offset 4) ;; 4 spaces standard
   (python-shell-interpreter "python") ;; uv creates venv, expects python available
@@ -499,23 +500,40 @@ word.  Fall back to regular `expreg-expand'."
 (use-feature terraform-mode
   :custom (terraform-format-on-save t)
   :mode (("\\.tf\\'" . terraform-mode))
+  :hook (terraform-mode . eglot-ensure)
   :ensure t
   :config
   (defun my-terraform-mode-init ()
     ;; if you want to use outline-minor-mode
     (outline-minor-mode 1))
-  (add-hook 'terraform-mode-hook 'my-terraform-mode-init))
+  (add-hook 'terraform-mode-hook 'my-terraform-mode-init)
+  )
 
 (use-feature typescript-ts-mode
   :mode ("\\.ts\\'" . typescript-ts-mode)
-  :hook (typescript-ts-mode . lsp-deferred)
   :custom
   (typescript-ts-mode-indent-offset 2)
   :config
   (add-hook 'typescript-ts-mode-hook
             (lambda ()
-              (add-hook 'before-save-hook #'lsp-format-buffer nil t)))) ;; format on save
+              (eglot-ensure)
+              (add-hook 'before-save-hook #'eglot-format-buffer nil t)))) ;; format on save
 
+
+(use-package web-mode
+  :ensure t
+  :mode (("\\.html\\'" . web-mode)
+         ("\\.j2\\'" . web-mode)
+         ("\\.jinja\\'" . web-mode)
+         ("\\.jinja2\\'" . web-mode)
+         ("\\.yml.j2\\'" . web-mode))
+  :config
+  (setq web-mode-engines-alist
+        '(("jinja" . "\\.\\(j2\\|jinja\\|jinja2\\|html\\|yml.j2\\)\\'")))
+  (add-hook 'web-mode-hook
+            (lambda ()
+              (when (string-match-p "\\.\\(j2\\|jinja\\|jinja2\\|html\\|yml.j2\\)\\'" buffer-file-name)
+                (web-mode-set-engine "jinja")))))
 
 (use-package yaml-mode
   :ensure t
