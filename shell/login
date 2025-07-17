@@ -20,8 +20,8 @@ remove_from_path "" PATH
 # Language
 export LANG='en_NZ.UTF-8'
 export LC_ALL=$LANG
-#export LC_COLLATE=$LANG
-#export LC_CTYPE=$LANG
+export LC_COLLATE=$LANG
+export LC_CTYPE=$LANG
 export LC_MESSAGES=$LANG
 export LC_MONETARY=$LANG
 export LC_NUMERIC=$LANG
