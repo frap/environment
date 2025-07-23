@@ -31,7 +31,8 @@
    ("C-x p C-g" . keyboard-quit)
    ("C-x p <return>" . project-dired)
    ;; ("C-x p <delete>" . project-forget-project)
-   ("C-x p q" . project-query-replace-regexp)
+   ("C-x p q" .        project-query-replace-regexp)
+   ("C-x p o" .        my/project-other-buffer)
    ("C-x p <delete>" . my/project-remove-project)
    ("C-x p DEL" . my/project-remove-project)
    ;; ("M-s p" . my/project-switch-project)
@@ -39,7 +40,7 @@
    ("M-s L" . find-library))
   :custom
   (project-compilation-buffer-name-function 'project-prefixed-buffer-name)
-  (project-vc-extra-root-markers '(".project" "bb.edn"  "package.json"
+  (project-vc-extra-root-markers '("bb.edn"  "package.json"
                                    "pyproject.toml" "trove-ci.yml"
                                    "deps.edn")) ; Emacs 29
   :preface
@@ -76,10 +77,11 @@ mode.")
               (throw 'args (append (list cmd mode) rest)))))
         args)))
   (define-advice project-root (:filter-return (project) abbreviate-project-root)
-    (abbreviate-file-name project))
-  (defun project-make-predicate-buffer-in-project-p ()
-    (let ((project-buffers (project-buffers (project-current))))
-      (lambda () (memq (current-buffer) project-buffers))))
+    (when project
+      (abbreviate-file-name project)))
+ (defun project-make-predicate-buffer-in-project-p ()
+   (let ((project-buffers (project-buffers (project-current))))
+     (lambda () (memq (current-buffer) project-buffers))))
   (define-advice project-compile (:around (fn) save-project-buffers-only)
     "Only ask to save project-related buffers."
     (defvar compilation-save-buffers-predicate)
@@ -131,14 +133,162 @@ mode.")
 
   (advice-add #'project-switch-project :after #'prot-common-clear-minibuffer-message))
 
-;; (use-package prot-project
-;;   :ensure nil
-;;   ;; Also check the command `prot-project-in-tab'.  I do not use it
-;;   ;; because I prefer to manage my buffers in frames, with my
-;;   ;; `beframe' package.
-;;   :bind
-;;   ( :map project-prefix-map
-;;     ("p" . prot-project-switch)))
+(use-package ibuffer-vc
+  ;; :disabled true
+  :ensure t
+  :after ibuffer
+  :hook  (ibuffer-mode . ibuffer-vc-set-filter-groups-by-vc-root))
+
+(use-feature ibuffer
+  :bind (("C-x C-b" . my/ibuffer-for-current-project)
+         ("M-s b" . my/buffers-major-mode)
+         ("M-s v" . my/buffers-vc-root))
+  :config
+  (setq ibuffer-formats
+        '((mark modified read-only " "
+                (name 18 18 :left :elide)
+                " "
+                (size 9 -1 :right)
+                " "
+                (mode 16 16 :left :elide)
+                " "
+                filename-and-process)))
+  ;; Don't show filter groups if there are no buffers in that group
+  (setq ibuffer-show-empty-filter-groups nil)
+  ;;   ;; Don't ask for confirmation to delete marked buffers
+  (setq ibuffer-expert t)
+  (setq ibuffer-saved-filter-groups
+        (quote (("default"
+                 ("dired" (mode . dired-mode))
+                 ("org" (name . "^.*org$"))
+                 ("web" (or (mode . web-mode) (mode . js2-mode)))
+                 ("shell" (or (mode . eshell-mode) (mode . shell-mode)))
+                 ("mu4e" (name . "\*mu4e\*"))
+                 ("coding" (or
+                            (mode . python-mode)
+                            (mode . clojure-mode)
+                            (name . "^\\*scratch-clj\\*$")))
+                 ("emacs" (or
+                           (name . "^\\*scratch\\*$")
+                           (name . "^\\*Messages\\*$")))
+                 ))))
+
+  (defun my/ibuffer-for-current-project ()
+  "Open `ibuffer` showing only buffers in the current project.
+If not in a project, fallback to regular `ibuffer`."
+  (interactive)
+  (let ((proj (project-current)))
+    (if proj
+        (let ((root (project-root proj)))
+          (ibuffer nil (format "*Projet: %s*" (abbreviate-file-name root))
+                   `((filename . ,root))))
+      (message "Not in a project. Showing all buffers.")
+      (call-interactively #'ibuffer))))
+  
+  (defun ibuffer-visit-buffer-other-window (&optional noselect)
+    "In ibuffer, visit this buffer. If `ace-window' is available, use
+  it to select window for visiting this buffer.`"
+    (interactive "P")
+    (let ((buf (ibuffer-current-buffer t))
+          (window
+           (if (fboundp 'aw-select)
+               (aw-select "Select Window")
+             (next-window))))
+      (bury-buffer (current-buffer))
+      (if noselect
+          (save-window-excursion (select-window window)
+                                 (switch-to-buffer buf))
+        (select-window window) (switch-to-buffer buf))))
+
+  (defun my/buffers-major-mode (&optional arg)
+    "Select buffers that match the current buffer's major mode.
+  With \\[universal-argument] produce an `ibuffer' filtered
+  accordingly.  Else use standard completion."
+    (interactive "P")
+    (let* ((major major-mode)
+           (prompt "Buffers for ")
+           (mode-string (format "%s" major))
+           (mode-string-pretty (propertize mode-string 'face 'success)))
+      (if arg
+          (ibuffer t (concat "*" prompt mode-string "*")
+                   (list (cons 'used-mode major)))
+        (switch-to-buffer
+         (read-buffer
+          (concat prompt mode-string-pretty ": ") nil t
+          (lambda (pair)                     ; pair is (name-string . buffer-object)
+            (with-current-buffer (cdr pair) (derived-mode-p major))))))))
+
+  (defun my/buffers-vc-root (&optional arg)
+    "Select buffers that match the present `vc-root-dir'.
+  With \\[universal-argument] produce an `ibuffer' filtered
+  accordingly.  Else use standard completion.
+
+  When no VC root is available, use standard `switch-to-buffer'."
+    (interactive "P")
+    (let* ((root (vc-root-dir))
+           (prompt "Buffers for VC ")
+           (vc-string (format "%s" root))
+           (vc-string-pretty (propertize vc-string 'face 'success)))
+      (if root
+          (if arg
+              (ibuffer t (concat "*" prompt vc-string "*")
+                       (list (cons 'filename (expand-file-name root))))
+            (switch-to-buffer
+             (read-buffer
+              (concat prompt vc-string-pretty ": ") nil t
+              (lambda (pair)                 ; pair is (name-string . buffer-object)
+                (with-current-buffer (cdr pair) (string= (vc-root-dir) root))))))
+        (call-interactively 'switch-to-buffer))))
+
+  ;; ─────────────────────── Delete current file and buffer ──────────────────────
+  ;; based on http://emacsredux.com/blog/2013/04/03/delete-file-and-buffer/
+  (defun delete-current-file-and-buffer ()
+    "Kill the current buffer and deletes the file it is visiting."
+    (interactive)
+    (let ((filename (buffer-file-name)))
+      (if filename
+          (if (y-or-n-p (concat "Do you really want to delete file " filename " ?"))
+              (progn
+                (delete-file filename)
+                (message "Deleted file %s." filename)
+                (kill-buffer)))
+        (message "Not a file visiting buffer!"))))
+
+  (defun my/project-other-buffer ()
+    "Cycle to the next buffer in the current project only."
+    (interactive)
+    (let* ((project-buffers (project-buffers (project-current t)))
+           (next (seq-find (lambda (b)
+                             (and (not (eq b (current-buffer)))
+                                  (memq b project-buffers)))
+                           (buffer-list))))
+      (when next
+        (switch-to-buffer next))))
+
+    ;; (setq ibuffer-default-sorting-mode 'recency)
+    ;; (add-hook 'ibuffer-mode-hook
+    ;;           (lambda ()
+    ;;             (ibuffer-auto-mode 1)
+    ;;             (ibuffer-switch-to-saved-filter-groups "default")))
+  )
+
+(use-package ibuffer-project
+  :ensure t
+  :after (ibuffer project)
+  :hook ((ibuffer ibuffer-mode) . my/ibuffer-project-generate-filter-groups)
+  :config
+  (setq ibuffer-project-use-cache t)
+  (setq ibuffer-project-root-functions
+      `(((lambda (dir)
+           (let ((proj (with-current-buffer (or (get-file-buffer dir) (current-buffer))
+                         (project-current nil dir))))
+             (when proj
+               (expand-file-name (project-root proj)))))
+         . "Project")))
+  (defun my/ibuffer-project-generate-filter-groups ()
+    (setq ibuffer-filter-groups
+          (ibuffer-project-generate-filter-groups))))
+
 
 ;;;; `diff-mode'
 (use-package diff-mode
@@ -337,16 +487,16 @@ mode.")
    (setq magit-revision-show-gravatars
          '("^Author:     " . "^Commit:     "))
    ;; (setq magit-commit-show-diff nil)
-   ;; (setq magit-delete-by-moving-to-trash nil)
-   ;; (setq magit-display-buffer-function
-   ;;       #'magit-display-buffer-same-window-except-diff-v1)
+   (setq magit-delete-by-moving-to-trash nil)
+   (setq magit-display-buffer-function
+         #'magit-display-buffer-same-window-except-diff-v1)
    ;; (setq magit-log-auto-more t)
    (setq magit-log-margin-show-committer-date t)
-   ;; (setq magit-revert-buffers 'silent)
-   ;; (setq magit-save-repository-buffers 'dontask)
-   ;; (setq magit-wip-after-apply-mode t)
-   ;; (setq magit-wip-after-save-mode t)
-   ;; (setq magit-wip-before-change-mode t)
+   (setq magit-revert-buffers 'silent)
+   (setq magit-save-repository-buffers 'dontask)
+   (setq magit-wip-after-apply-mode t)
+   (setq magit-wip-after-save-mode t)
+   (setq magit-wip-before-change-mode t)
    (setq transient-values
          '((magit-log:magit-log-mode "--graph" "--color" "--decorate")))
 
@@ -399,11 +549,11 @@ mode.")
   (add-to-list 'project-switch-commands
                '(magit-project-status "Magit") t))
 
-(use-package magit-repos
-  :ensure nil                           ; part of `magit'
-  :commands (magit-list-repositories)
-  :init
-  (setq magit-repository-directories
-        '(("~/work" . 2))))
+;; (use-package magit-repos
+;;   :ensure nil                           ; part of `magit'
+;;   :commands (magit-list-repositories)
+;;   :init
+;;   (setq magit-repository-directories
+;;         '(("~/work" . 2))))
 
 (provide 'frap-git)
