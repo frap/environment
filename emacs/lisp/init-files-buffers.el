@@ -309,22 +309,12 @@
   (setq ibuffer-default-sorting-mode 'recency)
   (add-hook 'ibuffer-mode-hook
             (lambda ()
+              
               (ibuffer-auto-mode 1)
               (ibuffer-switch-to-saved-filter-groups "default")))
   )
 
-;; (use-package ibuffer-project
-;;   :ensure t
-;;   :after (ibuffer project)
-;;   :hook ((ibuffer ibuffer-mode) . my/ibuffer-project-generate-filter-groups)
-;;   :config
-;;   (setq ibuffer-project-use-cache t
-;;         ibuffer-project-root-functions
-;;         '(((lambda (dir)
-;;              (project-root (project-current nil dir))) . "Projet")))
-;;   (defun my/ibuffer-project-generate-filter-groups ()
-;;     (setq ibuffer-filter-groups
-;;           (ibuffer-project-generate-filter-groups))))
+
 
 ;; Show event history and command history of some or all buffers.
 (use-feature command-log-mode

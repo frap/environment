@@ -1,3 +1,121 @@
+;; files - dired
+(use-feature dired
+  ;; :hook (dired-mode . dired-hide-details-mode)
+  :commands (dired)
+  :bind (:map dired-mode-map
+	      ("<backspace>" . dired-up-directory)
+              ("M-<up>" . dired-up-directory)
+              ("~" . dired-home-directory)
+              ("/" . dired-goto-file)
+              ("," . dired-create-directory)
+              ("." . dired-create-empty-file)
+              ;; ("I" . dired-insert-subdir)
+              ("K" . dired-kill-subdir)
+              ;; ("O" . dired-find-file-other-window)
+              ("[" . dired-prev-dirline)
+              ("]" . dired-next-dirline)
+              ;; ("^" . mode-line-other-buffer)
+              ("x" . dired-do-delete)
+              ("X" . dired-do-flagged-delete)
+              ("y" . dired-do-copy))
+  :init
+  (setq dired-omit-files "^\\.[^.]\\|$Rhistory\\|$RData\\|__pycache__|node_modules")
+
+  (setq ls-lisp-dirs-first t)
+  (setq ls-lisp-use-insert-directory-program nil)
+  (autoload 'dired-omit-mode "dired-x")
+  (put 'dired-find-alternate-file 'disabled nil)
+  :config
+  (setq dired-listing-switches "-AGFhlv --group-directories-first --time-style=long-iso")
+  (setq dired-recursive-copies 'always)
+  (setq dired-recursive-deletes 'always)
+  (setq delete-by-moving-to-trash t)
+
+  (setq dired-dwim-target t) ;; other-buffer default target on rename or copy operation
+
+  (setq dired-auto-revert-buffer #'dired-directory-changed-p) ; also see `dired-do-revert-buffer'
+  (setq dired-make-directory-clickable t) ; Emacs 29.1
+  (setq dired-free-space nil) ; Emacs 29.1
+  (setq dired-mouse-drag-files t) ; Emacs 29.1
+
+  (add-hook 'dired-mode-hook #'dired-hide-details-mode)
+  (add-hook 'dired-mode-hook #'hl-line-mode)
+
+  ;; In Emacs 29 there is a binding for `repeat-mode' which lets you
+  ;; repeat C-x C-j just by following it up with j.  For me, this is a
+  ;; problem as j calls `dired-goto-file', which I often use.
+  (define-key dired-jump-map (kbd "j") nil)
+
+  (defun dired-home-directory ()
+    (interactive)
+    (dired (expand-file-name "~/")))
+  )
+
+(use-package dired-aux
+  :ensure nil
+  :after dired
+  :bind
+  ( :map dired-mode-map
+    ("C-+" . dired-create-empty-file)
+    ("M-s f" . nil)
+    ("C-<return>" . dired-do-open) ; Emacs 30
+    ("C-x v v" . dired-vc-next-action)) ; Emacs 28
+  :config
+  (setq dired-isearch-filenames 'dwim)
+  (setq dired-create-destination-dirs 'ask) ; Emacs 27
+  (setq dired-vc-rename-file t)             ; Emacs 27
+  (setq dired-do-revert-buffer (lambda (dir) (not (file-remote-p dir)))) ; Emacs 28
+  (setq dired-create-destination-dirs-on-trailing-dirsep t)) ; Emacs 29
+
+(use-feature dired-x
+  :after dired
+  :bind
+  ( :map dired-mode-map
+    ("I" . dired-info))
+  :config
+  (setq dired-clean-up-buffers-too t)
+  (setq dired-clean-confirm-killing-deleted-buffers t)
+  (setq dired-x-hands-off-my-keys t)    ; easier to show the keys I use
+  (setq dired-bind-man nil)
+  (setq dired-bind-info nil))
+
+(use-feature wdired
+  :commands (wdired-change-to-wdired-mode)
+  :config
+  (setq wdired-allow-to-change-permissions t)
+  (setq wdired-create-parent-directories t))
+
+  ;; (use-package dired-narrow
+  ;;   :ensure t
+  ;;   :after dired
+  ;;   :commands (dired-narrow dired-narrow-fuzzy dired-narrow-regexp)
+  ;;   :bind (:map dired-mode-map
+  ;;               ("C-c C-n" . dired-narrow)
+  ;;               ("C-c C-f" . dired-narrow-fuzzy)
+  ;;               ("C-c C-N" . dired-narrow-regexp)))
+
+  ;; (use-package dired-subtree
+  ;;   :ensure t
+  ;;   :after dired
+  ;;   :init
+  ;;   (defun my/dired-expand-all ()
+  ;;     "Expand all subtrees in the dired buffer."
+  ;;     (interactive)
+  ;;     (let ((has-more t))
+  ;;       (while has-more
+  ;;         (condition-case ex
+  ;;             (progn
+  ;;               (dired-next-dirline 1)
+  ;;               (dired-subtree-toggle))
+  ;;           ('error (setq has-more nil))))))
+  ;;   :commands (dired-subtree-toggle dired-subtree-cycle)
+  ;;   :bind (:map dired-mode-map
+  ;;               ("<tab>" . dired-subtree-toggle)
+  ;;               ("S-<tab>" . my/dired-expand-all)
+  ;;               ("<backtab>" . dired-subtree-cycle)))
+
+
+
 ;;;; Tabs, indentation, and the TAB key
 (use-package emacs
   :ensure nil
@@ -81,7 +199,6 @@
   ;; `display-buffer-alist' for the relevant entry.
   (setq ispell-choices-buffer "*ispell-top-choices*"))
 
-
 ;;; General configurations for prose/writing
 
 ;;;; `outline' (`outline-mode' and `outline-minor-mode')
@@ -91,7 +208,7 @@
   ("<f10>" . outline-minor-mode)
   :config
   (setq outline-minor-mode-highlight nil) ; emacs28
-  (setq outline-minor-mode-cycle t) ; emacs28
+  (setq outline-minor-mode-cycle t)       ; emacs28
   (setq outline-minor-mode-use-buttons nil) ; emacs29---bless you for the nil option!
   (setq outline-minor-mode-use-margins nil)) ; as above
 
