@@ -626,7 +626,7 @@ Else do `vertico-exit'."
     ;; a sub-directory and use, say, `find-file' to go to your home '~/'
     ;; or root '/' directory, Vertico will clear the old path to keep
     ;; only your current input.
-    (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy))
+    (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)))
 
 (provide 'frap-completion)
 ;;; frap-completion.el ends here
