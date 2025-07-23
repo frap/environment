@@ -289,91 +289,91 @@
   :ensure t
   :after corfu
   :hook  ((common-lisp-modes .  kb/cape-capf-setup-elisp)
-          ;; (lsp-completion-mode . kb/cape-capf-setup-lsp)
+          (git-commit-mode . kb/cape-capf-setup-git-commit)
+	  ;; (lsp-completion-mode . kb/cape-capf-setup-lsp)
           ;; (org-mode . kb/cape-capf-setup-org)
           ;; (eshell-mode . kb/cape-capf-setup-eshell)
-          (git-commit-mode . kb/cape-capf-setup-git-commit)
-          ;;   (LaTeX-mode . kb/cape-capf-setup-latex)
+          ;; (LaTeX-mode . kb/cape-capf-setup-latex)
           ;; (sh-mode . kb/cape-capf-setup-eshell)
           )
-  ;; :bind (("C-c p p" . completion-at-point) ;; capf
-  ;;        ("C-c p t" . complete-tag)        ;; etags
-  ;;        ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
-  ;;        ("C-c p h" . cape-history)
-  ;;        ("C-c p f" . cape-file)
-  ;;        ("C-c p k" . cape-keyword)
-  ;;        ("C-c p s" . cape-symbol)
-  ;;        ("C-c p a" . cape-abbrev)
-  ;;        ("C-c p l" . cape-line)
-  ;;        ("C-c p w" . cape-dict)
-  ;;        ("C-c p \\" . cape-tex)
-  ;;        ("C-c p _" . cape-tex)
-  ;;        ("C-c p ^" . cape-tex)
-  ;;        ("C-c p &" . cape-sgml)
-  ;;        ("C-c p r" . cape-rfc1345)
-  ;;        )
-  :custom
-  (cape-dabbrev-min-length 3)
-  :config
-    ;; Elisp
-  (defun kb/cape-capf-ignore-keywords-elisp (cand)
-    "Ignore keywords with forms that begin with \":\" (e.g.
-:history)."
-    (or (not (keywordp cand))
-        (eq (char-after (car completion-in-region--data)) ?:)))
-  (defun kb/cape-capf-setup-elisp ()
-    "Replace the default `elisp-completion-at-point'
+  :bind (("C-c p p" . completion-at-point) ;; capf
+         ("C-c p t" . complete-tag)        ;; etags
+         ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
+         ("C-c p h" . cape-history)
+         ("C-c p f" . cape-file)
+         ("C-c p k" . cape-keyword)
+         ("C-c p s" . cape-symbol)
+         ("C-c p a" . cape-abbrev)
+         ("C-c p l" . cape-line)
+         ;;        ("C-c p w" . cape-dict)
+         ;;        ("C-c p \\" . cape-tex)
+         ;;        ("C-c p _" . cape-tex)
+         ;;        ("C-c p ^" . cape-tex)
+         ;;        ("C-c p &" . cape-sgml)
+         ;;        ("C-c p r" . cape-rfc1345)
+         )
+         :custom
+         (cape-dabbrev-min-length 3)
+         :config
+         ;; Elisp
+         (defun kb/cape-capf-ignore-keywords-elisp (cand)
+           "Ignore keywords with forms that begin with \":\" (e.g.:history)."
+           (or (not (keywordp cand))
+               (eq (char-after (car completion-in-region--data)) ?:)))
+         (defun kb/cape-capf-setup-elisp ()
+           "Replace the default `elisp-completion-at-point'
 completion-at-point-function. Doing it this way will prevent
 disrupting the addition of other capfs (e.g. merely setting the
 variable entirely, or adding to list).
 
 Additionally, add `cape-file' as early as possible to the list."
-    (setf (elt (cl-member 'elisp-completion-at-point completion-at-point-functions) 0)
-          #'elisp-completion-at-point)
-    (add-to-list 'completion-at-point-functions #'cape-symbol)
-    ;; I prefer this being early/first in the list
-    (add-to-list 'completion-at-point-functions #'cape-file)
-    (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-    (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-yasnippet)))
+           (setf (elt (cl-member 'elisp-completion-at-point completion-at-point-functions) 0)
+                 #'elisp-completion-at-point)
+           (add-to-list 'completion-at-point-functions #'cape-symbol)
+           ;; I prefer this being early/first in the list
+           (add-to-list 'completion-at-point-functions #'cape-file)
+           (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+           (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-yasnippet)))
 
-  ;; LSP
-  (defun kb/cape-capf-setup-lsp ()
-    "Replace the default `lsp-completion-at-point' with its
-`cape-capf-buster' version. Also add `cape-file' and
-`company-yasnippet' backends."
-    (setf (elt (cl-member 'lsp-completion-at-point completion-at-point-functions) 0)
-          (cape-capf-buster #'lsp-completion-at-point))
-    ;; TODO 2022-02-28: Maybe use `cape-wrap-predicate' to have candidates
-    ;; listed when I want?
-    (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-yasnippet))
-    (add-to-list 'completion-at-point-functions #'cape-dabbrev t))
+         ;; LSP
+	 ;;          (defun kb/cape-capf-setup-lsp ()
+	 ;;            "Replace the default `lsp-completion-at-point' with its
+	 ;; `cape-capf-buster' version. Also add `cape-file' and
+	 ;; `company-yasnippet' backends."
+	 ;;            (setf (elt (cl-member 'lsp-completion-at-point completion-at-point-functions) 0)
+	 ;;                  (cape-capf-buster #'lsp-completion-at-point))
+	 ;;            ;; TODO 2022-02-28: Maybe use `cape-wrap-predicate' to have candidates
+	 ;;            ;; listed when I want?
+	 ;;            (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-yasnippet))
+	 ;;            (add-to-list 'completion-at-point-functions #'cape-dabbrev t))
 
-  ;; Eshell
-  (defun kb/cape-capf-setup-eshell ()
-    (let ((result))
-      (dolist (element '(pcomplete-completions-at-point cape-file) result)
-        (add-to-list 'completion-at-point-functions element))
-      ))
+         ;; Eshell
+         ;; (defun kb/cape-capf-setup-eshell ()
+         ;;   (let ((result))
+         ;;     (dolist (element '(pcomplete-completions-at-point cape-file) result)
+         ;;       (add-to-list 'completion-at-point-functions element))
+         ;;     ))
 
-  ;; Git-commit
-  (defun kb/cape-capf-setup-git-commit ()
-    (let ((result))
-      (dolist (element '(cape-symbol cape-dabbrev) result)
-        (add-to-list 'completion-at-point-functions element))))
-  ;; sh
-  ;; (defun kb/cape-capf-setup-sh ()
-  ;;   (require 'company-shell)
-  ;;   (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-shell)))
+         ;; Git-commit
+         (defun kb/cape-capf-setup-git-commit ()
+           (let ((result))
+             (dolist (element '(cape-symbol cape-dabbrev) result)
+               (add-to-list 'completion-at-point-functions element))))
+         ;; sh
+         ;; (defun kb/cape-capf-setup-sh ()
+         ;;   (require 'company-shell)
+         ;;   (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-shell)))
 
-  ;; For pcomplete. For now these two advices are strongly recommended to
-  ;; achieve a sane Eshell experience. See
-  ;; https://github.com/minad/corfu#completing-with-corfu-in-the-shell-or-eshell
+         ;; For pcomplete. For now these two advices are strongly recommended to
+         ;; achieve a sane Eshell experience. See
+         ;; https://github.com/minad/corfu#completing-with-corfu-in-the-shell-or-eshell
 
-  ;; Silence the pcomplete capf, no errors or messages!
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
-  ;; Ensure that pcomplete does not write to the buffer and behaves as a pure
-  ;; `completion-at-point-function'.
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
+         ;; Silence the pcomplete capf, no errors or messages!
+         (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
+         ;; Ensure that pcomplete does not write to the buffer and behaves as a pure
+         ;; `completion-at-point-function'.
+         (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
+	 )
 
 ;;; Corfu (in-buffer completion popup)
 (use-package corfu
@@ -398,25 +398,25 @@ Additionally, add `cape-file' as early as possible to the list."
 (use-package consult
   :ensure t
   :hook (completion-list-mode . consult-preview-at-point-mode)
-  :bind
-  ( :map global-map
-    ("M-g M-g" . consult-goto-line)
-    ("M-K" . consult-keep-lines)        ; M-S-k is similar to M-S-5 (M-%)
-    ("M-F" . consult-focus-lines)       ; same principle
-    ("C-x b"   . consult-buffer)
-    ("M-s M-b" . consult-buffer)
-    ("M-s M-f" . consult-find)
-    ("M-s M-g" . consult-grep)
-    ("M-s M-r" . consult-ripgrep)
-    ("M-s r"   . consult-ripgrep)
-    ("M-s M-h" . consult-history)
-    ("M-s M-i" . consult-imenu)
-    ("M-s M-l" . consult-line)
-    ("M-s M-m" . consult-mark)
-    ("M-s M-y" . consult-yank-pop)
-    ("M-s M-s" . consult-outline)
-    :map consult-narrow-map
-    ("?" . consult-narrow-help))
+  :bind (:map global-map
+	      ("M-g M-g" . consult-goto-line)
+	      ("M-K" . consult-keep-lines)        ; M-S-k is similar to M-S-5 (M-%)
+	      ("M-F" . consult-focus-lines)       ; same principle
+	      ("C-x B"   . my/consult-project-buffer)
+	      ("C-x b"   . consult-buffer)
+	      ("M-s M-b" . my/consult-project-buffer)
+	      ("M-s M-f" . consult-find)
+	      ("M-s M-g" . consult-grep)
+	      ("M-s M-r" . consult-ripgrep)
+	      ("M-s r"   . consult-ripgrep)
+	      ("M-s M-h" . consult-history)
+	      ("M-s M-i" . consult-imenu)
+	      ("M-s M-l" . consult-line)
+	      ("M-s M-m" . consult-mark)
+	      ("M-s M-y" . consult-yank-pop)
+	      ("M-s M-s" . consult-outline)
+	      :map consult-narrow-map
+	      ("?" . consult-narrow-help))
   :config
   (setq consult-line-numbers-widen t)
   ;; (setq completion-in-region-function #'consult-completion-in-region)
@@ -425,16 +425,18 @@ Additionally, add `cape-file' as early as possible to the list."
   (setq consult-async-input-throttle 0.5)
   (setq consult-narrow-key nil)
 
-  ;; (setq consult-buffer-sources
-  ;;     '(consult--source-hidden-buffer
-  ;;       consult--source-buffer
-  ;;       consult--source-recent-file
-  ;;       consult--source-bookmark
-  ;;       consult--source-project-buffer
-  ;;       consult--source-project-recent-file))
-   ;; fd for file finding
+  (setq consult-buffer-sources
+        '(consult--source-hidden-buffer
+          consult--source-buffer
+          consult--source-recent-file
+          consult--source-bookmark
+          consult--source-project-buffer
+          consult--source-project-recent-file))
+  
+  (require 'consult-imenu)          ; the `imenu' extension is in its own file
+  ;; fd for file finding
   (setq consult-find-args
-        "fd --type f --hidden --exclude .git --exclude .cache")
+      "fd --type f --hidden --exclude .git --exclude .cache")
   ;; (setq consult-find-args
   ;;       (concat "find . -not ( "
   ;;               "-path */.git* -prune "
@@ -449,8 +451,14 @@ Additionally, add `cape-file' as early as possible to the list."
 
   (add-to-list 'consult-mode-histories '(vc-git-log-edit-mode . log-edit-comment-ring))
 
-  (require 'consult-imenu)          ; the `imenu' extension is in its own file
-  )
+  (defun my/consult-project-buffer ()
+  "Consult buffers only from current project."
+  (interactive)
+  (consult-buffer
+   :predicate (lambda (buf)
+                (project-buffer-p buf))
+   :sort nil))
+)
 
 ;;; Extended minibuffer actions and more (embark.el)
 (use-package embark
@@ -478,25 +486,24 @@ Additionally, add `cape-file' as early as possible to the list."
 (use-package vertico
   :ensure t
   :hook (after-init . vertico-mode)
-  :bind
-  ( :map vertico-map
-    ("<left>" . backward-char)
-    ("<right>" . forward-char)
-    ("TAB" . prot-vertico-private-complete)
-    ("DEL" . vertico-directory-delete-char)
-    ("M-DEL" . vertico-directory-delete-word)
-    ("M-," . vertico-quick-insert)
-    ("M-." . vertico-quick-exit)
-    ("RET" . vertico-exit)         ;; 🔥 Fix: always exit cleanly
-    ("<return>" . vertico-exit)    ;; 🔥 Fix: always exit cleanly
-    :map vertico-multiform-map
-    ("RET" . prot-vertico-private-exit)
-    ("<return>" . prot-vertico-private-exit)
-    ("C-n" . prot-vertico-private-next)
-    ("<down>" . prot-vertico-private-next)
-    ("C-p" . prot-vertico-private-previous)
-    ("<up>" . prot-vertico-private-previous)
-    ("C-l" . vertico-multiform-vertical))
+  :bind (:map vertico-map
+	      ("<left>" . backward-char)
+	      ("<right>" . forward-char)
+	      ("TAB" . prot-vertico-private-complete)
+	      ("DEL" . vertico-directory-delete-char)
+	      ("M-DEL" . vertico-directory-delete-word)
+	      ("M-," . vertico-quick-insert)
+	      ("M-." . vertico-quick-exit)
+	      ("RET" . vertico-exit)      ;; 🔥 Fix: always exit cleanly
+	      ("<return>" . vertico-exit) ;; 🔥 Fix: always exit cleanly
+	      :map vertico-multiform-map
+	      ("RET" . prot-vertico-private-exit)
+	      ("<return>" . prot-vertico-private-exit)
+	      ("C-n" . prot-vertico-private-next)
+	      ("<down>" . prot-vertico-private-next)
+	      ("C-p" . prot-vertico-private-previous)
+	      ("<up>" . prot-vertico-private-previous)
+	      ("C-l" . vertico-multiform-vertical))
   :init
   ;; prot-vertico fns
   (defvar prot-vertico-multiform-minimal
@@ -619,7 +626,7 @@ Else do `vertico-exit'."
     ;; a sub-directory and use, say, `find-file' to go to your home '~/'
     ;; or root '/' directory, Vertico will clear the old path to keep
     ;; only your current input.
-    (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)))
+    (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy))
 
 (provide 'frap-completion)
 ;;; frap-completion.el ends here
