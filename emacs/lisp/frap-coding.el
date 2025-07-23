@@ -521,19 +521,22 @@ word.  Fall back to regular `expreg-expand'."
 
 
 (use-package web-mode
+  :disabled t
   :ensure t
   :mode (("\\.html\\'" . web-mode)
-         ("\\.j2\\'" . web-mode)
+         ("\\.j2\\'" . fundamental-mode)
          ("\\.jinja\\'" . web-mode)
          ("\\.jinja2\\'" . web-mode)
          ("\\.yml.j2\\'" . web-mode))
   :config
   (setq web-mode-engines-alist
-        '(("jinja" . "\\.\\(j2\\|jinja\\|jinja2\\|html\\|yml.j2\\)\\'")))
+        '(("jinja" . "\\.\\(jinja\\|jinja2\\|html\\|yml.j2\\)\\'")))
   (add-hook 'web-mode-hook
             (lambda ()
               (when (string-match-p "\\.\\(j2\\|jinja\\|jinja2\\|html\\|yml.j2\\)\\'" buffer-file-name)
-                (web-mode-set-engine "jinja")))))
+                (web-mode-set-engine "jinja")
+                ;; (electric-indent-local-mode -1)
+                ))))
 
 (use-package yaml-mode
   :ensure t
@@ -547,6 +550,7 @@ word.  Fall back to regular `expreg-expand'."
                (setq indent-tabs-mode nil)
                (setq tab-width 2)
                (setq yaml-indent-offset 2)
-               (define-key yaml-mode-map "\C-m" 'newline-and-indent))))
+               ;; (define-key yaml-mode-map "\C-m" 'newline-and-indent)
+               )))
 
 (provide 'frap-coding)
