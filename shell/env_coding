@@ -35,25 +35,20 @@ if cmd_exists emacs; then
         else
             emacsclient -n -e "(> (length (frame-list)) 1)" | grep t
             if [[ "$?" = "1" ]]; then
-                emacsclient -c -n -a "" "$@"
+                emacsclient -c -n -a "emacs" "$@"
             else
-                emacsclient -n -a "" "$@"
+                emacsclient -r -n -a "emacs" "$@"
             fi
         fi
     }
-    function ec() {
-        CFLAG=""
-        [[ -z "$@" ]] && CFLAG="--create-frame"
-        emacsclient $CFLAG --alternate-editor=emacs --no-wait "$@"
-    }
 
-    alias m='e --eval "(progn (magit-status) (delete-other-windows))"'
+    emacs() { emacsclient -a 'emacs' -n "$@" 2>/dev/null || command emacs; }
+    alias m='emacsclient --eval "(progn (magit-status) (delete-other-windows))"'
     alias mt="m -t"
     alias et="e -t"
 
     export EDITOR=em
     export VISUAL="${EDITOR}"
-    export ALTERNATE_EDITOR="vim"
     function aws_envs() {
         fn=tempfile
         echo "Updating AWS ENVs"
