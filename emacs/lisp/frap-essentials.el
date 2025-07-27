@@ -615,15 +615,17 @@ unreadable. Returns the names of envvars that were changed."
   (setq proced-filter 'user))
 
 ;;;; Emacs server (allow emacsclient to connect to running session)
-(use-package server
-  :ensure nil
-  :defer 1
-  :config
-   (setq server-socket-dir (expand-file-name "~/.cache/emacs/server"))
-   (setq server-client-instructions nil)
-  (unless (server-running-p)
-    (server-start)))
 
+(when (display-graphic-p)
+  (use-package server
+    :ensure nil
+    :defer 1
+    :config
+    (setq server-socket-dir (expand-file-name "~/.cache/emacs/server"))
+    (setq server-client-instructions nil)
+    (unless (server-running-p)
+      (server-start)))
+ )
 ;;; Substitute
 ;; Another package of mine... Video demo:
 ;; <https://protesilaos.com/codelog/2023-01-16-emacs-substitute-package-demo/>.
