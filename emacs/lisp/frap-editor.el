@@ -85,14 +85,14 @@
   (setq wdired-allow-to-change-permissions t)
   (setq wdired-create-parent-directories t))
 
-  ;; (use-package dired-narrow
-  ;;   :ensure t
-  ;;   :after dired
-  ;;   :commands (dired-narrow dired-narrow-fuzzy dired-narrow-regexp)
-  ;;   :bind (:map dired-mode-map
-  ;;               ("C-c C-n" . dired-narrow)
-  ;;               ("C-c C-f" . dired-narrow-fuzzy)
-  ;;               ("C-c C-N" . dired-narrow-regexp)))
+(use-package dired-narrow
+  :ensure t
+  :after dired
+  :commands (dired-narrow dired-narrow-fuzzy dired-narrow-regexp)
+  :bind (:map dired-mode-map
+              ("C-c C-n" . dired-narrow)
+              ("C-c C-f" . dired-narrow-fuzzy)
+              ("C-c C-N" . dired-narrow-regexp)))
 
   ;; (use-package dired-subtree
   ;;   :ensure t
@@ -166,19 +166,26 @@
   :hook (after-init . global-so-long-mode))
 
 ;;; Flyspell and prot-spell.el (spell check)
-(use-package flyspell
-  :ensure nil
-  :bind
-  ( :map flyspell-mode-map
-    ("C-;" . nil)
-    :map flyspell-mouse-map
-    ("<mouse-3>" . flyspell-correct-word)
-    :map ctl-x-x-map
-    ("s" . flyspell-mode)) ; C-x x s
+;; (use-package flyspell
+;;   :ensure nil
+;;   :bind
+;;   ( :map flyspell-mode-map
+;;     ("C-;" . nil)
+;;     :map flyspell-mouse-map
+;;     ("<mouse-3>" . flyspell-correct-word)
+;;     :map ctl-x-x-map
+;;     ("s" . flyspell-mode)) ; C-x x s
+;;   :config
+;;   (setq flyspell-issue-message-flag nil)
+;;   (setq flyspell-issue-welcome-flag nil)
+;;   (setq ispell-program-name "hunspell")
+;;   (setq ispell-dictionary "en_GB"))
+
+(use-feature flyspell
+  :when (or (executable-find "aspell")
+            (executable-find "hunspell"))
+  :hook ((org-mode git-commit-mode markdown-mode) . flyspell-mode)
   :config
-  (setq flyspell-issue-message-flag nil)
-  (setq flyspell-issue-welcome-flag nil)
-  (setq ispell-program-name "hunspell")
   (setq ispell-dictionary "en_GB"))
 
 (use-package prot-spell
@@ -186,7 +193,7 @@
   :bind
   (("M-$" . prot-spell-spell-dwim)
    ("C-M-$" . prot-spell-change-dictionary)
-   ("M-i" . prot-spell-spell-dwim) ; override `tab-to-tab-stop'
+   ("M-i" . prot-spell-spell-dwim)      ; override `tab-to-tab-stop'
    ("C-M-i" . prot-spell-change-dictionary)) ; override `complete-symbol'
   :config
   (setq prot-spell-dictionaries
@@ -232,44 +239,101 @@
   (setq olivetti-minimum-body-width 80)
   (setq olivetti-recall-visual-line-mode-entry-state t))
 
-(use-package logos
+;; (use-package logos
+;;   :ensure t
+;;   :bind
+;;   (("C-x n n" . logos-narrow-dwim)
+;;    ("C-x ]" . logos-forward-page-dwim)
+;;    ("C-x [" . logos-backward-page-dwim)
+;;    ;; I don't think I ever saw a package bind M-] or M-[...
+;;    ("M-]" . logos-forward-page-dwim)
+;;    ("M-[" . logos-backward-page-dwim)
+;;    ("<f9>" . logos-focus-mode))
+;;   :config
+;;   (setq logos-outlines-are-pages t)
+;;   (setq logos-outline-regexp-alist
+;;         `((emacs-lisp-mode . ,(format "\\(^;;;+ \\|%s\\)" logos-page-delimiter))
+;;           (org-mode . ,(format "\\(^\\*+ +\\|^-\\{5\\}$\\|%s\\)" logos-page-delimiter))
+;;           (markdown-mode . ,(format "\\(^\\#+ +\\|^[*-]\\{5\\}$\\|^\\* \\* \\*$\\|%s\\)" logos-page-delimiter))
+;;           (conf-toml-mode . "^\\[")))
+;; 
+;;   ;; These apply when `logos-focus-mode' is enabled.  Their value is
+;;   ;; buffer-local.
+;;   (setq-default logos-hide-mode-line t)
+;;   (setq-default logos-hide-header-line t)
+;;   (setq-default logos-hide-buffer-boundaries t)
+;;   (setq-default logos-hide-fringe t)
+;;   (setq-default logos-variable-pitch t) ; see my `fontaine' configurations
+;;   (setq-default logos-buffer-read-only nil)
+;;   (setq-default logos-scroll-lock nil)
+;;   (setq-default logos-olivetti t)
+;; 
+;;   (add-hook 'enable-theme-functions #'logos-update-fringe-in-buffers)
+;; 
+;; ;;;; Extra tweaks
+;;   ;; place point at the top when changing pages, but not in `prog-mode'
+;;   (defun prot/logos--recenter-top ()
+;;     "Use `recenter' to reposition the view at the top."
+;;     (unless (derived-mode-p 'prog-mode)
+;;       (recenter 1))) ; Use 0 for the absolute top
+;; 
+;;   (add-hook 'logos-page-motion-hook #'prot/logos--recenter-top))
+
+(use-package markdown-mode
   :ensure t
-  :bind
-  (("C-x n n" . logos-narrow-dwim)
-   ("C-x ]" . logos-forward-page-dwim)
-   ("C-x [" . logos-backward-page-dwim)
-   ;; I don't think I ever saw a package bind M-] or M-[...
-   ("M-]" . logos-forward-page-dwim)
-   ("M-[" . logos-backward-page-dwim)
-   ("<f9>" . logos-focus-mode))
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :bind ( :map markdown-mode-map
+          ("M-Q" . split-pararagraph-into-lines))
+  :custom
+  (markdown-fontify-code-blocks-natively t)
+  (markdown-command "pandoc")
+  (markdown-hr-display-char nil)
+  (markdown-list-item-bullets '("-")))
+
+(use-feature undo-tree
+  ;; :delight '(:eval (propertize " ψ" 'face 'font-lock-keyword-face))
   :config
-  (setq logos-outlines-are-pages t)
-  (setq logos-outline-regexp-alist
-        `((emacs-lisp-mode . ,(format "\\(^;;;+ \\|%s\\)" logos-page-delimiter))
-          (org-mode . ,(format "\\(^\\*+ +\\|^-\\{5\\}$\\|%s\\)" logos-page-delimiter))
-          (markdown-mode . ,(format "\\(^\\#+ +\\|^[*-]\\{5\\}$\\|^\\* \\* \\*$\\|%s\\)" logos-page-delimiter))
-          (conf-toml-mode . "^\\[")))
+  (global-undo-tree-mode 1)
+  :custom
+  ;; Save undo history to disk automatically
+  (undo-tree-auto-save-history t)
+  (undo-tree-history-directory-alist
+   `((".*" . ,(expand-file-name "undo-tree-history/" user-cache-directory))))
+  :bind
+  (("C-z" . undo-only) ;; simple undo (not whole branches unless you mean to)
+   ("C-S-z" . undo-tree-redo)        ;; redo
+   ("C-x u" . undo-tree-visualize))) ;; visualize tree manually if needed
 
-  ;; These apply when `logos-focus-mode' is enabled.  Their value is
-  ;; buffer-local.
-  (setq-default logos-hide-mode-line t)
-  (setq-default logos-hide-header-line t)
-  (setq-default logos-hide-buffer-boundaries t)
-  (setq-default logos-hide-fringe t)
-  (setq-default logos-variable-pitch t) ; see my `fontaine' configurations
-  (setq-default logos-buffer-read-only nil)
-  (setq-default logos-scroll-lock nil)
-  (setq-default logos-olivetti t)
+;; Undo highlighting
+(use-package undo-hl
+  :delight
+  :ensure (:host github :repo "casouri/undo-hl")
+  :hook ((prog-mode text-mode org-mode) . undo-hl-mode))
 
-  (add-hook 'enable-theme-functions #'logos-update-fringe-in-buffers)
+(use-package undo-fu
+  :bind (("C-/" . undo-fu-only-undo)
+         ("C-?" . undo-fu-only-redo)
+         ("C-c u" . undo-fu-only-undo)
+         ("C-c U" . undo-fu-only-redo)))
 
-;;;; Extra tweaks
-  ;; place point at the top when changing pages, but not in `prog-mode'
-  (defun prot/logos--recenter-top ()
-    "Use `recenter' to reposition the view at the top."
-    (unless (derived-mode-p 'prog-mode)
-      (recenter 1))) ; Use 0 for the absolute top
+;; Save undo across sessions
+(use-package undo-fu-session
+  :ensure t
+  :hook ((prog-mode text-mode conf-mode tex-mode) . undo-fu-session-mode)
+  :custom
+  (undo-fu-session-directory (expand-file-name "undo-fu-session/" user-cache-directory)))
 
-  (add-hook 'logos-page-motion-hook #'prot/logos--recenter-top))
+;; (use-package vundo
+;;   :bind (("C-x u" . vundo))
+;;   :custom
+;;   (vundo-compact-display t)
+;;   (vundo--window-max-height 10)
+;;   :config
+;;   ;; Optional: Use Unicode characters for a prettier tree
+;;   (setq vundo-glyph-alist vundo-unicode-symbols)
+;;   ;; Optional: Set a font that supports the Unicode characters
+;;   (set-face-attribute 'vundo-default nil :family "Symbola"))
 
 (provide 'frap-editor)
