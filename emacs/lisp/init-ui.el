@@ -650,6 +650,20 @@ x×X .,·°;:¡!¿?`'‘’   ÄAÃÀ TODO
   :config
   (menu-bar-mode -1))
 
+(use-feature tooltip
+  :when (window-system)
+  :custom
+  (tooltip-x-offset 0)
+  (tooltip-y-offset (line-pixel-height))
+  (tooltip-frame-parameters
+   `((name . "tooltip")
+     (internal-border-width . 2)
+     (border-width . 1)
+     (no-special-glyphs . t)))
+  :config
+    (setq tooltip-delay 0.5
+          tooltip-short-delay 0.5))
+
 (use-package modus-themes
   :ensure t
   :demand t
@@ -659,9 +673,9 @@ x×X .,·°;:¡!¿?`'‘’   ÄAÃÀ TODO
   :config
   (setq modus-themes-custom-auto-reload nil
         modus-themes-to-toggle '(modus-operandi modus-vivendi)
-        ;; modus-themes-to-toggle '(modus-operandi-tinted modus-vivendi-tinted)
-        ;; modus-themes-to-toggle '(modus-operandi-deuteranopia modus-vivendi-deuteranopia)
-        ;; modus-themes-to-toggle '(modus-operandi-tritanopia modus-vivendi-tritanopia)
+        modus-themes-to-toggle '(modus-operandi-tinted modus-vivendi-tinted)
+        modus-themes-to-toggle '(modus-operandi-deuteranopia modus-vivendi-deuteranopia)
+        modus-themes-to-toggle '(modus-operandi-tritanopia modus-vivendi-tritanopia)
         modus-themes-to-rotate modus-themes-items
         modus-themes-mixed-fonts t
         modus-themes-variable-pitch-ui t
@@ -679,8 +693,7 @@ x×X .,·°;:¡!¿?`'‘’   ÄAÃÀ TODO
   ;;         (comment magenta-faint)
   ;;         (bg-paren-match bg-magenta-subtle)
   ;;         (fg-paren-match magenta)))
-  (setq modus-themes-common-palette-overrides nil)
-  )
+  (setq modus-themes-common-palette-overrides nil))
 
 ;; (use-package modus-themes
 ;;   :ensure t
