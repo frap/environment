@@ -34,7 +34,74 @@
 ;;; Code:
 
 (require 'project)
-(require 'tab-bar)
+(require 'cl-lib)
+
+;;; Code:
+
+(defvar-local project-name nil
+  "A user-facing name for the current buffer's project.
+
+If set, it will be used as the default return value for the
+`project-name' function, before querying the project.")
+
+(defvar-local project-manifest-file nil
+  "A file containing the project description or configuration.
+
+This should be a path relative to the project root. If set, it
+will be used as the default return value for the
+`project-manifest-file' project method. Individual project types
+may use this value or ignore it as appropriate.")
+
+(defvar project--this-action nil
+  "The name of the active compile action as a string.
+
+It can be used in the name of the compilation buffer when running
+a project method defined via `def-project-compile-action'.
+
+This is not intended to be given a value by user code; instead it
+will be dynamically set just for the duration of the compilation
+action.")
+
+;;;
+;;; Project methods
+;;;
+
+;;;###autoload
+(cl-defgeneric project-manifest-file (project)
+  "A file that describes the project configuration.
+
+This should return the file name relative to the project root.
+The default implementation returns the value of
+`project-manifest-file' if set, or \"Makefile\" if that exists in
+the project root, otherwise nil."
+  (or project-manifest-file
+      (when (file-exists-p (project-expand-file "Makefile" project))
+        "Makefile")))
+
+;;;###autoload
+(cl-defgeneric project-open-project (proj _arg)
+  "Open the project PROJ for working.
+
+By default this visits the value of `project-manifest-file', or
+if that is nil, runs `project-find-file' instead. Project types
+should customize the behavior as appropriate; that can even
+include launching another application.
+
+ARG is ignored by default and can be given any desired meaning by
+different project types."
+  (if-let ((manifest (project-manifest-file proj)))
+      (find-file manifest)
+    (project-find-file)))
+
+;;;###autoload
+(cl-defgeneric project-display-name (project)
+  "A name for the project that can be presented to the user.
+
+This should be a simple string appropriate for use in buffer
+names, user messages, labels, and the like."
+  (file-name-nondirectory
+   (directory-file-name (project-root project))))
+
 
 ;;;; Switch to a project root Dired outright
 
@@ -84,47 +151,104 @@ the project in DIRECTORY using `project-dired'."
     (rename-buffer (format "*vc-root-log: %s*" root))))
 
 (advice-add #'vc-print-root-log :after #'prot-project-rename-vc-root-log)
+;;; Directory locals
 
-;;;; One tab per project
+(defun project-reload-dir-locals ()
+  "Read values from the current project's .dir-locals file and
+apply them in all project file buffers as if opening those files
+for the first time.
 
-;; NOTE 2024-01-15 07:07:52 +0200: I define the "in tab" functions as
-;; a coding exercise.  I don't have a use for it, as I prefer to use
-;; the approach of my `beframe' package instead.
-(defun prot-project-in-tab--get-tab-names (&optional frame)
-  "Return list of tab names associated with FRAME.
-If FRAME is nil, use the current frame."
-  (mapcar
-   (lambda (tab)
-     (alist-get 'name tab))
-   (frame-parameter frame 'tabs)))
+Signals an error if there is no current project."
+  (interactive)
+  (let ((proj (project-current)))
+    (unless proj
+      (user-error "There doesn't seem to be a project here"))
+    ;; Load the variables; they are stored buffer-locally, so...
+    (hack-dir-local-variables)
+    ;; Hold onto them...
+    (let ((locals dir-local-variables-alist))
+      (dolist (buffer (project-buffers proj))
+        (with-current-buffer buffer
+          ;; transfer the loaded values to this buffer...
+          (setq-local dir-local-variables-alist locals)
+          ;; and apply them.
+          (hack-local-variables-apply))))))
 
-(defun prot-project-in-tab--create-tab (directory name)
-  "Create new tab visiting DIRECTORY and named NAME."
-  (tab-new)
-  (find-file directory)
-  (unwind-protect
-      (prot-project--switch directory)
-    (tab-rename name)
-    ;; NOTE 2024-01-15 06:52 +0200: I am adding this because
-    ;; `tab-rename' is not persistent for some reason. Probably a bug...
-    (let* ((tabs (funcall tab-bar-tabs-function))
-           (tab-to-rename (nth (tab-bar--current-tab-index) tabs)))
-      (setf (alist-get 'explicit-name tab-to-rename) name))))
+(defun project-edit-dir-locals (dir)
+  "Open the .dir-locals file in DIR for editing.
+
+Interactively this searches up the directory tree for the current
+buffer for the closest `dir-locals-file'. If this buffer is part
+of a project but the directory locals file doesn't exist yet, a
+new file is visited in the project root."
+  (interactive (list
+                (or (pcase (dir-locals-find-file (or (buffer-file-name)
+                                                     default-directory))
+                      ;; Cached file not from `dir-locals-set-directory-class'
+                      (`(,dir ,_ ,(pred (not null))) dir)
+                      ;; Directly found file
+                      ((and (pred stringp) dir) dir))
+                    (when-let ((proj (project-current)))
+                      (project-root proj))
+                    (user-error "No `dir-locals-file' or project found here"))))
+  (find-file (expand-file-name dir-locals-file dir)))
+
+(defvar-keymap project-dir-locals-map
+  :doc "Keymap for commands dealing with .dir-locals files and their
+contents."
+  "l" #'project-reload-dir-locals
+  "e" #'project-edit-dir-locals)
+
+;;;
+;;; Utilities
+;;;
 
 ;;;###autoload
-(defun prot-project-in-tab (directory)
-  "Switch to project DIRECTORY in a tab.
-If a tab is named after the non-directory component of DIRECTORY,
-switch to it.  Otherwise, create a new tab and name it after the
-non-directory component of DIRECTORY.
+(defun project-expand-file (file &optional project)
+  "Convert path FILE to an absolute path under PROJECT.
 
-Use this as an alternative to `project-switch-project'."
-  (interactive (list (funcall project-prompter)))
-  (project--remember-dir directory)
-  (let ((name (file-name-nondirectory (directory-file-name directory))))
-    (if (member name (prot-project-in-tab--get-tab-names))
-        (tab-switch name)
-      (prot-project-in-tab--create-tab directory name))))
+PROJ defaults to the current project; its root directory is used
+as the DEFAULT-DIRECTORY in `expand-file-name', q.v."
+  (if-let ((proj (or project (project-current))))
+      (expand-file-name file (project-root proj))
+    (error "No project available")))
+
+;;;###autoload
+(defun project-name (&optional proj)
+  "The user-facing name of the current project.
+
+If there is no current project, returns `nil'. If the
+buffer-local variable `project-name' has a value, that is
+returned; otherwise the value of `project-display-name'."
+  (or project-name
+      (when-let ((project (or (project-current) proj)))
+          (project-display-name project))))
+
+;;;###autoload
+(defun project-open (proj &optional arg)
+  "Run `project-open-project' for PROJ, passing ARG if given.
+
+Interactively PROJ defaults to the current project, or prompts to
+choose one if none is current. Interactively ARG will be the
+current prefix argument."
+  (interactive (list (project-current t)
+                     current-prefix-arg))
+  (project-open-project proj arg))
+
+;;;
+;;; Project types and overrides
+;;;
+
+;;;###autoload
+(cl-defmethod project-files :around (project &optional dirs)
+  "Use 'fd' if available to find all files for PROJECT in DIRS."
+  (if-let ((fd (executable-find "fd")))
+      (let* ((search-dirs
+              (string-join (or dirs (list (project-root project))) " "))
+             (command (format "%s --type f --print0 '.*' %s" fd search-dirs)))
+        (split-string (shell-command-to-string command) "\0" t))
+    (cl-call-next-method project dirs)))
+
 
 ;;;; Set up a project root
 

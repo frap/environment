@@ -16,7 +16,8 @@
   :ensure (:host github :repo "AmaiKinono/puni")
   :defer t
   ;; :delight " ♾️"
-  :hook ((puni-mode . electric-pair-local-mode))
+  :hook (((common-lisp-modes-mode nxml-mode json-ts-mode) . puni-mode)
+         (puni-mode . electric-pair-local-mode))
   :init
   ;; The autoloads of Puni are set up so you can enable `puni-mode` or
   ;; `puni-global-mode` before `puni` is actually loaded. Only after you press
@@ -26,25 +27,18 @@
   (add-hook 'eshell-mode-hook #'puni-disable-puni-mode)
   ;; paredit-like keys
   :bind
-  (("C-a"    . frap/puni-smart-bol)
-   ("C-M-a"  . frap/smart-top-level-begin)
-   ("C-b"    . backword-word)
-   ("C-e"    . frap/puni-smart-eol)
-   ("C-M-e"  . frap/smart-top-level-end)
-   ("C-f"    . forward-word)
-   ("M-b"    . puni-backward-sexp-or-up-list)
-   ("M-f"    . puni-forward-sexp-or-up-list)
-   :map region-bindings-mode-map
+  (:map region-bindings-mode-map
    ("(" . puni-wrap-round)
    ("[" . puni-wrap-square)
    ("{" . puni-wrap-curly)
    ("<" . puni-wrap-angle)
    ;; paredit-like keys
    :map puni-mode-map
-   ("C-M-a"  . frap/smart-top-level-begin)
-   ("C-M-e"  . frap/smart-top-level-end)
-   ;; ("C-=" . chee/puni-unwrap-sexp)
-   ;; ("C-." . chee/puni-rewrap-sexp)
+   ;; Smart movement
+   ("C-a" . frap/puni-smart-bol)
+   ("C-e" . frap/puni-smart-eol)
+   ("C-M-a" . beginning-of-defun)
+   ("C-M-e" . end-of-defun)
    ("C-M-f" . puni-forward-sexp-or-up-list)
    ("C-M-b" . puni-backward-sexp-or-up-list)
    ("C-M-t" . puni-transpose)
@@ -106,51 +100,18 @@ otherwise runs FALLBACK-BODY."
                 (bound-and-true-p puni-mode))
            ,lisp-body
          ,fallback-body)))
-   
-  (defun chee/puni-unwrap-sexp (&optional open close)
-    (interactive)
-    (save-excursion
-      (let* ((bounds (puni-bounds-of-sexp-around-point))
-             (beg (+ (car bounds) 1))
-             (end (- (cdr bounds) 1)))
-        (puni-kill-region beg end)
-        (puni-backward-delete-char)
-        (if open (insert-char open))
-        (yank)
-        (if close (insert-char close)))))
-
-  (defun chee/puni-rewrap-sexp nil
-    (interactive)
-    (let ((open (read-char "Opening character? "))
-          (close (read-char "Closing character? ")))
-      (chee/puni-unwrap-sexp open close)))
 
   (define-common-lisp-modes-command
-  frap/puni-smart-bol
-  "Smart C-a: Go to start of outermost sexp if in one, otherwise smart BOL."
-  (frap/goto-puni-bound-if-in-sexp :car #'frap/back-to-indentation-or-beginning)
-  #'frap/back-to-indentation-or-beginning)
+   frap/puni-smart-bol
+   "Smart C-a: Go to start of outermost sexp if in one, otherwise smart BOL."
+   (frap/goto-puni-bound-if-in-sexp :car #'frap/back-to-indentation-or-beginning)
+   #'frap/back-to-indentation-or-beginning)
 
   (define-common-lisp-modes-command
    frap/puni-smart-eol
    "Smart C-e: Go to end of outermost sexp if in one, otherwise end-of-line."
    (frap/goto-puni-bound-if-in-sexp :cdr #'end-of-line)
-   #'end-of-line)
-
-(define-common-lisp-modes-command
- frap/smart-top-level-begin
- "Move to beginning of top-level form. Uses `beginning-of-defun` in common-lisps-mode-mode."                              
- (beginning-of-defun)
- (let ((pt (point)))
-   (back-to-indentation)
-   (when (= pt (point))
-     (move-beginning-of-line 1))))
-
-  (define-common-lisp-modes-command
-   frap/smart-top-level-end
-   "Move to end of top-level form. Uses `end-of-defun` incommon-lisps-mode-mode."
-   (end-of-defun)
-   (end-of-line)))
+   #'end-of-line))
 
 (use-package puni
   :when IS-GUI?
@@ -186,8 +147,9 @@ otherwise runs FALLBACK-BODY."
 
 ;;; Flymake
 (use-package flymake
-  :ensure nil
   :preface
+  (defvar flymake-prefix-map (make-sparse-keymap))
+  (fset 'flymake-prefix-map flymake-prefix-map)
   (defvar prot/flymake-mode-projects-path
     (file-name-as-directory (expand-file-name "frap" "~/work/"))
     "Path to my Git projects.")
@@ -205,14 +167,14 @@ otherwise runs FALLBACK-BODY."
 
   (add-hook 'emacs-lisp-mode-hook #'prot/flymake-mode-in-my-projects)
   :bind
-  ( :map ctl-x-x-map
-    ("m" . flymake-mode) ; C-x x m
-    :map flymake-mode-map
-    ("C-c ! s" . flymake-start)
-    ("C-c ! d" . flymake-show-buffer-diagnostics) ; Emacs28
-    ("C-c ! D" . flymake-show-project-diagnostics) ; Emacs28
-    ("C-c ! n" . flymake-goto-next-error)
-    ("C-c ! p" . flymake-goto-prev-error))
+  ( :map ctl-x-map
+     ("!" . flymake-prefix-map)
+     :map flymake-prefix-map
+     ("s" . flymake-start)
+     ("d" . flymake-show-buffer-diagnostics)
+     ("D" . flymake-show-project-diagnostics)
+     ("n" . flymake-goto-next-error)
+     ("p" . flymake-goto-prev-error))
   :config
   (setq flymake-fringe-indicator-position 'left-fringe)
   (setq flymake-suppress-zero-counters t)
@@ -311,7 +273,7 @@ word.  Fall back to regular `expreg-expand'."
                   ;; shell-mode-hook
                   eval-expression-minibuffer-setup-hook))
     (add-hook hook 'common-lisp-modes-mode))
-  :bind ( :map common-lisp-modes-mode-map ;; not lisp-mode-shared-map  ?
+  :bind ( :map common-lisp-modes-mode-map 
 	      ("M-q" . indent-sexp-or-fill))
   :config
   (add-hook 'common-lisp-modes-mode-hook #'puni-mode)
@@ -329,28 +291,28 @@ word.  Fall back to regular `expreg-expand'."
   :commands (csv-align-mode))
 
 (use-package clojure-ts-mode
+  :after flycheck-clj-kondo
+  :hook ((clojure-mode
+          clojurec-mode
+          clojurescript-mode)
+         .  (lambda ()
+              (clojure-mode-setup)
+              (common-lisp-modes-mode)
+              (clojure-lisp-pretty-symbols)
+              (flycheck-mode)
+              ))
+  :hook ((clojure-ts-mode . eglot-ensure))
+  :commands (clojure-project-dir)
+  :bind ( :map clojure-mode-map
+          ("C-:" . nil))
   :mode (("\\.clj\\'" . clojure-ts-mode)
          ("\\.cljs\\'" . clojure-ts-mode)
          ("\\.cljc\\'" . clojure-ts-mode)
          ("\\.edn\\'" . clojure-ts-mode)
          ("\\.bb\\'"  . clojure-ts-mode))
-  :after flycheck-clj-kondo
-  :hook ((clojure-ts-mode . eglot-ensure))
   :config
-  (require 'flycheck-clj-kondo))
-
-(use-package clojure-mode
-  :disabled t
-  :ensure t
-  :after flycheck-clj-kondo
-  ;; :delight "λ clj"
-  ;; :hook ((clojure-mode clojurec-mode clojurescript-mode)
-  ;;        . (lambda ()
-  ;;            (common-lisp-modes-mode)
-  ;;            (clojure-lisp-pretty-symbols)
-  ;;            (flycheck-mode)
-  ;;            ))
-  :config
+  (setq clojure-ts-indent-style 'fixed) ;; tree-sitter Clojure indent style
+  (require 'flycheck-clj-kondo)
   (defun clojure-lisp-pretty-symbols ()
     "Prettify common Clojure symbols."
     (setq prettify-symbols-alist
@@ -367,6 +329,15 @@ word.  Fall back to regular `expreg-expand'."
             ("partial" . ?ρ)))
     (prettify-symbols-mode 1)))
 
+(use-package clojure-mode
+  :disabled t
+  :ensure t
+  :after flycheck-clj-kondo
+  ;; :delight "λ clj"
+  :hook ()
+  :config
+  )
+
 (use-package flycheck-clj-kondo
   :ensure t)
 
@@ -374,37 +345,62 @@ word.  Fall back to regular `expreg-expand'."
   :ensure t
   :delight "🍏🍺"
   :commands cider-find-and-clear-repl-buffer
-  :functions (cider-nrepl-request:eval cider-find-and-clear-repl-output)
-  ;; :hook ((cider-mode cider-repl-mode) . eldoc-mode)
-  :bind ( :map cider-repl-mode-map
-          ("C-c C-S-o" . cider-repl-clear-buffer)
-          :map cider-mode-map
-          ("C-c C-S-o" . cider-find-and-clear-repl-buffer)
-          ("C-c C-p" . cider-pprint-eval-last-sexp-to-comment))
-  :custom
-  (cider-allow-jack-in-without-project t)
-  ;; (cider-use-fringe-indicators nil)
-  (cider-enrich-classpath t)
+  :functions (cider-nrepl-request:eval
+              cider-find-and-clear-repl-output
+              cider-random-tip)
+   :hook (((cider-repl-mode cider-mode) . eldoc-mode)
+         (cider-repl-mode . common-lisp-modes-mode)
+         (cider-popup-buffer-mode . cider-disable-linting))
+   :bind ( :map cider-repl-mode-map
+           ("C-c C-S-o" . cider-repl-clear-buffer)
+           :map cider-mode-map
+           ("C-c C-S-o" . cider-find-and-clear-repl-buffer)
+           ("C-c C-p" . cider-pprint-eval-last-sexp-to-comment))
+   :custom
+   (nrepl-log-messages nil)
+   (cider-repl-display-help-banner nil)
+   (cider-repl-tab-command #'indent-for-tab-command)
+   (nrepl-hide-special-buffers t)
+   (cider-allow-jack-in-without-project t)
+   ;; (cider-use-fringe-indicators nil)
+   (cider-font-lock-dynamically '(macro var deprecated))
+  (cider-save-file-on-load nil)
+  (cider-inspector-fill-frame nil)
+  (cider-auto-select-error-buffer t)
+  (cider-show-eval-spinner t)
+  (nrepl-use-ssh-fallback-for-remote-hosts t)
   (cider-repl-history-file (expand-file-name "~/.cache/cider-history"))
   (cider-clojure-cli-global-options "-J-XX:-OmitStackTraceInFastThrow")
-  ;; (cider-use-tooltips nil)
-  ;; (cider-auto-inspect-after-eval nil)
+  (cider-use-tooltips nil)
+  (cider-connection-message-fn #'cider-random-tip)
+  (cider-repl-prompt-function #'cider-repl-prompt-newline)
+  (cider-auto-inspect-after-eval nil)
+  (cider-enrich-classpath nil) ; causes troubles behind proxy and with add-lib feature
+  (cider-download-java-sources t)
   (cider-auto-select-error-buffer t)
-  ;; :custom-face
-  ;; (cider-result-overlay-face ((t (:box (:line-width -1 :color "grey50")))))
-  ;; (cider-error-highlight-face ((t (:inherit flymake-error))))
-  ;; (cider-warning-highlight-face ((t (:inherit flymake-warning))))
-  ;; (cider-reader-conditional-face ((t (:inherit font-lock-comment-face))))
+  :custom-face
+  (cider-result-overlay-face ((t (:box (:line-width -1 :color "grey50")))))
+  (cider-error-highlight-face ((t (:inherit flymake-error))))
+  (cider-warning-highlight-face ((t (:inherit flymake-warning))))
+  (cider-reader-conditional-face ((t (:inherit font-lock-comment-face))))
   :config
-  (setq nrepl-log-messages t)
-  (setq cider-repl-display-help-banner nil)
-  (setq nrepl-hide-special-buffers t)
-  (setq cider-prefer-local-resources t) ;; with tramp
-  (setq cider-font-lock-dynamically '(macro core function var deprecated))
+  (put 'cider-clojure-cli-aliases 'safe-local-variable #'listp)
   (remove-hook 'eldoc-documentation-functions #'cider-eldoc) ;; clojure-lsp does it
   (defun frap/disable-flycheck-in-cider-popups ()
     (flycheck-mode -1))
   (add-hook 'cider-popup-buffer-mode-hook #'frap/disable-flycheck-in-cider-popups)
+  (defun cider-disable-linting ()
+    "Disable linting integrations for current buffer."
+    (when (bound-and-true-p flymake-mode)
+      (flymake-mode -1)))
+  (defun cider-repl-prompt-newline (namespace)
+    "Return a prompt string that mentions NAMESPACE with a newline."
+    (format "%s\n> " namespace))
+  (defun cider-find-and-clear-repl-buffer ()
+    "Find the current REPL buffer and clear it.
+See `cider-find-and-clear-repl-output' for more info."
+    (interactive)
+    (cider-find-and-clear-repl-output 'clear-repl))
   (defun cider-jack-in-babashka ()
     "Start babashka REPL for quick scratch."
     (interactive)
@@ -419,6 +415,24 @@ word.  Fall back to regular `expreg-expand'."
 		        :repl-init-function (lambda ()
                                       (rename-buffer "*babashka-repl*")))))))))
 
+
+;; (use-package niel
+;;   :ensure t
+;;   :vc ( "babashka/neil"
+;;         :files ("*.el")
+;;         ;; :rev :newest
+;;         )
+;;   :config
+;;   (setq neil-prompt-for-version-p nil
+;;         neil-inject-dep-to-project-p t))
+
+;; This Emacs library provides a global mode which displays ugly form
+;; feed characters as tidy horizontal rules.
+;; I use ^L to break sections on lisp
+(use-package page-break-lines
+  :ensure t
+  :delight
+  :hook (emacs-lisp-mode . page-break-lines-mode))
 
 (use-feature js
   :mode ("\\.js\\'" . js-ts-mode)

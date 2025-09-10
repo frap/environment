@@ -10,36 +10,42 @@
 ;;; Code:
 ;;; General minibuffer settings
 
-;;;; completion styles
+;;;; Completion styles
+
 ;;; emacs22
 ;; Prefix completion that only operates on the text before point.
 ;; If we are in prefix|suffix, with | representing the cursor, it will consider
 ;; everything that expands prefix and then add back to it the suffix.
+
 ;;; basic
 ;; Prefix completion that also accounts for the text after point.
 ;; Using the above example, this one will consider patterns that match all of
 ;; emacs22 as well as anything that completes suffix.
+
 ;;; partial-completion
 ;; This is used for file navigation. Instead of typing out a full path like
 ;; ~/.local/share/fonts, we do ~/.l/s/f or variants thereof to make the matches
 ;; unique such as ~/.l/sh/fon. It is a joy to navigate the file system in this way.
+
 ;;; substring
 ;; Matches the given sequence of characters literally regardless of where it is in
 ;; a word. So pro will match professional as well as reproduce.
+
 ;;; flex
 ;; Completion of an in-order subset of characters. It does not matter where the
 ;; characters are in the word, so long as they are encountered in the given order.
 ;; The input lad will thus match list-faces-display as well as pulsar-highlight-dwim.
+
 ;;; initials
 ;; Completion of acronyms and initialisms. Typing lfd will thus match
 ;; list-faces-display. This completion style can also be used for file system navigation, though I prefer to only have partial-completion handle that task.
+
 ;;; orderless
 ;; It matches patterns out-of-order. Patterns are typically words separated by spaces,
 ;; though they can also be regular expressions, and even styles that are the same as
 ;; the aforementioned flex and initials.
 
-(use-package minibuffer
-  :ensure nil
+(use-feature minibuffer
   :config
 ;;;; Completion styles
   (setq completion-styles '(basic substring initials flex orderless)) ; also see `completion-category-overrides'
@@ -140,24 +146,41 @@
 
 ;; The minibuffer-depth-indicate-mode shows a number next to the minibuffer
 ;; prompt, indicating the level of depth in the recursion, starting with 2.
-(use-package mb-depth
-  :ensure nil
+(use-feature mb-depth
   :hook (after-init . minibuffer-depth-indicate-mode)
   :config
   (setq read-minibuffer-restore-windows nil) ; Emacs 28
-  (setq enable-recursive-minibuffers t))
+  (setq enable-recursive-minibuffers t)
+  :preface
+  (unless (fboundp 'minibuffer-keyboard-quit)
+    (autoload #'minibuffer-keyboard-quit "delsel" nil t))
+  (define-advice keyboard-quit
+      (:around (quit) quit-current-context)
+    "Quit the current context.
 
-(use-package minibuf-eldef
-  :ensure nil
+When there is an active minibuffer and we are not inside it close
+it.  When we are inside the minibuffer use the regular
+`minibuffer-keyboard-quit' which quits any active region before
+exiting.  When there is no minibuffer `keyboard-quit' unless we
+are defining or executing a macro."
+    (if (active-minibuffer-window)
+        (if (minibufferp)
+            (minibuffer-keyboard-quit)
+          (abort-recursive-edit))
+      (unless (or defining-kbd-macro
+                  executing-kbd-macro)
+        (funcall-interactively quit)))))
+
+(use-feature minibuf-eldef
   :hook (after-init . minibuffer-electric-default-mode)
   :config
   (setq minibuffer-default-prompt-format " [%s]")) ; Emacs 29
 
 ;; The file-name-shadow-mode is a neat little feature to remove the “shadowed”
 ;; part of a file prompt while using something like C-x C-f (M-x find-file).
-;;File name shadowing happens when we invoke find-file and instead of first
+;; File name shadowing happens when we invoke find-file and instead of first
 ;; deleting the contents of the minibuffer, we start typing out the file
-;;system path we wish to visit.
+;; system path we wish to visit.
 (use-package rfn-eshadow
   :ensure nil
   :hook (minibuffer-setup . cursor-intangible-mode)
@@ -179,16 +202,16 @@
 
   (file-name-shadow-mode 1))
 
-(use-package minibuffer
-  :ensure nil
+(use-feature minibuffer
   :demand t
-  :hook (minibuffer-setup . prot-common-truncate-lines-silently)
+  :hook (eval-expression-minibuffer-setup . common-lisp-modes-mode)
+  ;; :hook (minibuffer-setup . prot-common-truncate-lines-silently)
   :bind (:map minibuffer-local-completion-map
               ("<up>" . minibuffer-previous-line-completion)
               ("<down>" . minibuffer-next-line-completion)
 
-          :map minibuffer-inactive-mode-map
-          ("<mouse-1>" . ignore))
+              :map minibuffer-inactive-mode-map
+              ("<mouse-1>" . ignore))
    :config
   (setq completion-auto-deselect nil)
   (setq completion-auto-help 'always)
@@ -200,27 +223,24 @@
   (setq completions-header-format "")
   ;; (setq completions-header-format (propertize "%s candidates:\n" 'face 'bold-italic))
   (setq completions-highlight-face 'completions-highlight)
-  (setq completions-max-height 10)
+  (setq completions-max-height 20)
   (setq completions-sort 'historical)
   ;; This one is for Emacs 31.  It relies on what I am doing with the `completion-category-overrides'.
   (setq completion-eager-display 'auto)
 
   (setq minibuffer-completion-auto-choose t)
   (setq minibuffer-visible-completions nil) ; Emacs 30
-      (defun prot/completions-tweak-style ()
-      "Tweak the style of the Completions buffer."
-      (setq-local mode-line-format nil)
-      (setq-local cursor-in-non-selected-windows nil)
-      (when (and completions-header-format
-                 (not (string-blank-p completions-header-format)))
-        (setq-local display-line-numbers-offset -1)))
-
-      (add-hook 'completion-list-mode-hook #'prot/completions-tweak-style)
-      (add-hook 'completion-list-mode-hook #'prot-common-truncate-lines-silently))
+  (defun prot/completions-tweak-style ()
+    "Tweak the style of the Completions buffer."
+    (setq-local mode-line-format nil)
+    (setq-local cursor-in-non-selected-windows nil)
+    (when (and completions-header-format
+               (not (string-blank-p completions-header-format)))
+      (setq-local display-line-numbers-offset -1)))
+  )
 
 ;;;; `savehist' (minibuffer and related histories)
-(use-package savehist
-  :ensure nil
+(use-feature savehist
   :hook (after-init . savehist-mode)
   :config
   (setq savehist-file (expand-file-name "savehist" user-cache-directory))
@@ -229,8 +249,7 @@
   (setq savehist-save-minibuffer-history t)
   (add-to-list 'savehist-additional-variables 'kill-ring))
 
-(use-package dabbrev
-  :ensure nil
+(use-feature dabbrev
   :commands (dabbrev-expand dabbrev-completion)
   :config
 ;;;; `dabbrev' (dynamic word completion (dynamic abbreviations))
@@ -261,8 +280,7 @@
           try-complete-lisp-symbol-partially
           try-complete-lisp-symbol)))
 
-(use-package abbrev
-  :ensure nil
+(use-feature abbrev
   ;; message-mode derives from text-mode, so we don't need a separate
   ;; hook for it.
   :hook ((text-mode prog-mode git-commit-mode) . abbrev-mode)
@@ -383,40 +401,71 @@ Additionally, add `cape-file' as early as possible to the list."
   ;; I also have (setq tab-always-indent 'complete) for TAB to complete
   ;; when it does not need to perform an indentation change.
   :bind (:map corfu-map ("<tab>" . corfu-complete))
+  :commands (corfu-quit)
+  :custom
+  (corfu-cycle t)
+  (corfu-preselect-first t)
+  (corfu-scroll-margin 4)
+  (corfu-quit-no-match t)
+  (corfu-quit-at-boundary t)
+  (corfu-max-width 100)
+  (corfu-min-width 42)
+  (corfu-count 9)
+  ;; should be configured in the `indent' package, but `indent.el'
+  ;; doesn't provide the `indent' feature.
+  (tab-always-indent 'complete)
   :config
-  (setq corfu-preview-current nil)
-  (setq corfu-min-width 20)
-
-  (setq corfu-popupinfo-delay '(1.25 . 0.5))
-  (corfu-popupinfo-mode 1)   ; shows documentation after `corfu-popupinfo-delay'
+  (defun corfu-complete-and-quit ()
+    (interactive)
+    (corfu-complete)
+    (corfu-quit))'
 
   ;; Sort by input history (no need to modify `corfu-sort-function').
   (with-eval-after-load 'savehist
     (corfu-history-mode 1)
     (add-to-list 'savehist-additional-variables 'corfu-history)))
 
+(use-feature corfu-popupinfo
+  :after corfu
+  :bind ( :map corfu-popupinfo-map
+          ("M-p" . corfu-popupinfo-scroll-down)
+          ("M-n" . corfu-popupinfo-scroll-up))
+  :hook (corfu-mode . corfu-popupinfo-mode)
+  :custom-face
+  (corfu-popupinfo ((t :height 1.0))))
+
 (use-package consult
   :ensure t
   :hook (completion-list-mode . consult-preview-at-point-mode)
+  :commands (consult-completion-in-region)
+  :preface
+  (defvar consult-prefix-map (make-sparse-keymap))
+  (fset 'consult-prefix-map consult-prefix-map)
   :bind (:map global-map
-	      ("M-g M-g" . consult-goto-line)
-	      ("M-K" . consult-keep-lines)        ; M-S-k is similar to M-S-5 (M-%)
-	      ("M-F" . consult-focus-lines)       ; same principle
-	      ("C-x B"   . my/consult-project-buffer)
-	      ("C-x b"   . consult-buffer)
-	      ("M-s M-b" . my/consult-project-buffer)
-	      ("M-s M-f" . consult-find)
-	      ("M-s M-g" . consult-grep)
-	      ("M-s M-r" . consult-ripgrep)
-	      ("M-s r"   . consult-ripgrep)
-	      ("M-s M-h" . consult-history)
-	      ("M-s M-i" . consult-imenu)
-	      ("M-s M-l" . consult-line)
-	      ("M-s M-m" . consult-mark)
-	      ("M-s M-y" . consult-yank-pop)
-	      ("M-s M-s" . consult-outline)
-	      :map consult-narrow-map
-	      ("?" . consult-narrow-help))
+	          ("M-g M-g" . consult-goto-line)
+	          ("M-K" . consult-keep-lines) ; M-S-k is similar to M-S-5 (M-%)
+	          ("M-F" . consult-focus-lines) ; same principle
+	          ("C-x B"   . consult-project-buffer)
+	          ("C-x b"   . consult-buffer)
+	          ("M-s M-b" . consult-project-buffer)
+	          ("M-s M-f" . consult-find)
+	          ("M-s M-g" . consult-grep)
+	          ("M-s M-r" . consult-ripgrep)
+	          ("M-s r"   . consult-ripgrep)
+	          ("M-s M-h" . consult-history)
+	          ("M-s M-i" . consult-imenu)
+	          ("M-s M-l" . consult-line)
+	          ("M-s M-m" . consult-mark)
+	          ("M-s M-y" . consult-yank-pop)
+	          ("M-s M-s" . consult-outline)
+              :map ctl-x-map
+              ("c" . consult-prefix-map)
+              :map consult-prefix-map
+              ("r" . consult-recent-file)
+	          :map consult-narrow-map
+	          ("?" . consult-narrow-help))
+   :custom
+  (consult-preview-key nil)
   :config
   (setq consult-line-numbers-widen t)
   ;; (setq completion-in-region-function #'consult-completion-in-region)
@@ -424,7 +473,6 @@ Additionally, add `cape-file' as early as possible to the list."
   (setq consult-async-input-debounce 0.2)
   (setq consult-async-input-throttle 0.5)
   (setq consult-narrow-key nil)
-
   (setq consult-buffer-sources
         '(consult--source-hidden-buffer
           consult--source-buffer
@@ -433,10 +481,10 @@ Additionally, add `cape-file' as early as possible to the list."
           consult--source-project-buffer
           consult--source-project-recent-file))
   
-  (require 'consult-imenu)          ; the `imenu' extension is in its own file
+  ;; (require 'consult-imenu)  ; the `imenu' extension is in its own file
   ;; fd for file finding
   (setq consult-find-args
-      "fd --type f --hidden --exclude .git --exclude .cache")
+        "fd --type f --hidden --exclude .git --exclude .cache")
   ;; (setq consult-find-args
   ;;       (concat "find . -not ( "
   ;;               "-path */.git* -prune "
@@ -446,19 +494,22 @@ Additionally, add `cape-file' as early as possible to the list."
   (setq consult-ripgrep-args
         "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / --smart-case --hidden --glob '!.git/*' --glob '!.cache/*'")
 
-  (setq consult-preview-key 'any)  ;; live preview always
+  ;; (setq consult-preview-key 'any) ;; live preview always
   (setq consult-project-function nil) ; always work from the current directory (use `cd' to switch directory)
 
+  (defun my/consult-project-buffer ()
+  "Use `consult-project-buffer` scoped to current project."
+  (interactive)
+  (consult-project-buffer))
+  
   (add-to-list 'consult-mode-histories '(vc-git-log-edit-mode . log-edit-comment-ring))
 
-  (defun my/consult-project-buffer ()
-  "Consult buffers only from current project."
-  (interactive)
-  (consult-buffer
-   :predicate (lambda (buf)
-                (project-buffer-p buf))
-   :sort nil))
-)
+  )
+
+(use-package consult-project-extra
+  :bind
+  (("C-c p f" . consult-project-extra-find)
+   ("C-c p o" . consult-project-extra-find-other-window)))
 
 ;;; Extended minibuffer actions and more (embark.el)
 (use-package embark
@@ -627,6 +678,10 @@ Else do `vertico-exit'."
     ;; or root '/' directory, Vertico will clear the old path to keep
     ;; only your current input.
     (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)))
+
+(use-package ov
+  :ensure t
+  :commands (ov-regexp))
 
 (provide 'frap-completion)
 ;;; frap-completion.el ends here

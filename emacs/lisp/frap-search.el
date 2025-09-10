@@ -149,11 +149,11 @@
   :bind
   (;; Remember `er/expand-region' is bound to M-2!
    ("C->" . mc/mark-next-like-this)
-   ("M-3" . mc/mark-next-like-this)
-   ("M-#" . mc/unmark-next-like-this)
+   ;; ("M-3" . mc/mark-next-like-this)
+   ;; ("M-#" . mc/unmark-next-like-this)
    ("C-<" . mc/mark-previous-like-this)
-   ("M-4" . mc/mark-previous-like-this)
-   ("M-$" . mc/unmark-previous-like-this)
+   ;; ("M-4" . mc/mark-previous-like-this)
+   ;; ("M-$" . mc/unmark-previous-like-this)
 
    ("C-*" . mc/mark-all-like-this)
    ("C-c m" . mc/mark-all-dwim)

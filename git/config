@@ -202,7 +202,7 @@ singlekey = true
 diffFilter = "delta --color-only"
 
 [branch]
-autoSetupMerge = always
+autoSetupMerge = always   # auto setup origin branch form remote
 autoSetupRebase = always
 
 [status]

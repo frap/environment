@@ -15,41 +15,11 @@
 (when (executable-find "gls")
   (setq insert-directory-program (executable-find "gls")))
 
-(use-feature project
+(use-package project
   :bind-keymap ("s-p" . project-prefix-map)
-  :bind (:map project-prefix-map
-              ("s" . project-save-some-buffers)
-              ("f" . project-find-file)
-              ("F" . project-switch-project)
-              ;; ("m" . project-compile)
-              ("K" . project-kill-buffers)
-              ;; ("t" . eshell)
-              ("v" . magit)
-              ("s-p" . project-switch-project))
-  :bind
-  (("C-x p ." . project-dired)
-   ("C-x p C-g" . keyboard-quit)
-   ("C-x p <return>" . project-dired)
-   ;; ("C-x p <delete>" . project-forget-project)
-   ("C-x p q" .        project-query-replace-regexp)
-   ("C-x p o" .        my/project-other-buffer)
-   ("C-x p <delete>" . my/project-remove-project)
-   ("C-x p DEL" . my/project-remove-project)
-   ;; ("M-s p" . my/project-switch-project)
-   ;; ("M-s f" . my/project-find-file-vc-or-dir)
-   ("M-s L" . find-library))
   :custom
-  (project-compilation-buffer-name-function 'project-prefixed-buffer-name)
-  (project-vc-extra-root-markers '("bb.edn"  "package.json"
-                                   "pyproject.toml" "trove-ci.yml"
-                                   "deps.edn")) ; Emacs 29
+  (project-vc-extra-root-markers '("bb.edn" "package.json" "pyproject.toml" "trove-ci.yml" "deps.edn"))
   :preface
-  (defcustom project-compilation-mode nil
-    "Mode to run the `compile' command with."
-    :type 'symbol
-    :group 'project
-    :safe #'symbolp
-    :local t)
   (defun project-save-some-buffers (&optional arg)
     "Save some modified file-visiting buffers in the current project.
 
@@ -59,91 +29,37 @@ means save all with no questions."
     (let* ((project-buffers (project-buffers (project-current)))
            (pred (lambda () (memq (current-buffer) project-buffers))))
       (funcall-interactively #'save-some-buffers arg pred)))
-
   (defvar project-compilation-modes nil
     "List of functions to check for specific compilation mode.
 
 The function must return a symbol of an applicable compilation
 mode.")
-  (define-advice compilation-start
-      (:filter-args (args) use-project-compilation-mode)
-    (let ((cmd (car args))
-          (mode (cadr args))
-          (rest (cddr args)))
-      (catch 'args
-        (when (null mode)
-          (dolist (comp-mode-p project-compilation-modes)
-            (when-let ((mode (funcall comp-mode-p)))
-              (throw 'args (append (list cmd mode) rest)))))
-        args)))
   (define-advice project-root (:filter-return (project) abbreviate-project-root)
-    (when project
-      (abbreviate-file-name project)))
- (defun project-make-predicate-buffer-in-project-p ()
-   (let ((project-buffers (project-buffers (project-current))))
-     (lambda () (memq (current-buffer) project-buffers))))
-  (define-advice project-compile (:around (fn) save-project-buffers-only)
-    "Only ask to save project-related buffers."
-    (defvar compilation-save-buffers-predicate)
-    (let ((compilation-save-buffers-predicate
-           (project-make-predicate-buffer-in-project-p)))
-      (funcall fn)))
-  (define-advice recompile
-      (:around (fn &optional edit-command) save-project-buffers-only)
-    "Only ask to save project-related buffers if inside of a project."
-    (defvar compilation-save-buffers-predicate)
-    (let ((compilation-save-buffers-predicate
-           (if (project-current)
-               (project-make-predicate-buffer-in-project-p)
-             compilation-save-buffers-predicate)))
-      (funcall fn edit-command)))
+    (abbreviate-file-name project))
+  (defun project-make-predicate-buffer-in-project-p ()
+    (let ((project-buffers (project-buffers (project-current))))
+      (lambda () (memq (current-buffer) project-buffers))))
+
   :config
   (setq project-list-file (file-name-concat user-cache-directory "projects"))
-  (add-to-list 'project-switch-commands
-               '(project-dired "Dired"))
-  (add-to-list 'project-switch-commands
-               '(project-switch-to-buffer "Switch buffer"))
-  (add-to-list 'project-switch-commands
-               '(project-compile "Compile"))
-  (add-to-list 'project-switch-commands
-               '(project-save-some-buffers "Save") t)
-  ;; (setopt project-switch-commands
-  ;;         '((project-find-file "Find file")
-  ;;           (project-find-regexp "Find regexp")
-  ;;           (project-find-dir "Find directory")
-  ;;           (project-dired "Root dired")
-  ;;           (project-vc-dir "VC-Dir")
-  ;;           (project-shell "Shell")
-  ;;           (keyboard-quit "Quit")))
+  ;; Optional: Better Dired entry in switch menu
+  (add-to-list 'project-switch-commands '(project-dired "Dired"))
+  (add-to-list 'project-switch-commands '(project-switch-to-buffer "Switch buffer"))
+  (add-to-list 'project-switch-commands '(project-save-some-buffers "Save") t))
 
-
-  (defun project-magit-status ()
-    "Run magit-status in the current project's root."
-    (interactive)
-    (magit-status-setup-buffer (project-root (project-current t))))
-
-  (defun my/project-remove-project ()
-    "Remove project from `project--list' using completion."
-    (interactive)
-    (project--ensure-read-project-list)
-    (let* ((projects project--list)
-           (dir (completing-read "REMOVE project from list: " projects nil t)))
-      (setq project--list (delete (assoc dir projects) projects))))
-  (setq project-key-prompt-style t)     ; Emacs 30
-
-  (advice-add #'project-switch-project :after #'prot-common-clear-minibuffer-message))
-
-(use-package ibuffer-vc
-  ;; :disabled true
-  :ensure t
-  :after ibuffer
-  :hook  (ibuffer-mode . ibuffer-vc-set-filter-groups-by-vc-root))
+;; (use-package ibuffer-vc
+;;   ;; :disabled true
+;;   :ensure t
+;;   :after ibuffer
+;;   :hook  (ibuffer-mode . ibuffer-vc-set-filter-groups-by-vc-root))
 
 (use-feature ibuffer
-  :bind (("C-x C-b" . my/ibuffer-for-current-project)
-         ("M-s b" . my/buffers-major-mode)
-         ("M-s v" . my/buffers-vc-root))
+  :bind (("C-x C-b" . my/ibuffer-project))
   :config
+  ;; Don't show filter groups if there are no buffers in that group
+  (setq ibuffer-show-empty-filter-groups nil)
+  ;; Don't ask for confirmation to delete marked buffers
+  (setq ibuffer-expert t)
   (setq ibuffer-formats
         '((mark modified read-only " "
                 (name 18 18 :left :elide)
@@ -153,141 +69,68 @@ mode.")
                 (mode 16 16 :left :elide)
                 " "
                 filename-and-process)))
-  ;; Don't show filter groups if there are no buffers in that group
-  (setq ibuffer-show-empty-filter-groups nil)
-  ;;   ;; Don't ask for confirmation to delete marked buffers
-  (setq ibuffer-expert t)
-  (setq ibuffer-saved-filter-groups
-        (quote (("default"
-                 ("dired" (mode . dired-mode))
-                 ("org" (name . "^.*org$"))
-                 ("web" (or (mode . web-mode) (mode . js2-mode)))
-                 ("shell" (or (mode . eshell-mode) (mode . shell-mode)))
-                 ("mu4e" (name . "\*mu4e\*"))
-                 ("coding" (or
-                            (mode . python-mode)
-                            (mode . clojure-mode)
-                            (name . "^\\*scratch-clj\\*$")))
-                 ("emacs" (or
-                           (name . "^\\*scratch\\*$")
-                           (name . "^\\*Messages\\*$")))
-                 ))))
+  ;; (setq ibuffer-saved-filter-groups
+  ;;       (quote (("default"
+  ;;                ("dired" (mode . dired-mode))
+  ;;                ("org" (name . "^.*org$"))
+  ;;                ("web" (or (mode . web-mode) (mode . js2-mode)))
+  ;;                ("shell" (or (mode . eshell-mode) (mode . shell-mode)))
+  ;;                ("mu4e" (name . "\*mu4e\*"))
+  ;;                ("coding" (or
+  ;;                           (mode . python-mode)
+  ;;                           (mode . clojure-mode)
+  ;;                           (name . "^\\*scratch-clj\\*$")))
+  ;;                ("emacs" (or
+  ;;                          (name . "^\\*scratch\\*$")
+  ;;                          (name . "^\\*Messages\\*$")))
+  ;;                ))))
 
+  (defun my/ibuffer-project ()
+    "Open ibuffer filtered to the current project using `ibuffer-project'."
+    (interactive)
+    (let ((name (format "*Projet: %s*" (or (project-root (project-current)) "Unknown"))))
+      (ibuffer nil name)))
   (defun my/ibuffer-for-current-project ()
-  "Open `ibuffer` showing only buffers in the current project.
+    "Open `ibuffer` showing only buffers in the current project.
 If not in a project, fallback to regular `ibuffer`."
-  (interactive)
-  (let ((proj (project-current)))
-    (if proj
-        (let ((root (project-root proj)))
-          (ibuffer nil (format "*Projet: %s*" (abbreviate-file-name root))
-                   `((filename . ,root))))
-      (message "Not in a project. Showing all buffers.")
-      (call-interactively #'ibuffer))))
-  
-  (defun ibuffer-visit-buffer-other-window (&optional noselect)
-    "In ibuffer, visit this buffer. If `ace-window' is available, use
-  it to select window for visiting this buffer.`"
-    (interactive "P")
-    (let ((buf (ibuffer-current-buffer t))
-          (window
-           (if (fboundp 'aw-select)
-               (aw-select "Select Window")
-             (next-window))))
-      (bury-buffer (current-buffer))
-      (if noselect
-          (save-window-excursion (select-window window)
-                                 (switch-to-buffer buf))
-        (select-window window) (switch-to-buffer buf))))
-
-  (defun my/buffers-major-mode (&optional arg)
-    "Select buffers that match the current buffer's major mode.
-  With \\[universal-argument] produce an `ibuffer' filtered
-  accordingly.  Else use standard completion."
-    (interactive "P")
-    (let* ((major major-mode)
-           (prompt "Buffers for ")
-           (mode-string (format "%s" major))
-           (mode-string-pretty (propertize mode-string 'face 'success)))
-      (if arg
-          (ibuffer t (concat "*" prompt mode-string "*")
-                   (list (cons 'used-mode major)))
-        (switch-to-buffer
-         (read-buffer
-          (concat prompt mode-string-pretty ": ") nil t
-          (lambda (pair)                     ; pair is (name-string . buffer-object)
-            (with-current-buffer (cdr pair) (derived-mode-p major))))))))
-
-  (defun my/buffers-vc-root (&optional arg)
-    "Select buffers that match the present `vc-root-dir'.
-  With \\[universal-argument] produce an `ibuffer' filtered
-  accordingly.  Else use standard completion.
-
-  When no VC root is available, use standard `switch-to-buffer'."
-    (interactive "P")
-    (let* ((root (vc-root-dir))
-           (prompt "Buffers for VC ")
-           (vc-string (format "%s" root))
-           (vc-string-pretty (propertize vc-string 'face 'success)))
-      (if root
-          (if arg
-              (ibuffer t (concat "*" prompt vc-string "*")
-                       (list (cons 'filename (expand-file-name root))))
-            (switch-to-buffer
-             (read-buffer
-              (concat prompt vc-string-pretty ": ") nil t
-              (lambda (pair)                 ; pair is (name-string . buffer-object)
-                (with-current-buffer (cdr pair) (string= (vc-root-dir) root))))))
-        (call-interactively 'switch-to-buffer))))
-
-  ;; ─────────────────────── Delete current file and buffer ──────────────────────
-  ;; based on http://emacsredux.com/blog/2013/04/03/delete-file-and-buffer/
-  (defun delete-current-file-and-buffer ()
-    "Kill the current buffer and deletes the file it is visiting."
     (interactive)
-    (let ((filename (buffer-file-name)))
-      (if filename
-          (if (y-or-n-p (concat "Do you really want to delete file " filename " ?"))
-              (progn
-                (delete-file filename)
-                (message "Deleted file %s." filename)
-                (kill-buffer)))
-        (message "Not a file visiting buffer!"))))
-
-  (defun my/project-other-buffer ()
-    "Cycle to the next buffer in the current project only."
-    (interactive)
-    (let* ((project-buffers (project-buffers (project-current t)))
-           (next (seq-find (lambda (b)
-                             (and (not (eq b (current-buffer)))
-                                  (memq b project-buffers)))
-                           (buffer-list))))
-      (when next
-        (switch-to-buffer next))))
-
-    ;; (setq ibuffer-default-sorting-mode 'recency)
-    ;; (add-hook 'ibuffer-mode-hook
-    ;;           (lambda ()
-    ;;             (ibuffer-auto-mode 1)
-    ;;             (ibuffer-switch-to-saved-filter-groups "default")))
+    (let ((proj (project-current)))
+      (if proj
+          (let ((root (project-root proj)))
+            (ibuffer nil (format "*Projet: %s*" (abbreviate-file-name root))
+                     `((filename . ,root))))
+        (message "Not in a project. Showing all buffers.")
+        (call-interactively #'ibuffer))))
+  ;; (setq ibuffer-default-sorting-mode 'recency)
+  ;; (add-hook 'ibuffer-mode-hook
+  ;;           (lambda ()
+  ;;             (ibuffer-auto-mode 1)
+  ;;             (ibuffer-switch-to-saved-filter-groups "default")))
   )
+
+;; (use-package ibuffer-project
+;;   :ensure t
+;;   :after (ibuffer project)
+;;   :hook ((ibuffer ibuffer-mode) . my/ibuffer-project-generate-filter-groups)
+;;   :config
+;;   (setq ibuffer-project-use-cache t)
+;;   (setq ibuffer-project-root-functions
+;;       `(((lambda (dir)
+;;            (let ((proj (with-current-buffer (or (get-file-buffer dir) (current-buffer))
+;;                          (project-current nil dir))))
+;;              (when proj
+;;                (expand-file-name (project-root proj)))))
+;;          . "Project")))
+;;   (defun my/ibuffer-project-generate-filter-groups ()
+;;     (setq ibuffer-filter-groups
+;;           (ibuffer-project-generate-filter-groups))))
 
 (use-package ibuffer-project
   :ensure t
   :after (ibuffer project)
-  :hook ((ibuffer ibuffer-mode) . my/ibuffer-project-generate-filter-groups)
+  :hook (ibuffer . ibuffer-project-hook)
   :config
-  (setq ibuffer-project-use-cache t)
-  (setq ibuffer-project-root-functions
-      `(((lambda (dir)
-           (let ((proj (with-current-buffer (or (get-file-buffer dir) (current-buffer))
-                         (project-current nil dir))))
-             (when proj
-               (expand-file-name (project-root proj)))))
-         . "Project")))
-  (defun my/ibuffer-project-generate-filter-groups ()
-    (setq ibuffer-filter-groups
-          (ibuffer-project-generate-filter-groups))))
+  (setq ibuffer-project-use-cache t))
 
 
 ;;;; `diff-mode'
@@ -402,43 +245,44 @@ If not in a project, fallback to regular `ibuffer`."
 ;;; Agitate
 ;; A package of mine to complement VC and friends.  Read the manual
 ;; here: <https://protesilaos.com/emacs/agitate>.
-(use-package agitate
-  :ensure t
-  :hook
-  ((diff-mode . agitate-diff-enable-outline-minor-mode)
-   (after-init . agitate-log-edit-informative-mode))
-  :bind
-  ( :map global-map
-    ("C-x v =" . agitate-diff-buffer-or-file) ; replace `vc-diff'
-    ("C-x v g" . agitate-vc-git-grep) ; replace `vc-annotate'
-    ("C-x v f" . agitate-vc-git-find-revision)
-    ("C-x v s" . agitate-vc-git-show)
-    ("C-x v w" . agitate-vc-git-kill-commit-message)
-    ("C-x v p p" . agitate-vc-git-format-patch-single)
-    ("C-x v p n" . agitate-vc-git-format-patch-n-from-head)
-    :map diff-mode-map
-    ("C-c C-b" . agitate-diff-refine-cycle) ; replace `diff-refine-hunk'
-    ("C-c C-n" . agitate-diff-narrow-dwim)
-    ("L" . vc-print-root-log)
-    ;; Emacs 29 can use C-x v v in diff buffers, which is great, but now I
-    ;; need quick access to it...
-    ("v" . vc-next-action)
-    :map log-view-mode-map
-    ("w" . agitate-log-view-kill-revision)
-    ("W" . agitate-log-view-kill-revision-expanded)
-    :map vc-git-log-view-mode-map
-    ("c" . agitate-vc-git-format-patch-single)
-    :map log-edit-mode-map
-    ("C-c C-i C-n" . agitate-log-edit-insert-file-name)
-    ;; See user options `agitate-log-edit-emoji-collection' and
-    ;; `agitate-log-edit-conventional-commits-collection'.
-    ("C-c C-i C-e" . agitate-log-edit-emoji-commit)
-    ("C-c C-i C-c" . agitate-log-edit-conventional-commit))
-  :config
-  (advice-add #'vc-git-push :override #'agitate-vc-git-push-prompt-for-remote)
-
-  (setq agitate-log-edit-informative-show-root-log nil
-        agitate-log-edit-informative-show-files nil))
+;; (use-package agitate
+;;   :disabled t
+;;   :ensure t
+;;   :hook
+;;   ((diff-mode . agitate-diff-enable-outline-minor-mode)
+;;    (after-init . agitate-log-edit-informative-mode))
+;;   :bind
+;;   ( :map global-map
+;;     ("C-x v =" . agitate-diff-buffer-or-file) ; replace `vc-diff'
+;;     ("C-x v g" . agitate-vc-git-grep) ; replace `vc-annotate'
+;;     ("C-x v f" . agitate-vc-git-find-revision)
+;;     ("C-x v s" . agitate-vc-git-show)
+;;     ("C-x v w" . agitate-vc-git-kill-commit-message)
+;;     ("C-x v p p" . agitate-vc-git-format-patch-single)
+;;     ("C-x v p n" . agitate-vc-git-format-patch-n-from-head)
+;;     :map diff-mode-map
+;;     ("C-c C-b" . agitate-diff-refine-cycle) ; replace `diff-refine-hunk'
+;;     ("C-c C-n" . agitate-diff-narrow-dwim)
+;;     ("L" . vc-print-root-log)
+;;     ;; Emacs 29 can use C-x v v in diff buffers, which is great, but now I
+;;     ;; need quick access to it...
+;;     ("v" . vc-next-action)
+;;     :map log-view-mode-map
+;;     ("w" . agitate-log-view-kill-revision)
+;;     ("W" . agitate-log-view-kill-revision-expanded)
+;;     :map vc-git-log-view-mode-map
+;;     ("c" . agitate-vc-git-format-patch-single)
+;;     :map log-edit-mode-map
+;;     ("C-c C-i C-n" . agitate-log-edit-insert-file-name)
+;;     ;; See user options `agitate-log-edit-emoji-collection' and
+;;     ;; `agitate-log-edit-conventional-commits-collection'.
+;;     ("C-c C-i C-e" . agitate-log-edit-emoji-commit)
+;;     ("C-c C-i C-c" . agitate-log-edit-conventional-commit))
+;;   :config
+;;   (advice-add #'vc-git-push :override #'agitate-vc-git-push-prompt-for-remote)
+;; 
+;;   (setq agitate-log-edit-informative-show-root-log nil
+;;         agitate-log-edit-informative-show-files nil))
 
 ;;; Interactive and powerful git front-end (Magit)
 (use-package transient
@@ -448,14 +292,13 @@ If not in a project, fallback to regular `ibuffer`."
 
 (use-package magit
   :ensure t
+  :hook ((git-commit-mode . flyspell-mode)
+         (git-commit-mode . magit-git-commit-insert-branch))
   :bind
-  ( :map global-map
-    ("C-c g" . magit-status)
-    :map project-prefix-map
-    ("m" . magit-project-status)
+   (("C-c g" . magit-status)
     :map magit-mode-map
-    ("C-w" . nil)
-    ("M-w" . nil))
+         ("C-w" . nil)
+         ("M-w" . nil))
   :functions (magit-get-current-branch)
   :custom
   (magit-ediff-dwim-show-on-hunks t)
@@ -463,10 +306,10 @@ If not in a project, fallback to regular `ibuffer`."
   (magit-diff-refine-hunk 'all)
   :preface
   (defun magit-extract-branch-tag (branch-name)
-    "Extract branch tag from BRANCH-NAME."
-    (let ((ticket-pattern "\\([[:alpha:]]+-[[:digit:]]+\\)"))
-      (when (string-match-p ticket-pattern branch-name)
-        (upcase (replace-regexp-in-string ticket-pattern "\\1: " branch-name)))))
+           "Extract branch tag from BRANCH-NAME."
+           (let ((ticket-pattern "\\([[:alpha:]]+-[[:digit:]]+\\)"))
+             (when (string-match-p ticket-pattern branch-name)
+               (upcase (replace-regexp-in-string ticket-pattern "\\1: " branch-name)))))
   (defun magit-git-commit-insert-branch ()
     "Insert the branch tag in the commit buffer if feasible."
     (when-let* ((tag (magit-extract-branch-tag (magit-get-current-branch))))
@@ -484,45 +327,36 @@ If not in a project, fallback to regular `ibuffer`."
   (define-key magit-status-mode-map
 	          [remap magit-mode-bury-buffer]
 	          #'vcs-quit)
-   (setq magit-revision-show-gravatars
-         '("^Author:     " . "^Commit:     "))
-   ;; (setq magit-commit-show-diff nil)
-   (setq magit-delete-by-moving-to-trash nil)
-   (setq magit-display-buffer-function
-         #'magit-display-buffer-same-window-except-diff-v1)
-   ;; (setq magit-log-auto-more t)
-   (setq magit-log-margin-show-committer-date t)
-   (setq magit-revert-buffers 'silent)
-   (setq magit-save-repository-buffers 'dontask)
-   (setq magit-wip-after-apply-mode t)
-   (setq magit-wip-after-save-mode t)
-   (setq magit-wip-before-change-mode t)
-   (setq transient-values
-         '((magit-log:magit-log-mode "--graph" "--color" "--decorate")))
-
-
-   (defun magit-extract-jira-tag (branch-name)
-     "Extract and uppercase JIRA tag from BRANCH-NAME, e.g., 'abc-123' -> 'ABC-123: '"
-     (let ((ticket-pattern "\\([[:alpha:]]+-[[:digit:]]+\\)"))
-       (when (string-match ticket-pattern branch-name)
-	 (let ((ticket (match-string 1 branch-name)))
-           (concat (upcase ticket) ": ")))))
-   (add-hook 'git-commit-mode-hook #'magit-git-commit-insert-branch)
+  (setq magit-revision-show-gravatars
+        '("^Author:     " . "^Commit:     "))
+  ;; (setq magit-commit-show-diff nil)
+  (setq magit-delete-by-moving-to-trash nil)
+  (setq magit-display-buffer-function
+        #'magit-display-buffer-same-window-except-diff-v1)
+  ;; (setq magit-log-auto-more t)
+  (setq magit-log-margin-show-committer-date t)
+  (setq magit-revert-buffers 'silent)
+  (setq magit-save-repository-buffers 'dontask)
+  (setq magit-wip-after-apply-mode t)
+  (setq magit-wip-after-save-mode t)
+  (setq magit-wip-before-change-mode t)
+  (setq transient-values
+        '((magit-log:magit-log-mode "--graph" "--color" "--decorate")))
 
   (defun vcs-quit (&optional _kill-buffer)
-  "Clean up magit buffers after quitting `magit-status'.
+    "Clean up magit buffers after quitting `magit-status'.
     And don't forget to refresh version control in all buffers of
     current workspace."
-  (interactive)
-  (quit-window)
-  (unless (cdr
-           (delq nil
-                 (mapcar (lambda (win)
-                           (with-selected-window win
-                             (eq major-mode 'magit-status-mode)))
-                         (window-list))))
-    (when (fboundp 'magit-mode-get-buffers)
-      (mapc #'vcs--kill-buffer (magit-mode-get-buffers)))))
+    (interactive)
+    (quit-window)
+    (unless (cdr
+             (delq nil
+                   (mapcar (lambda (win)
+                             (with-selected-window win
+                               (eq major-mode 'magit-status-mode)))
+                           (window-list))))
+      (when (fboundp 'magit-mode-get-buffers)
+        (mapc #'vcs--kill-buffer (magit-mode-get-buffers)))))
 
   (defun vcs--kill-buffer (buffer)
     "Gracefully kill `magit' BUFFER.
@@ -531,14 +365,14 @@ If not in a project, fallback to regular `ibuffer`."
     don't wait at all."
     (when (and (bufferp buffer) (buffer-live-p buffer))
       (let ((process (get-buffer-process buffer)))
-	(if (not (processp process))
+	    (if (not (processp process))
             (kill-buffer buffer)
           (with-current-buffer buffer
             (if (process-live-p process)
-		(run-with-timer 5 nil #'vcs--kill-buffer buffer)
+		        (run-with-timer 5 nil #'vcs--kill-buffer buffer)
               (kill-process process)
               (kill-buffer buffer)))))))
-)
+  )
 ;; Show icons for files in the Magit status and other buffers.
 (with-eval-after-load 'magit
   (setq magit-format-file-function #'magit-format-file-nerd-icons))
@@ -546,8 +380,18 @@ If not in a project, fallback to regular `ibuffer`."
 (use-package magit
   :after project
   :config
-  (add-to-list 'project-switch-commands
-               '(magit-project-status "Magit") t))
+  (add-to-list 'project-switch-commands '(magit-project-status "Magit") t))
+
+(use-package magit-todos
+  :ensure t
+  :functions
+  (magit-todos-mode)
+  :after magit
+  :config (magit-todos-mode 1))
+
+(use-package hl-todo
+  :ensure t
+  :hook (prog-mode . hl-todo-mode))
 
 ;; (use-package magit-repos
 ;;   :ensure nil                           ; part of `magit'

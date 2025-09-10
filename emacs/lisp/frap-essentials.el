@@ -157,86 +157,129 @@ unreadable. Returns the names of envvars that were changed."
   ;; invoked with M-x: I have a good reason to use it that way.
   (advice-add #'execute-extended-command--describe-binding-msg :override #'prot-common-ignore))
 
-(use-package prot-simple
-  :ensure nil
+(use-package crux
+  :ensure t
   :demand t
-  :config
-  (setq prot-simple-date-specifier "%F")
-  (setq prot-simple-time-specifier "%R %z")
-
-  (advice-add #'save-buffers-kill-emacs :before #'prot-simple-display-unsaved-buffers-on-exit)
-
-  ;; All `prot-simple-override-mode' does is activate a key map.
-  ;; Below I add keys to that map.  Because the mode is enabled
-  ;; globally, those keys take precedence over the ones specified by
-  ;; any given major mode.  In principle, this means that my keys will
-  ;; always work (though technically they can be overriden by another
-  ;; minor mode, depending on which one is evaluated last).
-  (prot-simple-override-mode 1)
-
-  ;; (with-eval-after-load 'pulsar
-  ;;   (add-hook 'prot-simple-file-to-register-jump-hook #'pulsar-recenter-center)
-  ;; (add-hook 'prot-simple-file-to-register-jump-hook #'pulsar-reveal-entry))
   :bind
-  ( :map prot-simple-override-mode-map
-    ("C-a"    . frap/puni-smart-bol) ; overrides  move-beginning-of-line
-    ("C-M-a"  . frap/smart-top-level-begin)
-    ("C-e"    . frap/puni-smart-eol)
-    ("C-M-e"  . frap/smart-top-level-end)
+  (("C-a" . crux-move-beginning-of-line)
+   ("C-S-p" . crux-move-line-up)
+   ("C-S-n" . crux-move-line-down)
 
-    ("C-d" . prot-simple-delete-line) ; overrides `delete-char'
+   ;; Crux kill and rename
+   ("C-x C-k" . crux-kill-buffer)
+   ("C-x C-r" . crux-rename-buffer-file)
+   ("C-x f"   . crux-recentf-find-file)
 
-    ("C-v" . prot-simple-multi-line-below) ; overrides `scroll-up-command'
-    ("<next>" . prot-simple-multi-line-below) ; overrides `scroll-up-command'
-    ("M-v" . prot-simple-multi-line-above) ; overrides `scroll-down-command'
-    ("<prior>" . prot-simple-multi-line-above) ; overrides `scroll-down-command'
+   ;; New lines
+   ("C-<return>" . crux-smart-open-line)
+   ("C-S-<return>" . crux-smart-open-line-above)
 
-    :map global-map
-    ("<escape>" . prot-simple-keyboard-quit-dwim)
-    ("C-g" . prot-simple-keyboard-quit-dwim)
-    ("C-M-SPC" . prot-simple-mark-sexp)   ; will be overriden by `expreg' if tree-sitter is available
-    ("C-," . prot-simple-mark-sexp)   ; I also have `isearch-forward-symbol-at-point' on C-.
-    ;; Commands for lines
-    ("C-S-d" . prot-simple-delete-line-backward)
-    ("M-k" . prot-simple-kill-line-backward)
-    ("M-j" . delete-indentation)
-    ("C-w" . prot-simple-kill-region)
-    ("M-w" . prot-simple-kill-ring-save)
+   ;; Duplicate line/region
+   ("C-c d" . crux-duplicate-current-line-or-region)
 
-    ("C-S-w" . prot-simple-copy-line)
-    ("C-S-y" . prot-simple-yank-replace-line-or-region)
-    ("<C-return>" . prot-simple-new-line-below)
-    ("<C-S-return>" . prot-simple-new-line-above)
-    ("C-x x a" . prot-simple-auto-fill-visual-line-mode) ; auto-fill/visual-line toggle
-    ;; Commands for text insertion or manipulation
-    ("C-=" . prot-simple-insert-date)
-    ("C-<" . prot-simple-escape-url-dwim)
-    ;; "C->" prot-simple-insert-line-prefix-dwim
-    ("M-Z" . prot-simple-zap-to-char-backward)
-    ;; Commands for object transposition
-    ("C-S-p" . prot-simple-move-above-dwim)
-    ("C-S-n" . prot-simple-move-below-dwim)
-    ("C-t" . prot-simple-transpose-chars)
-    ("C-x C-t" . prot-simple-transpose-lines)
-    ("C-S-t" . prot-simple-transpose-paragraphs)
-    ("C-x M-t" . prot-simple-transpose-sentences)
-    ("C-M-t" . prot-simple-transpose-sexps)
-    ("M-t" . prot-simple-transpose-words)
-    ;; Commands for paragraphs
-    ("M-Q" . prot-simple-unfill-region-or-paragraph)
-    ;; Commands for windows and pages
-    ("C-x o" . prot-simple-other-window)
-    ("C-x n k" . prot-simple-delete-page-delimiters)
-    ("M-r" . rotate-windows) ; Emacs 31 override `move-to-window-line-top-bottom'
-    ("M-S-r" . rotate-windows-back) ; Emacs 31
-    ;; Commands for buffers
-    ("<C-f2>" . prot-simple-rename-file-and-buffer)
-    ("C-x k" . prot-simple-kill-buffer-current)
-    ("C-x K" . kill-buffer) ; leaving this here to contrast with the above
-    ("M-s b" . prot-simple-buffers-major-mode)
-    ("M-s v" . prot-simple-buffers-vc-root)
-    ;; Commands for files
-    ("C-x r ." . prot-simple-file-to-register)))
+   ;; Still bind your own helpful or prot-simple commands
+   ("C-M-SPC" . prot-simple-mark-sexp)
+   ("C-S-d" . prot-simple-delete-line-backward)
+   ("M-k" . prot-simple-kill-line-backward)
+   ("M-j" . delete-indentation)
+   ("C-w" . prot-simple-kill-region)
+   ("M-w" . prot-simple-kill-ring-save)
+   ("C-S-w" . prot-simple-copy-line)
+   ("C-S-y" . prot-simple-yank-replace-line-or-region)
+
+   ;; Dates and text
+   ("C-=" . prot-simple-insert-date)
+   ("C-<" . prot-simple-escape-url-dwim)
+
+   ;; Other windows
+   ("C-x o" . prot-simple-other-window)
+   ("M-r" . rotate-windows)
+   ("M-S-r" . rotate-windows-back))
+
+  :config
+  ;; Extra useful config for crux
+  (crux-reopen-as-root-mode +1))
+
+;; (use-package prot-simple
+;;   :ensure nil
+;;   :demand t
+;;   :config
+;;   (setq prot-simple-date-specifier "%F")
+;;   (setq prot-simple-time-specifier "%R %z")
+;; 
+;;   (advice-add #'save-buffers-kill-emacs :before #'prot-simple-display-unsaved-buffers-on-exit)
+;; 
+;;   ;; All `prot-simple-override-mode' does is activate a key map.
+;;   ;; Below I add keys to that map.  Because the mode is enabled
+;;   ;; globally, those keys take precedence over the ones specified by
+;;   ;; any given major mode.  In principle, this means that my keys will
+;;   ;; always work (though technically they can be overriden by another
+;;   ;; minor mode, depending on which one is evaluated last).
+;;   (prot-simple-override-mode 1)
+;; 
+;;   ;; (with-eval-after-load 'pulsar
+;;   ;;   (add-hook 'prot-simple-file-to-register-jump-hook #'pulsar-recenter-center)
+;;   ;; (add-hook 'prot-simple-file-to-register-jump-hook #'pulsar-reveal-entry))
+;;   :bind
+;;   ( :map prot-simple-override-mode-map
+;;     ("C-a"    . frap/puni-smart-bol) ; overrides  move-beginning-of-line
+;;     ("C-M-a"  . frap/smart-top-level-begin)
+;;     ("C-e"    . frap/puni-smart-eol)
+;;     ("C-M-e"  . frap/smart-top-level-end)
+;; 
+;;     ("C-d" . prot-simple-delete-line)   ; overrides `delete-char'
+;; 
+;;     ("C-v" . prot-simple-multi-line-below) ; overrides `scroll-up-command'
+;;     ("<next>" . prot-simple-multi-line-below) ; overrides `scroll-up-command'
+;;     ("M-v" . prot-simple-multi-line-above) ; overrides `scroll-down-command'
+;;     ("<prior>" . prot-simple-multi-line-above) ; overrides `scroll-down-command'
+;; 
+;;     :map global-map
+;;     ("<escape>" . prot-simple-keyboard-quit-dwim)
+;;     ("C-g" . prot-simple-keyboard-quit-dwim)
+;;     ("C-M-SPC" . prot-simple-mark-sexp) ; will be overriden by `expreg' if tree-sitter is available
+;;     ("C-," . prot-simple-mark-sexp) ; I also have `isearch-forward-symbol-at-point' on C-.
+;;     ;; Commands for lines
+;;     ("C-S-d" . prot-simple-delete-line-backward)
+;;     ("M-k" . prot-simple-kill-line-backward)
+;;     ("M-j" . delete-indentation)
+;;     ("C-w" . prot-simple-kill-region)
+;;     ("M-w" . prot-simple-kill-ring-save)
+;; 
+;;     ("C-S-w" . prot-simple-copy-line)
+;;     ("C-S-y" . prot-simple-yank-replace-line-or-region)
+;;     ("<C-return>" . prot-simple-new-line-below)
+;;     ("<C-S-return>" . prot-simple-new-line-above)
+;;     ("C-x x a" . prot-simple-auto-fill-visual-line-mode) ; auto-fill/visual-line toggle
+;;     ;; Commands for text insertion or manipulation
+;;     ("C-=" . prot-simple-insert-date)
+;;     ("C-<" . prot-simple-escape-url-dwim)
+;;     ;; "C->" prot-simple-insert-line-prefix-dwim
+;;     ("M-Z" . prot-simple-zap-to-char-backward)
+;;     ;; Commands for object transposition
+;;     ("C-S-p" . prot-simple-move-above-dwim)
+;;     ("C-S-n" . prot-simple-move-below-dwim)
+;;     ("C-t" . prot-simple-transpose-chars)
+;;     ("C-x C-t" . prot-simple-transpose-lines)
+;;     ("C-S-t" . prot-simple-transpose-paragraphs)
+;;     ("C-x M-t" . prot-simple-transpose-sentences)
+;;     ("C-M-t" . prot-simple-transpose-sexps)
+;;     ("M-t" . prot-simple-transpose-words)
+;;     ;; Commands for paragraphs
+;;     ("M-Q" . prot-simple-unfill-region-or-paragraph)
+;;     ;; Commands for windows and pages
+;;     ("C-x o" . prot-simple-other-window)
+;;     ("C-x n k" . prot-simple-delete-page-delimiters)
+;;     ("M-r" . rotate-windows) ; Emacs 31 override `move-to-window-line-top-bottom'
+;;     ("M-S-r" . rotate-windows-back)     ; Emacs 31
+;;     ;; Commands for buffers
+;;     ("<C-f2>" . prot-simple-rename-file-and-buffer)
+;;     ("C-x k" . prot-simple-kill-buffer-current)
+;;     ("C-x K" . kill-buffer) ; leaving this here to contrast with the above
+;;     ("M-s b" . prot-simple-buffers-major-mode)
+;;     ("M-s v" . prot-simple-buffers-vc-root)
+;;     ;; Commands for files
+;;     ("C-x r ." . prot-simple-file-to-register)))
 
 ;;;; Region settings
 (use-package region-bindings
@@ -275,12 +318,12 @@ unreadable. Returns the names of envvars that were changed."
   (setq prot-scratch-default-mode 'text-mode))
 
 ;;;; Insert character pairs (prot-pair.el)
-(use-package prot-pair
-  :ensure nil
-  :bind
-  (("C-'" . prot-pair-insert)
-   ("M-'" . prot-pair-insert)
-   ("M-\\" . prot-pair-delete)))
+;; (use-package prot-pair
+;;   :ensure nil
+;;   :bind
+;;   (("C-'" . prot-pair-insert)
+;;    ("M-'" . prot-pair-insert)
+;;    ("M-\\" . prot-pair-delete)))
 
 ;;; comment-dwim-2
 ;;; comment/un-comment
@@ -458,7 +501,7 @@ unreadable. Returns the names of envvars that were changed."
         repeat-keep-prefix nil
         repeat-check-key t
         repeat-echo-function 'ignore
-        ;; Technically, this is not in repeal.el, though it is the
+        ;; Technically, this is not in repeat.el, though it is the
         ;; same idea.
         set-mark-command-repeat-pop t))
 
@@ -507,32 +550,6 @@ unreadable. Returns the names of envvars that were changed."
   :ensure nil
   :hook (after-init . delete-selection-mode))
 
-;;;; Tooltips (tooltip-mode)
-(use-package tooltip
-  :ensure nil
-  :when IS-GUI?
-  :hook (after-init . tooltip-mode)
-  :config
-  (setq tooltip-delay 0.5
-        tooltip-short-delay 0.5
-        x-gtk-use-system-tooltips t
-        tooltip-frame-parameters
-        '((name . "tooltip")
-          (internal-border-width . 10)
-          (border-width . 0)
-          (no-special-glyphs . t))))
-
-;; (use-feature tooltip
-;;   :straight nil
-;;   :when IS-GUI?
-;;   :custom
-;;   (tooltip-x-offset 0)
-;;   (tooltip-y-offset (line-pixel-height))
-;;   (tooltip-frame-parameters
-;;    `((name . "tooltip")
-;;      (internal-border-width . 2)
-;;      (border-width . 1)
-;;      (no-special-glyphs . t))))
 
 ;;;; Display current time
 (use-package time
@@ -654,12 +671,12 @@ unreadable. Returns the names of envvars that were changed."
   ;; C-c s is occupied by `prot-scratch-buffer'.
   (define-key global-map (kbd "C-c r") #'substitute-prefix-map))
 
-;; moves the cursor to the point where the last change happened
-(use-package goto-chg
-  :ensure t
-  :bind
-  (("C-(" . goto-last-change)
-   ("C-)" . goto-last-change-reverse)))
+;; ;; moves the cursor to the point where the last change happened
+;; (use-package goto-chg
+;;   :ensure t
+;;   :bind
+;;   (("C-<left>" . goto-last-change)
+;;    ("C-<right>)" . goto-last-change-reverse)))
 
 ;;; Pass interface (password-store)
 (use-package password-store

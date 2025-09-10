@@ -303,7 +303,7 @@
 ;;; Frame history (undelete-frame-mode)
 (use-package frame
   :ensure nil
-  :bind ("C-x u" . undelete-frame) ; I use only C-/ for `undo'
+  :bind ("C-x U" . undelete-frame) ; I use only C-/ for `undo'
   :hook (after-init . undelete-frame-mode))
 
 ;;; Window history (winner-mode)
