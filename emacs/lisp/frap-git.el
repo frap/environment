@@ -47,14 +47,8 @@ mode.")
   (add-to-list 'project-switch-commands '(project-switch-to-buffer "Switch buffer"))
   (add-to-list 'project-switch-commands '(project-save-some-buffers "Save") t))
 
-;; (use-package ibuffer-vc
-;;   ;; :disabled true
-;;   :ensure t
-;;   :after ibuffer
-;;   :hook  (ibuffer-mode . ibuffer-vc-set-filter-groups-by-vc-root))
-
 (use-feature ibuffer
-  :bind (("C-x C-b" . my/ibuffer-project))
+  :bind (("C-x B" . my/ibuffer-project))
   :config
   ;; Don't show filter groups if there are no buffers in that group
   (setq ibuffer-show-empty-filter-groups nil)
@@ -69,69 +63,81 @@ mode.")
                 (mode 16 16 :left :elide)
                 " "
                 filename-and-process)))
-  ;; (setq ibuffer-saved-filter-groups
-  ;;       (quote (("default"
-  ;;                ("dired" (mode . dired-mode))
-  ;;                ("org" (name . "^.*org$"))
-  ;;                ("web" (or (mode . web-mode) (mode . js2-mode)))
-  ;;                ("shell" (or (mode . eshell-mode) (mode . shell-mode)))
-  ;;                ("mu4e" (name . "\*mu4e\*"))
-  ;;                ("coding" (or
-  ;;                           (mode . python-mode)
-  ;;                           (mode . clojure-mode)
-  ;;                           (name . "^\\*scratch-clj\\*$")))
-  ;;                ("emacs" (or
-  ;;                          (name . "^\\*scratch\\*$")
-  ;;                          (name . "^\\*Messages\\*$")))
-  ;;                ))))
+  (setq ibuffer-saved-filter-groups
+        (quote (("default"
+                 ("dired" (mode . dired-mode))
+                 ("emacs" (or
+                           (name . "^\\*scratch\\*$")
+                           (name . "^\\*Messages\\*$")))
+                 ("org" (name . "^.*org$"))
+                 ("web" (or (mode . web-mode) (mode . js2-mode)))
+                 ("shell" (or (mode . eshell-mode) (mode . shell-mode)))
+                 ("mu4e" (name . "\*mu4e\*"))
+                 ("coding" (or
+                            (mode . python-mode)
+                            (mode . clojure-mode)
+                            (name . "^\\*scratch-clj\\*$")))
+                 ))))
 
   (defun my/ibuffer-project ()
-    "Open ibuffer filtered to the current project using `ibuffer-project'."
+    "Open ibuffer; name the buffer after the current project if any."
     (interactive)
-    (let ((name (format "*Projet: %s*" (or (project-root (project-current)) "Unknown"))))
+    (let* ((proj (project-current))
+           (root (when proj (project-root proj)))
+           (name (format "*Projet: %s*" (if root (abbreviate-file-name root) "Unknown"))))
       (ibuffer nil name)))
   (defun my/ibuffer-for-current-project ()
-    "Open `ibuffer` showing only buffers in the current project.
-If not in a project, fallback to regular `ibuffer`."
+    "Open ibuffer showing only buffers in the current project; fallback to all."
     (interactive)
-    (let ((proj (project-current)))
-      (if proj
-          (let ((root (project-root proj)))
-            (ibuffer nil (format "*Projet: %s*" (abbreviate-file-name root))
-                     `((filename . ,root))))
-        (message "Not in a project. Showing all buffers.")
+    (let* ((proj (project-current))
+           (root (when proj (project-root proj))))
+      (if root
+          (ibuffer nil (format "*Projet: %s*" (abbreviate-file-name root))
+                   `((filename . ,root)))
+        (message "Pas dans un projet. Affichage de tous les buffers.")
         (call-interactively #'ibuffer))))
-  ;; (setq ibuffer-default-sorting-mode 'recency)
-  ;; (add-hook 'ibuffer-mode-hook
-  ;;           (lambda ()
-  ;;             (ibuffer-auto-mode 1)
-  ;;             (ibuffer-switch-to-saved-filter-groups "default")))
   )
 
-;; (use-package ibuffer-project
-;;   :ensure t
-;;   :after (ibuffer project)
-;;   :hook ((ibuffer ibuffer-mode) . my/ibuffer-project-generate-filter-groups)
-;;   :config
-;;   (setq ibuffer-project-use-cache t)
-;;   (setq ibuffer-project-root-functions
-;;       `(((lambda (dir)
-;;            (let ((proj (with-current-buffer (or (get-file-buffer dir) (current-buffer))
-;;                          (project-current nil dir))))
-;;              (when proj
-;;                (expand-file-name (project-root proj)))))
-;;          . "Project")))
-;;   (defun my/ibuffer-project-generate-filter-groups ()
-;;     (setq ibuffer-filter-groups
-;;           (ibuffer-project-generate-filter-groups))))
-
 (use-package ibuffer-project
-  :ensure t
+  :disabled true
+  ;; Load only if present as a built-in (Emacs 29+) or installed package.
+  :if (locate-library "ibuffer-project")
+  :ensure nil ;; use built-in
   :after (ibuffer project)
-  :hook (ibuffer . ibuffer-project-hook)
+  :hook (ibuffer . my/ibuffer-project-group)
   :config
-  (setq ibuffer-project-use-cache t))
+  (setq ibuffer-project-use-cache t)
+  (defun my/ibuffer-project-group ()
+    "Group ibuffer by project, whether using built-in or MELPA API."
+    (let ((group-fn (cond
+                     ((fboundp 'ibuffer-project-set-filter-groups)
+                      #'ibuffer-project-set-filter-groups) ; Emacs 29+
+                     ((fboundp 'ibuffer-project-generate-filter-groups)
+                      (lambda ()
+                        (setq ibuffer-filter-groups
+                              (ibuffer-project-generate-filter-groups))))
+                     (t nil))))
+      (when group-fn
+        (funcall group-fn)
+        ;; pick a stable default; change to 'recency if you like
+        (unless (eq ibuffer-sorting-mode 'recency)
+          (ibuffer-do-sort-by-recency))))))
 
+(use-package ibuffer-vc
+  ;; :disabled true
+  :if (locate-library "ibuffer-vc")
+  :ensure t
+  :after ibuffer
+  :hook (ibuffer-mode . ibuffer-vc-set-filter-groups-by-vc-root)
+  :config
+  ;; Add a VC status column (provided by ibuffer-vc)
+  (with-eval-after-load 'ibuffer
+    (add-to-list 'ibuffer-formats
+                 '(mark modified read-only " "
+                        (name 18 18 :left :elide) " "
+                        (vc-status 12 12 :left) " "   ;; ← from ibuffer-vc
+                        (mode 16 16 :left :elide) " "
+                        filename-and-process))))
 
 ;;;; `diff-mode'
 (use-package diff-mode
