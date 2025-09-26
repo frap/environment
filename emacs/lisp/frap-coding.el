@@ -128,11 +128,13 @@ otherwise runs FALLBACK-BODY."
 ;;;; Eglot (built-in client for the language server protocol)
 (use-package eglot
   :ensure nil
-  :functions (eglot-ensure)
-  :commands (eglot)
+  ;; :functions (eglot-ensure)
+  :commands (eglot eglot-ensure)
   :config
   (setq eglot-sync-connect nil)
-  (setq eglot-autoshutdown t))
+  (setq eglot-autoshutdown t)
+  ;; Prefer LSP + Orderless completions
+  (add-to-list 'completion-category-overrides '(eglot (styles . (orderless basic)))))
 
 ;;;; Eldoc (Emacs live documentation feedback)
 (use-package eldoc
