@@ -47,9 +47,11 @@
 
 (use-feature minibuffer
   :config
-;;;; Completion styles
-  (setq completion-styles '(basic substring initials flex orderless)) ; also see `completion-category-overrides'
-  (setq completion-pcm-leading-wildcard t) ; Emacs 31: make `partial-completion' behave like `substring'
+  ;; Completion styles (keep it lean; file prompts get partial-completion)
+  (setq completion-styles '(orderless basic))
+  ;; Completion styles
+  ;; (setq completion-styles '(basic substring initials flex orderless)) ; also see `completion-category-overrides'
+  ;; (setq completion-pcm-leading-wildcard t) ; Emacs 31: make `partial-completion' behave like `substring'
 
   ;; Reset all the per-category defaults so that (i) we use the
   ;; standard `completion-styles' and (ii) can specify our own styles
@@ -89,31 +91,35 @@
   ;; - `consult-kmacro'
   ;; - `consult-location'
   ;; - `embark-keybinding'
+  ;; (setq completion-category-overrides
+  ;;       ;; NOTE 2021-10-25: I am adding `basic' because it works better as a
+  ;;       ;; default for some contexts.  Read:
+  ;;       ;; <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=50387>.
+  ;;       ;;
+  ;;       ;; `partial-completion' is a killer app for files, because it
+  ;;       ;; can expand ~/.l/s/fo to ~/.local/share/fonts.
+  ;;       ;;
+  ;;       ;; If `basic' cannot match my current input, Emacs tries the
+  ;;       ;; next completion style in the given order.  In other words,
+  ;;       ;; `orderless' kicks in as soon as I input a space or one of its
+  ;;       ;; style dispatcher characters.
+  ;;       '((file (styles . (basic partial-completion orderless)))
+  ;;         (bookmark (styles . (basic substring)))
+  ;;         (library (styles . (basic substring)))
+  ;;         (embark-keybinding (styles . (basic substring)))
+  ;;         (imenu (styles . (basic substring orderless)))
+  ;;         (consult-location (styles . (basic substring orderless)))
+  ;;         (kill-ring (styles . (emacs22 orderless)))
+  ;;         (eglot (styles . (emacs22 substring orderless)))))
   (setq completion-category-overrides
-        ;; NOTE 2021-10-25: I am adding `basic' because it works better as a
-        ;; default for some contexts.  Read:
-        ;; <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=50387>.
-        ;;
-        ;; `partial-completion' is a killer app for files, because it
-        ;; can expand ~/.l/s/fo to ~/.local/share/fonts.
-        ;;
-        ;; If `basic' cannot match my current input, Emacs tries the
-        ;; next completion style in the given order.  In other words,
-        ;; `orderless' kicks in as soon as I input a space or one of its
-        ;; style dispatcher characters.
-        '((file (styles . (basic partial-completion orderless)))
-          (bookmark (styles . (basic substring)))
-          (library (styles . (basic substring)))
-          (embark-keybinding (styles . (basic substring)))
-          (imenu (styles . (basic substring orderless)))
-          (consult-location (styles . (basic substring orderless)))
-          (kill-ring (styles . (emacs22 orderless)))
-          (eglot (styles . (emacs22 substring orderless))))))
+      '((file (styles . (partial-completion orderless)))
+        (eglot (styles . (orderless basic)))
+        (buffer (styles . (orderless basic)))))
+  )
 
 ;;; Orderless completion style (and prot-orderless.el)
 (use-package orderless
   :ensure t
-  :demand t
   :after minibuffer
 
   ;; SPC should never complete: use it for `orderless' groups.
@@ -123,15 +129,20 @@
           ("?" . nil))
 
   :config
-  ;; Remember to check my `completion-styles' and the
-  ;; `completion-category-overrides'.
   (setq orderless-matching-styles '(orderless-prefixes orderless-regexp))
-  (setq orderless-smart-case nil))
+  (setq orderless-smart-case nil)
+  ;; Space should not complete; it splits patterns in Orderless
+  ;; (with-eval-after-load 'minibuffer
+  ;;   (let ((m minibuffer-local-completion-map))
+  ;;     (define-key m (kbd "SPC") nil)
+  ;;     (define-key m (kbd "?")   nil)))
+  )
 
+;; General completion setting
 (setq completion-ignore-case t)
 (setq read-buffer-completion-ignore-case t)
-(setq-default case-fold-search t)   ; For general regexp
 (setq read-file-name-completion-ignore-case t)
+(setq-default case-fold-search t)   ; For general regexp
 
 ;;; Recursive Minibuffers
 ;; The need to have multiple (i.e. “recursive”) minibuffers arises when you
@@ -303,95 +314,101 @@ are defining or executing a macro."
   ;; do I want it.
   (remove-hook 'save-some-buffers-functions #'abbrev--possibly-save))
 
+;; (use-package cape
+;;   :ensure t
+;;   :after corfu
+;;   :hook  ((common-lisp-modes .  kb/cape-capf-setup-elisp)
+;;           (git-commit-mode . kb/cape-capf-setup-git-commit)
+;; 	      ;; (lsp-completion-mode . kb/cape-capf-setup-lsp)
+;;           ;; (org-mode . kb/cape-capf-setup-org)
+;;           ;; (eshell-mode . kb/cape-capf-setup-eshell)
+;;           ;; (LaTeX-mode . kb/cape-capf-setup-latex)
+;;           ;; (sh-mode . kb/cape-capf-setup-eshell)
+;;           )
+;;   :bind (("C-c p p" . completion-at-point) ;; capf
+;;          ("C-c p t" . complete-tag)        ;; etags
+;;          ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
+;;          ("C-c p h" . cape-history)
+;;          ("C-c p f" . cape-file)
+;;          ("C-c p k" . cape-keyword)
+;;          ("C-c p s" . cape-symbol)
+;;          ("C-c p a" . cape-abbrev)
+;;          ("C-c p l" . cape-line)
+;;          ;;        ("C-c p w" . cape-dict)
+;;          ;;        ("C-c p \\" . cape-tex)
+;;          ;;        ("C-c p _" . cape-tex)
+;;          ;;        ("C-c p ^" . cape-tex)
+;;          ;;        ("C-c p &" . cape-sgml)
+;;          ;;        ("C-c p r" . cape-rfc1345)
+;;          )
+;;   :custom
+;;   (cape-dabbrev-min-length 3)
+;;   :config
+;;   ;; Elisp
+;;   (defun kb/cape-capf-ignore-keywords-elisp (cand)
+;;     "Ignore keywords with forms that begin with \":\" (e.g.:history)."
+;;     (or (not (keywordp cand))
+;;         (eq (char-after (car completion-in-region--data)) ?:)))
+;;   (defun kb/cape-capf-setup-elisp ()
+;;     "Replace the default `elisp-completion-at-point'
+;; completion-at-point-function. Doing it this way will prevent
+;; disrupting the addition of other capfs (e.g. merely setting the
+;; variable entirely, or adding to list).
+;; 
+;; Additionally, add `cape-file' as early as possible to the list."
+;;     (setf (elt (cl-member 'elisp-completion-at-point completion-at-point-functions) 0)
+;;           #'elisp-completion-at-point)
+;;     (add-to-list 'completion-at-point-functions #'cape-symbol)
+;;     ;; I prefer this being early/first in the list
+;;     (add-to-list 'completion-at-point-functions #'cape-file)
+;;     (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+;;     (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-yasnippet)))
+;; 
+;;   ;; LSP
+;;   ;;          (defun kb/cape-capf-setup-lsp ()
+;;   ;;            "Replace the default `lsp-completion-at-point' with its
+;;   ;; `cape-capf-buster' version. Also add `cape-file' and
+;;   ;; `company-yasnippet' backends."
+;;   ;;            (setf (elt (cl-member 'lsp-completion-at-point completion-at-point-functions) 0)
+;;   ;;                  (cape-capf-buster #'lsp-completion-at-point))
+;;   ;;            ;; TODO 2022-02-28: Maybe use `cape-wrap-predicate' to have candidates
+;;   ;;            ;; listed when I want?
+;;   ;;            (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-yasnippet))
+;;   ;;            (add-to-list 'completion-at-point-functions #'cape-dabbrev t))
+;; 
+;;   ;; Eshell
+;;   ;; (defun kb/cape-capf-setup-eshell ()
+;;   ;;   (let ((result))
+;;   ;;     (dolist (element '(pcomplete-completions-at-point cape-file) result)
+;;   ;;       (add-to-list 'completion-at-point-functions element))
+;;   ;;     ))
+;; 
+;;   ;; Git-commit
+;;   (defun kb/cape-capf-setup-git-commit ()
+;;     (let ((result))
+;;       (dolist (element '(cape-symbol cape-dabbrev) result)
+;;         (add-to-list 'completion-at-point-functions element))))
+;;          ;; sh
+;;          ;; (defun kb/cape-capf-setup-sh ()
+;;          ;;   (require 'company-shell)
+;;          ;;   (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-shell)))
+;; 
+;;          ;; For pcomplete. For now these two advices are strongly recommended to
+;;          ;; achieve a sane Eshell experience. See
+;;          ;; https://github.com/minad/corfu#completing-with-corfu-in-the-shell-or-eshell
+;; 
+;;          ;; Silence the pcomplete capf, no errors or messages!
+;;          (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
+;;          ;; Ensure that pcomplete does not write to the buffer and behaves as a pure
+;;          ;; `completion-at-point-function'.
+;;          (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
+;; 	 )
+;; minimal cape setup
 (use-package cape
   :ensure t
-  :after corfu
-  :hook  ((common-lisp-modes .  kb/cape-capf-setup-elisp)
-          (git-commit-mode . kb/cape-capf-setup-git-commit)
-	  ;; (lsp-completion-mode . kb/cape-capf-setup-lsp)
-          ;; (org-mode . kb/cape-capf-setup-org)
-          ;; (eshell-mode . kb/cape-capf-setup-eshell)
-          ;; (LaTeX-mode . kb/cape-capf-setup-latex)
-          ;; (sh-mode . kb/cape-capf-setup-eshell)
-          )
-  :bind (("C-c p p" . completion-at-point) ;; capf
-         ("C-c p t" . complete-tag)        ;; etags
-         ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
-         ("C-c p h" . cape-history)
-         ("C-c p f" . cape-file)
-         ("C-c p k" . cape-keyword)
-         ("C-c p s" . cape-symbol)
-         ("C-c p a" . cape-abbrev)
-         ("C-c p l" . cape-line)
-         ;;        ("C-c p w" . cape-dict)
-         ;;        ("C-c p \\" . cape-tex)
-         ;;        ("C-c p _" . cape-tex)
-         ;;        ("C-c p ^" . cape-tex)
-         ;;        ("C-c p &" . cape-sgml)
-         ;;        ("C-c p r" . cape-rfc1345)
-         )
-         :custom
-         (cape-dabbrev-min-length 3)
-         :config
-         ;; Elisp
-         (defun kb/cape-capf-ignore-keywords-elisp (cand)
-           "Ignore keywords with forms that begin with \":\" (e.g.:history)."
-           (or (not (keywordp cand))
-               (eq (char-after (car completion-in-region--data)) ?:)))
-         (defun kb/cape-capf-setup-elisp ()
-           "Replace the default `elisp-completion-at-point'
-completion-at-point-function. Doing it this way will prevent
-disrupting the addition of other capfs (e.g. merely setting the
-variable entirely, or adding to list).
-
-Additionally, add `cape-file' as early as possible to the list."
-           (setf (elt (cl-member 'elisp-completion-at-point completion-at-point-functions) 0)
-                 #'elisp-completion-at-point)
-           (add-to-list 'completion-at-point-functions #'cape-symbol)
-           ;; I prefer this being early/first in the list
-           (add-to-list 'completion-at-point-functions #'cape-file)
-           (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-           (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-yasnippet)))
-
-         ;; LSP
-	 ;;          (defun kb/cape-capf-setup-lsp ()
-	 ;;            "Replace the default `lsp-completion-at-point' with its
-	 ;; `cape-capf-buster' version. Also add `cape-file' and
-	 ;; `company-yasnippet' backends."
-	 ;;            (setf (elt (cl-member 'lsp-completion-at-point completion-at-point-functions) 0)
-	 ;;                  (cape-capf-buster #'lsp-completion-at-point))
-	 ;;            ;; TODO 2022-02-28: Maybe use `cape-wrap-predicate' to have candidates
-	 ;;            ;; listed when I want?
-	 ;;            (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-yasnippet))
-	 ;;            (add-to-list 'completion-at-point-functions #'cape-dabbrev t))
-
-         ;; Eshell
-         ;; (defun kb/cape-capf-setup-eshell ()
-         ;;   (let ((result))
-         ;;     (dolist (element '(pcomplete-completions-at-point cape-file) result)
-         ;;       (add-to-list 'completion-at-point-functions element))
-         ;;     ))
-
-         ;; Git-commit
-         (defun kb/cape-capf-setup-git-commit ()
-           (let ((result))
-             (dolist (element '(cape-symbol cape-dabbrev) result)
-               (add-to-list 'completion-at-point-functions element))))
-         ;; sh
-         ;; (defun kb/cape-capf-setup-sh ()
-         ;;   (require 'company-shell)
-         ;;   (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-shell)))
-
-         ;; For pcomplete. For now these two advices are strongly recommended to
-         ;; achieve a sane Eshell experience. See
-         ;; https://github.com/minad/corfu#completing-with-corfu-in-the-shell-or-eshell
-
-         ;; Silence the pcomplete capf, no errors or messages!
-         (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
-         ;; Ensure that pcomplete does not write to the buffer and behaves as a pure
-         ;; `completion-at-point-function'.
-         (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
-	 )
+  :init
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev))
 
 ;;; Corfu (in-buffer completion popup)
 (use-package corfu
@@ -400,9 +417,14 @@ Additionally, add `cape-file' as early as possible to the list."
   :hook (after-init . global-corfu-mode)
   ;; I also have (setq tab-always-indent 'complete) for TAB to complete
   ;; when it does not need to perform an indentation change.
-  :bind (:map corfu-map ("<tab>" . corfu-complete))
+  :bind (:map corfu-map
+              ("<tab>" . corfu-complete)
+              ("TAB" . corfu-complete))
   :commands (corfu-quit)
   :custom
+  (corfu-auto t)
+  (corfu-auto-delay 0.05)
+  (corfu-auto-prefix 2)
   (corfu-cycle t)
   (corfu-preselect-first t)
   (corfu-scroll-margin 4)
@@ -418,7 +440,7 @@ Additionally, add `cape-file' as early as possible to the list."
   (defun corfu-complete-and-quit ()
     (interactive)
     (corfu-complete)
-    (corfu-quit))'
+    (corfu-quit))
 
   ;; Sort by input history (no need to modify `corfu-sort-function').
   (with-eval-after-load 'savehist
@@ -442,22 +464,22 @@ Additionally, add `cape-file' as early as possible to the list."
   (defvar consult-prefix-map (make-sparse-keymap))
   (fset 'consult-prefix-map consult-prefix-map)
   :bind (:map global-map
-	          ("M-g M-g" . consult-goto-line)
-	          ("M-K" . consult-keep-lines) ; M-S-k is similar to M-S-5 (M-%)
-	          ("M-F" . consult-focus-lines) ; same principle
-	          ("C-x B"   . consult-project-buffer)
-	          ("C-x b"   . consult-buffer)
-	          ("M-s M-b" . consult-project-buffer)
-	          ("M-s M-f" . consult-find)
-	          ("M-s M-g" . consult-grep)
-	          ("M-s M-r" . consult-ripgrep)
-	          ("M-s r"   . consult-ripgrep)
-	          ("M-s M-h" . consult-history)
-	          ("M-s M-i" . consult-imenu)
-	          ("M-s M-l" . consult-line)
-	          ("M-s M-m" . consult-mark)
-	          ("M-s M-y" . consult-yank-pop)
-	          ("M-s M-s" . consult-outline)
+	      ("M-g M-g" . consult-goto-line)
+	      ("M-K" . consult-keep-lines) ; M-S-k is similar to M-S-5 (M-%)
+	      ("M-F" . consult-focus-lines) ; same principle
+	      ("C-x b"   . my/consult-project-buffer-smart)
+              ;; ("C-x b"   . consult-buffer)
+	      ("M-s M-b" . my/consult-project-buffer-or-pick)
+	      ("M-s M-f" . consult-find)
+	      ("M-s M-g" . consult-grep)
+	      ("M-s M-r" . consult-ripgrep)
+	      ("M-s r"   . consult-ripgrep)
+	      ("M-s M-h" . consult-history)
+	      ("M-s M-i" . consult-imenu)
+	      ("M-s M-l" . consult-line)
+	      ("M-s M-m" . consult-mark)
+	      ("M-s M-y" . consult-yank-pop)
+	      ("M-s M-s" . consult-outline)
               :map ctl-x-map
               ("c" . consult-prefix-map)
               :map consult-prefix-map
@@ -482,9 +504,9 @@ Additionally, add `cape-file' as early as possible to the list."
           consult--source-project-recent-file))
   
   ;; (require 'consult-imenu)  ; the `imenu' extension is in its own file
-  ;; fd for file finding
-  (setq consult-find-args
-        "fd --type f --hidden --exclude .git --exclude .cache")
+;; fd for file finding
+(setq consult-find-args
+      "fd --type f --hidden --exclude .git --exclude .cache")
   ;; (setq consult-find-args
   ;;       (concat "find . -not ( "
   ;;               "-path */.git* -prune "
@@ -495,16 +517,28 @@ Additionally, add `cape-file' as early as possible to the list."
         "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / --smart-case --hidden --glob '!.git/*' --glob '!.cache/*'")
 
   ;; (setq consult-preview-key 'any) ;; live preview always
-  (setq consult-project-function nil) ; always work from the current directory (use `cd' to switch directory)
+  ;; (setq consult-project-function nil) ; always work from the current directory (use `cd' to switch directory)
 
-  (defun my/consult-project-buffer ()
-  "Use `consult-project-buffer` scoped to current project."
+  (defun my/consult-project-buffer-smart ()
+    "Run `consult-project-buffer` if in a project, else `consult-buffer`."
+    (interactive)
+    (if (project-current nil)
+        (consult-project-buffer)
+      (consult-buffer)))
+
+  (defun my/consult-project-buffer-or-pick ()
+  "If not in a project, prompt to pick one, then show its buffers."
   (interactive)
-  (consult-project-buffer))
+  (let ((proj (or (project-current nil)
+                  (project-prompt-project-dir))))
+    (if proj
+        (let ((default-directory if (project-p proj)
+                                 (project-root proj)
+                                   proj))
+          (consult-project-buffer))
+      (consult-buffer))))
   
-  (add-to-list 'consult-mode-histories '(vc-git-log-edit-mode . log-edit-comment-ring))
-
-  )
+  (add-to-list 'consult-mode-histories '(vc-git-log-edit-mode . log-edit-comment-ring)))
 
 (use-package consult-project-extra
   :bind
