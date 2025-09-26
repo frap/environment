@@ -10,22 +10,32 @@
   ;; :custom
   ;; (copilot-disable-predicates '(always))
   :bind
-  (("M-`" . copilot-complete)
-   :map gas/toggles-map
-   ("`" . copilot-mode)
+  (("M-`" . copilot-complete) ;; manual trigger (optional)
    :map copilot-completion-map
+   ("C-<tab>" . 'copilot-accept-completion-by-word)
    ("C-g" .  #'copilot-clear-overlay)
    ("M-p" . #'copilot-previous-completion)
    ("M-n" . #'copilot-next-completion)
-   ("<tab>" . 'copilot-accept-completion)
-   ("TAB" . 'copilot-accept-completion)
+   ;; ("<tab>" . 'copilot-accept-completion)  # corfu own TAB
    ("M-f" . #'copilot-accept-completion-by-word)
-   ("C-TAB" . 'copilot-accept-completion-by-word)
-   ("C-<tab>" . 'copilot-accept-completion-by-word)
    ("M-<return>" . copilot-accept-completion-by-line))
   ;; :hook (prog-mode . copilot-mode)
   ;; :hook (yaml-mode . copilot-mode)
   :config
+  ;; Keep Copilot quiet when it shouldn't show suggestions
+  (defun my/copilot-disable-p ()
+    (or (minibufferp)
+        (bound-and-true-p company--active-p)   ;; if company appears somewhere
+        (bound-and-true-p corfu--frame)        ;; corfu currently visible
+        (eq major-mode 'term-mode)
+        (eq major-mode 'vterm-mode)
+        (eq major-mode 'shell-mode)
+        (eq major-mode 'eshell-mode)
+        (eq major-mode 'comint-mode)
+        (eq major-mode 'compilation-mode)))
+
+  (add-to-list 'copilot-disable-predicates #'my/copilot-disable-p)
+  
   (defun rk/no-copilot-mode ()
     "Helper for `rk/no-copilot-modes'."
     (copilot-mode -1))
@@ -86,34 +96,9 @@ is available. Useful if you tend to hammer your keys like I do."
           (next-line))
       (copilot-complete)))
 
-  ;; (define-key copilot-mode-map (kbd "M-C-<next>") #'copilot-next-completion)
-  ;; (define-key copilot-mode-map (kbd "M-C-<prior>") #'copilot-previous-completion)
-  ;; (define-key copilot-mode-map (kbd "M-C-<right>") #'copilot-accept-completion-by-word)
-  ;; (define-key copilot-mode-map (kbd "M-C-<down>") #'copilot-accept-completion-by-line)
-  ;; (define-key global-map (kbd "M-C-<return>") #'rk/copilot-complete-or-accept)
-
-  (defun rk/copilot-tab ()
-    "Try Copilot, then yasnippet, then hippie-expand, then indent."
-    (interactive)
-    (cond
-     ;; Copilot suggestion is visible → accept it
-     ((copilot--overlay-visible)
-      (copilot-accept-completion))
-
-     ;; Try expanding a yasnippet
-     ((and (bound-and-true-p yas-minor-mode)
-           (yas-expand)))
-
-     ;; Try hippie-expand
-     ((hippie-expand nil))
-
-     ;; Fallback: just indent
-     (t
-      (indent-for-tab-command))))
-
-  (add-hook 'prog-mode-hook
-            (lambda ()
-              (local-set-key (kbd "<tab>") #'my/tab-dwim)))
+  ;; (add-hook 'prog-mode-hook
+  ;;           (lambda ()
+  ;;             (local-set-key (kbd "<tab>") #'my/tab-dwim)))
 
   (defun rk/copilot-quit ()
     "Run `copilot-clear-overlay' or `keyboard-quit'. If copilot is
