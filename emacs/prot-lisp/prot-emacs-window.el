@@ -57,6 +57,18 @@
     :ensure nil
     :demand t
     :config
+    (defun my/get-display-window
+        (source-window &optional create-if-needed)
+      (save-excursion
+        (goto-char (window-start source-window))
+        (or
+         (window-in-direction 'right source-window)
+         (let ((below-window (window-in-direction 'below source-window)))
+           (when (and below-window
+                      (not (window-minibuffer-p below-window)))
+             below-window))
+         (when create-if-needed
+           (split-window source-window nil 'below)))))
     ;; NOTE 2023-03-17: Remember that I am using development versions of
     ;; Emacs.  Some of my `display-buffer-alist' contents are for Emacs
     ;; 29+.
@@ -96,7 +108,7 @@
             ;; below current window
             ("\\(\\*Capture\\*\\|CAPTURE-.*\\)"
              (display-buffer-reuse-mode-window display-buffer-below-selected))
-            ((derived-mode . reb-mode) ; M-x re-builder
+            ((derived-mode . reb-mode)  ; M-x re-builder
              (display-buffer-reuse-mode-window display-buffer-below-selected)
              (window-height . 4) ; note this is literal lines, not relative
              (dedicated . t)
@@ -212,7 +224,7 @@
 ;;     (other-window (if arg (- arg) -1) all-frames))
 ;;   (put 'my/other-window 'repeat-map 'other-window-repeat-map)
 ;;   (put 'my/other-window-prev 'repeat-map 'other-window-repeat-map))
-;; 
+;;
 ;; (use-package ace-window
 ;;   :ensure t
 ;;   :bind
@@ -229,7 +241,7 @@
 ;;   :config
 ;;   (defun my/aw-take-over-window (window)
 ;;     "Move from current window to WINDOW.
-;; 
+;;
 ;; Delete current window in the process."
 ;;     (let ((buf (current-buffer)))
 ;;       (if (one-window-p)

@@ -286,7 +286,7 @@ mode.")
 ;;     ("C-c C-i C-c" . agitate-log-edit-conventional-commit))
 ;;   :config
 ;;   (advice-add #'vc-git-push :override #'agitate-vc-git-push-prompt-for-remote)
-;; 
+;;
 ;;   (setq agitate-log-edit-informative-show-root-log nil
 ;;         agitate-log-edit-informative-show-files nil))
 
@@ -378,6 +378,16 @@ mode.")
 		        (run-with-timer 5 nil #'vcs--kill-buffer buffer)
               (kill-process process)
               (kill-buffer buffer)))))))
+
+  (defun my/magit-display-buffer (buffer alist)
+  (when-let ((target-window (my/get-display-window
+                              (selected-window) t)))
+    (set-window-buffer target-window buffer)
+    target-window))
+  (add-to-list 'display-buffer-alist
+  '("\\(magit-revision:\\|magit-diff:\\)"
+     (my/magit-display-buffer)
+    (inhibit-same-window . t)))
   )
 ;; Show icons for files in the Magit status and other buffers.
 (with-eval-after-load 'magit
