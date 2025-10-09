@@ -275,7 +275,7 @@ word.  Fall back to regular `expreg-expand'."
                   ;; shell-mode-hook
                   eval-expression-minibuffer-setup-hook))
     (add-hook hook 'common-lisp-modes-mode))
-  :bind ( :map common-lisp-modes-mode-map 
+  :bind ( :map common-lisp-modes-mode-map
 	      ("M-q" . indent-sexp-or-fill))
   :config
   (add-hook 'common-lisp-modes-mode-hook #'puni-mode)
@@ -298,7 +298,6 @@ word.  Fall back to regular `expreg-expand'."
           clojurec-mode
           clojurescript-mode)
          .  (lambda ()
-              (clojure-mode-setup)
               (common-lisp-modes-mode)
               (clojure-lisp-pretty-symbols)
               (flycheck-mode)
@@ -330,15 +329,6 @@ word.  Fall back to regular `expreg-expand'."
             ("comp" . ?υ)
             ("partial" . ?ρ)))
     (prettify-symbols-mode 1)))
-
-(use-package clojure-mode
-  :disabled t
-  :ensure t
-  :after flycheck-clj-kondo
-  ;; :delight "λ clj"
-  :hook ()
-  :config
-  )
 
 (use-package flycheck-clj-kondo
   :ensure t)
