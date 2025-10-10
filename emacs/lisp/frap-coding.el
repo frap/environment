@@ -1,3 +1,15 @@
+;;; frap-coding.el --- coding emacs config -*- lexical-binding: t -*-
+;;; Commentary:
+;;; Code:
+
+
+;;; comment-dwim-2
+;;; comment/un-comment
+(use-package comment-dwim-2
+  :ensure t
+  :bind ("M-;" . 'comment-dwim-2)
+  :delight)
+
 ;;; language parenthese mapping
 ;;;; Parentheses (show-paren-mode)
 (use-package paren

@@ -281,41 +281,13 @@ unreadable. Returns the names of envvars that were changed."
 ;;     ;; Commands for files
 ;;     ("C-x r ." . prot-simple-file-to-register)))
 
-;;;; Region settings
-(use-package region-bindings
-  :ensure (:host gitlab :repo "andreyorst/region-bindings.el")
-  :preface
-  (defun region-bindings-off ()
-    (region-bindings-mode -1))
-  :hook
-  (after-init . global-region-bindings-mode)
-  (magit-mode . region-bindings-off)
-  ;; :init
-  ;; (add-hook 'region-bindings-mode-hook (lambda () (message "region-bindings-mode active")))
-  )
-
-(use-package expand-region
-  :ensure t
-  :bind (("M-2" . er/expand-region)
-         ("C-=" . er/expand-region)))
-
-(use-feature rect
-  :bind (("C-x r C-y" . rectangle-yank-add-lines))
-  :preface
-  (defun rectangle-yank-add-lines ()
-    (interactive "*")
-    (when (use-region-p)
-      (delete-region (region-beginning) (region-end)))
-    (save-restriction
-      (narrow-to-region (point) (point))
-      (yank-rectangle))))
 
 ;;;; Scratch buffers per major mode (prot-scratch.el)
-(use-package prot-scratch
-  :ensure nil
-  :bind ("C-c s" . prot-scratch-buffer)
-  :config
-  (setq prot-scratch-default-mode 'text-mode))
+;; (use-package prot-scratch
+;;   :ensure nil
+;;   :bind ("C-c s" . prot-scratch-buffer)
+;;   :config
+;;   (setq prot-scratch-default-mode 'text-mode))
 
 ;;;; Insert character pairs (prot-pair.el)
 ;; (use-package prot-pair
@@ -325,30 +297,25 @@ unreadable. Returns the names of envvars that were changed."
 ;;    ("M-'" . prot-pair-insert)
 ;;    ("M-\\" . prot-pair-delete)))
 
-;;; comment-dwim-2
-;;; comment/un-comment
-(use-package comment-dwim-2
-  :ensure t
-  :bind ("M-;" . 'comment-dwim-2)
-  :delight)
+
 
 
 ;;;; Comments (prot-comment.el)
-(use-package prot-comment               ;
-  :ensure nil
-  :init
-  (setq comment-empty-lines t)
-  (setq comment-fill-column nil)
-  (setq comment-multi-line t)
-  (setq comment-style 'multi-line)
-  (setq-default comment-column 0)
-
-  (setq prot-comment-comment-keywords '("TODO" "NOTE" "XXX" "REVIEW" "FIXME"))
-  (setq prot-comment-timestamp-format-concise "%F")
-  (setq prot-comment-timestamp-format-verbose "%F %T %z")
-  :bind
-  (("C-;" . prot-comment)
-   ("C-x C-;" . prot-comment-timestamp-keyword)))
+;; (use-package prot-comment               ;
+;;   :ensure nil
+;;   :init
+;;   (setq comment-empty-lines t)
+;;   (setq comment-fill-column nil)
+;;   (setq comment-multi-line t)
+;;   (setq comment-style 'multi-line)
+;;   (setq-default comment-column 0)
+;; 
+;;   (setq prot-comment-comment-keywords '("TODO" "NOTE" "XXX" "REVIEW" "FIXME"))
+;;   (setq prot-comment-timestamp-format-concise "%F")
+;;   (setq prot-comment-timestamp-format-verbose "%F %T %z")
+;;   :bind
+;;   (("C-;" . prot-comment)
+;;    ("C-x C-;" . prot-comment-timestamp-keyword)))
 
 ;;;; Prefix keymap (prot-prefix.el)
 ;; set of keymaps with commonly used commands and puts them behind a prefix map.
@@ -357,40 +324,6 @@ unreadable. Returns the names of envvars that were changed."
   :ensure nil
   :bind-keymap
   (("C-z" . prot-prefix)))
-
-;;; No littering
-;; Many packages leave crumbs in user-emacs-directory or even
-;; $HOME. Finding and configuring them individually is a hassle, so we
-;; rely on the community configuration of no-littering. Run this
-;; early, because many of the crumb droppers are configured below!
-(use-package no-littering
-  :ensure (:wait t)
-  :preface
-  (setq no-littering-etc-directory (expand-file-name "etc/" user-cache-directory)
-        no-littering-var-directory (expand-file-name "var/" user-cache-directory)))
-
-(use-package recentf
-  :ensure nil
-  :hook (after-init . recentf-mode)
-  :config
-  (setq recentf-save-file (expand-file-name "recentf" user-cache-directory))
-  (setq recentf-max-saved-items 100)
-  (setq recentf-max-menu-items 25) ; I don't use the `menu-bar-mode', but this is good to know
-  ;; prot defaults below commented out as he doesnt use it
-  (setq recentf-save-file-modes nil)
-  (setq recentf-keep nil)
-  (setq recentf-auto-cleanup nil)
-  (setq recentf-initialize-file-name-history nil)
-  (setq recentf-filename-handlers nil)
-  (setq recentf-show-file-shortcuts-flag nil)
-
-  ;; Exclude common noisy entries
-  (setq recentf-exclude
-        (list
-         "\\.gpg\\"
-         (concat (regexp-quote (locate-user-emacs-file ".cache/")) ".*")
-         (recentf-expand-file-name no-littering-var-directory)
-         (recentf-expand-file-name no-littering-etc-directory))))
 
 ;;;; Mouse and mouse wheel behaviour
 (use-feature mouse
@@ -505,24 +438,7 @@ unreadable. Returns the names of envvars that were changed."
         ;; same idea.
         set-mark-command-repeat-pop t))
 
-;;;; Built-in bookmarking framework (bookmark.el)
-;; Bookmarks are compartments that store arbitrary information about a file or buffer.
-;; The records are used to recreate that file/buffer inside of Emacs.
-;; Use the bookmark-set command (C-x r m by default) to record a bookmark.
-;; visit one of your bookmarks with bookmark-jump (C-x r b by default).
-(use-package bookmark
-  :ensure nil
-  :commands (bookmark-set bookmark-jump bookmark-bmenu-list)
-  :hook (bookmark-bmenu-mode . hl-line-mode)
-  :config
-  (setq bookmark-use-annotations nil)
-  (setq bookmark-automatically-show-annotations nil)
-  (setq bookmark-fringe-mark nil) ; Emacs 29 to hide bookmark fringe icon
-  ;; Write changes to the bookmark file as soon as 1 modification is
-  ;; made (addition or deletion).  Otherwise Emacs will only save the
-  ;; bookmarks when it closes, which may never happen properly
-  ;; (e.g. power failure).
-  (setq bookmark-save-flag 1))
+
 
 ;;;; Registers (register.el)
 ;; registers are essential for keyboard macros.
@@ -535,20 +451,6 @@ unreadable. Returns the names of envvars that were changed."
 
   (with-eval-after-load 'savehist
     (add-to-list 'savehist-additional-variables 'register-alist)))
-
-;;;; Auto revert mode
-;; Update the contents of a saved buffer when its underlying file is changed externally. aka git pull
-(use-package autorevert
-  :ensure nil
-  :hook (after-init . global-auto-revert-mode)
-  :config
-  (setq auto-revert-verbose t))
-
-;;;; Delete selection
-;; delete the selected text upon the insertion of new text
-(use-package delsel
-  :ensure nil
-  :hook (after-init . delete-selection-mode))
 
 
 ;;;; Display current time

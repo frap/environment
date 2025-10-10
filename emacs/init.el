@@ -13,9 +13,9 @@
 ;;(setq debug-on-error t)
 
 ;; Disable backups and lockfiles
-(setq make-backup-files nil)
-(setq backup-inhibited nil) ; Not sure if needed, given `make-backup-files'
-(setq create-lockfiles nil)
+;; (setq make-backup-files nil)
+;; (setq backup-inhibited nil) ; Not sure if needed, given `make-backup-files'
+;; (setq create-lockfiles nil)
 
 ;; native complilation is silent
 ;; Make native compilation silent and prune its cache.
@@ -26,13 +26,6 @@
 ;; Disable the damn thing by making it disposable.
 (setq custom-file (make-temp-file "emacs-custom-"))
 
-
-;; some emacs commands are disabled by default
-;; Enable these
-(mapc
- (lambda (command)
-   (put command 'disabled nil))
- '(list-timers narrow-to-region narrow-to-page upcase-region downcase-region))
 
 ;; And disable these
 (mapc
@@ -66,25 +59,19 @@
 ;; Doom Emacs.
 ;; (require 'setup-core)
 (require 'frap-essentials)
-;; Default bindings
-;; (require 'init-bindings)
 
 ;; UI
 (require 'init-ui)
 (require 'frap-modeline)
 
 ;;; Minibuffer & Navigation
-;; (require 'setup-minibuffer)
-;; (require 'minimal-minibuffer)
 (require  'frap-completion)
-(require  'frap-search )
 
 ;; (require 'init-files-buffers)
-(require 'prot-emacs-dired)
+;; (require 'prot-emacs-dired)
 (require 'prot-emacs-window)
 
 ;;; Editor Text
-;;(require 'init-editor)
 (require 'frap-editor)
 
 ;;; Coding Languages

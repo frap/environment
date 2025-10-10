@@ -1,25 +1,75 @@
+;;; lisp/frap-tools.el --- Emacs Tools -*- lexical-binding: t -*-
+
+;;; Tools
+
 ;;;; `ediff'
-(use-package ediff
-  :ensure nil
-  :commands (ediff-buffers ediff-files ediff-buffers3 ediff-files3)
+
+(use-feature ediff-wind
+  :defer t
   :init
-  (setq ediff-split-window-function 'split-window-horizontally)
-  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-  :config
-  (setq ediff-keep-variants nil)
-  (setq ediff-make-buffers-readonly-at-startup nil)
-  (setq ediff-merge-revisions-with-ancestor t)
-  (setq ediff-show-clashes-only t))
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain
+        ediff-split-window-function 'split-window-horizontally))
+
+;; (use-feature ediff
+;;   :defer t
+;;   :commands (ediff-buffers ediff-files ediff-buffers3 ediff-files3)
+;;   :init
+;;   (setq ediff-split-window-function 'split-window-horizontally)
+;;   (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+;;   :config
+;;   (setq ediff-keep-variants nil)
+;;   (setq ediff-make-buffers-readonly-at-startup nil)
+;;   (setq ediff-merge-revisions-with-ancestor t)
+;;   (setq ediff-show-clashes-only t)
+;;   (advice-add 'ediff-window-display-p :override #'ignore))
 
 ;;;; `project'
-(when (executable-find "gls")
-  (setq insert-directory-program (executable-find "gls")))
+;; (when (executable-find "gls")
+;;   (setq insert-directory-program (executable-find "gls")))
 
 (use-package project
   :bind-keymap ("s-p" . project-prefix-map)
+  :bind (("C-x p q" . project-query-replace-regexp) ; C-x p is `project-prefix-map'
+         ("C-x p <delete>" . my/project-remove-project)
+         ("C-x p DEL" . my/project-remove-project)
+         ;; ("M-s p" . my/project-switch-project)
+         ;; ("M-s f" . my/project-find-file-vc-or-dir)
+         ("M-s L" . find-library)
+         :map project-prefix-map
+          ("s" . project-save-some-buffers)
+          ("f" . project-find-file)
+          ("F" . project-switch-project)
+          ("m" . project-compile)
+          ("K" . project-kill-buffers)
+          ("t" . eshell)
+          ("v" . magit)
+          ("s-p" . project-switch-project))
   :custom
+  ;; This is one of my favorite things: you can customize
+  ;; the options shown upon switching projects.
+  (setq project-switch-commands
+        '((?f "Find file" project-find-file)
+          (?g "Find regexp" project-find-regexp)
+          (?d "Dired" project-dired)
+          (?b "Buffer" project-switch-to-buffer)
+          (?q "Query replace" project-query-replace-regexp)
+          (?v "magit" project-magit-status)
+          (?k "Kill buffers" project-kill-buffers)
+          (?! "Shell command" project-shell-command)
+          (?e "Eshell" project-eshell)))
+  (compilation-always-kill t)
+  (project-vc-merge-submodules nil)
+  (project-compilation-buffer-name-function 'project-prefixed-buffer-name)
   (project-vc-extra-root-markers '("bb.edn" "package.json" "pyproject.toml" "trove-ci.yml" "deps.edn"))
   :preface
+   (cl-defgeneric project-root (project)
+      "Return root directory of the current project.
+
+It usually contains the main build file, dependencies
+configuration file, etc. Though neither is mandatory.
+
+The directory name must be absolute."
+      (car project))
   (defun project-save-some-buffers (&optional arg)
     "Save some modified file-visiting buffers in the current project.
 
@@ -42,10 +92,32 @@ mode.")
 
   :config
   (setq project-list-file (file-name-concat user-cache-directory "projects"))
-  ;; Optional: Better Dired entry in switch menu
-  (add-to-list 'project-switch-commands '(project-dired "Dired"))
-  (add-to-list 'project-switch-commands '(project-switch-to-buffer "Switch buffer"))
-  (add-to-list 'project-switch-commands '(project-save-some-buffers "Save") t))
+
+    (defun project-magit-status ()
+    "Run magit-status in the current project's root."
+    (interactive)
+    (magit-status-setup-buffer (project-root (project-current t))))
+
+  (defun my/project-remove-project ()
+    "Remove project from `project--list' using completion."
+    (interactive)
+    (project--ensure-read-project-list)
+    (let* ((projects project--list)
+           (dir (completing-read "REMOVE project from list: " projects nil t)))
+      (setq project--list (delete (assoc dir projects) projects))))
+
+  (defun pt/recentf-in-project ()
+  "As `recentf', but filtering based on the current project root."
+  (interactive)
+  (let* ((proj (project-current))
+         (root (if proj (project-root proj) (user-error "Pas de projet"))))
+    (cl-flet ((ok (fpath) (string-prefix-p root fpath)))
+      (find-file (completing-read "Find recent file:" recentf-list #'ok)))))
+  
+  (setq project-window-list-file (file-name-concat user-cache-directory "project-window-list")
+        project-vc-merge-submodules nil)
+  (add-to-list 'project-switch-commands
+               '(project-save-some-buffers "Save") t))
 
 (use-feature ibuffer
   :bind (("C-x B" . my/ibuffer-project))
@@ -140,21 +212,20 @@ mode.")
                         filename-and-process))))
 
 ;;;; `diff-mode'
-(use-package diff-mode
-  :ensure nil
-  :defer t
-  :config
-  (setq diff-default-read-only t)
-  (setq diff-advance-after-apply-hunk t)
-  (setq diff-update-on-the-fly t)
-  ;; The following are from Emacs 27.1
-  (setq diff-refine nil) ; I do it on demand, with my `agitate' package (more below)
-  (setq diff-font-lock-prettify t) ; I think nil is better for patches, but let me try this for a while
-  (setq diff-font-lock-syntax 'hunk-also))
+;; (use-package diff-mode
+;;   :ensure nil
+;;   :defer t
+;;   :config
+;;   (setq diff-default-read-only t)
+;;   (setq diff-advance-after-apply-hunk t)
+;;   (setq diff-update-on-the-fly t)
+;;   ;; The following are from Emacs 27.1
+;;   (setq diff-refine nil) ; I do it on demand, with my `agitate' package (more below)
+;;   (setq diff-font-lock-prettify t) ; I think nil is better for patches, but let me try this for a while
+;;   (setq diff-font-lock-syntax 'hunk-also))
 
   ;;; Version control framework (vc.el, vc-git.el, and more)
-(use-package vc
-  :ensure nil
+(use-feature vc
   :bind
   (;; NOTE: I override lots of the defaults
    :map global-map
@@ -298,24 +369,27 @@ mode.")
 
 (use-package magit
   :ensure t
+  :custom
+  (magit-git-executable "/opt/homebrew/bin/git")
   :hook ((git-commit-mode . flyspell-mode)
          (git-commit-mode . magit-git-commit-insert-branch))
   :bind
    (("C-c g" . magit-status)
     :map magit-mode-map
-         ("C-w" . nil)
-         ("M-w" . nil))
+    ("C-w" . nil)
+    ("M-w" . nil))
   :functions (magit-get-current-branch)
   :custom
   (magit-ediff-dwim-show-on-hunks t)
   (magit-diff-refine-ignore-whitespace t)
   (magit-diff-refine-hunk 'all)
   :preface
+  (setq magit-refresh-verbose t)
   (defun magit-extract-branch-tag (branch-name)
-           "Extract branch tag from BRANCH-NAME."
-           (let ((ticket-pattern "\\([[:alpha:]]+-[[:digit:]]+\\)"))
-             (when (string-match-p ticket-pattern branch-name)
-               (upcase (replace-regexp-in-string ticket-pattern "\\1: " branch-name)))))
+    "Extract branch tag from BRANCH-NAME."
+    (let ((ticket-pattern "\\([[:alpha:]]+-[[:digit:]]+\\)"))
+      (when (string-match-p ticket-pattern branch-name)
+        (upcase (replace-regexp-in-string ticket-pattern "\\1: " branch-name)))))
   (defun magit-git-commit-insert-branch ()
     "Insert the branch tag in the commit buffer if feasible."
     (when-let* ((tag (magit-extract-branch-tag (magit-get-current-branch))))
@@ -326,7 +400,24 @@ mode.")
   :init
   (setq magit-define-global-key-bindings nil)
   (setq magit-section-visibility-indicator '(magit-fringe-bitmap> . magit-fringe-bitmapv))
+    ;; Have magit-status go full screen and quit to previous
+  ;; configuration.  Taken from
+  ;; http://whattheemacsd.com/setup-magit.el-01.html#comment-748135498
+  ;; and http://irreal.org/blog/?p=2253
+  (defadvice magit-status (around magit-fullscreen activate)
+    (window-configuration-to-register :magit-fullscreen)
+    ad-do-it
+    (delete-other-windows))
+  (defadvice magit-quit-window (after magit-restore-screen activate)
+    (jump-to-register :magit-fullscreen))
   :config
+  (setq magit-refresh-verbose t)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-tags-header)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-status-headers)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-pushremote)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-pushremote)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-upstream)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream-or-recent)
   (setq git-commit-summary-max-length 70)
   (setq git-commit-style-convention-checks '(non-empty-second-line))
   ;; properly kill leftover magit buffers on quit
@@ -389,6 +480,7 @@ mode.")
   (add-to-list 'project-switch-commands '(magit-project-status "Magit") t))
 
 (use-package magit-todos
+  :disable t
   :ensure t
   :functions
   (magit-todos-mode)
