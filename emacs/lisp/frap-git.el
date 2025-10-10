@@ -440,6 +440,9 @@ mode.")
   (setq transient-values
         '((magit-log:magit-log-mode "--graph" "--color" "--decorate")))
 
+  ;; Show icons for files in the Magit status and other buffers.
+  (setq magit-format-file-function #'magit-format-file-nerd-icons)
+
   (defun vcs-quit (&optional _kill-buffer)
     "Clean up magit buffers after quitting `magit-status'.
     And don't forget to refresh version control in all buffers of
@@ -469,10 +472,31 @@ mode.")
 		        (run-with-timer 5 nil #'vcs--kill-buffer buffer)
               (kill-process process)
               (kill-buffer buffer)))))))
+
+  (defun my/get-display-window
+  (source-window &optional create-if-needed)
+  (save-excursion
+    (goto-char (window-start source-window))
+    (or
+      (window-in-direction 'right source-window)
+      (let ((below-window (window-in-direction 'below source-window)))
+        (when (and below-window
+                   (not (window-minibuffer-p below-window)))
+          below-window))
+       (when create-if-needed
+         (split-window source-window nil 'below)))))
+
+  (defun my/magit-display-buffer (buffer alist)
+  (when-let ((target-window (my/get-display-window
+                              (selected-window) t)))
+    (set-window-buffer target-window buffer)
+    target-window))
+
+  (add-to-list 'display-buffer-alist
+               '("\\(magit-revision:\\|magit-diff:\\)"
+                 (my/magit-display-buffer)
+                 (inhibit-same-window . t)))
   )
-;; Show icons for files in the Magit status and other buffers.
-(with-eval-after-load 'magit
-  (setq magit-format-file-function #'magit-format-file-nerd-icons))
 
 (use-package magit
   :after project
