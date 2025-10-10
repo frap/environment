@@ -372,7 +372,8 @@ mode.")
   :custom
   (magit-git-executable "/opt/homebrew/bin/git")
   :hook ((git-commit-mode . flyspell-mode)
-         (git-commit-mode . magit-git-commit-insert-branch))
+         ;; (git-commit-mode . magit-git-commit-insert-branch)
+         )
   :bind
    (("C-c g" . magit-status)
     :map magit-mode-map
@@ -397,52 +398,7 @@ mode.")
           ;; avoid repeated insertion when amending
           (save-excursion (search-forward (string-trim tag) nil 'no-error))
         (insert tag))))
-  :init
-  (setq magit-define-global-key-bindings nil)
-  (setq magit-section-visibility-indicator '(magit-fringe-bitmap> . magit-fringe-bitmapv))
-    ;; Have magit-status go full screen and quit to previous
-  ;; configuration.  Taken from
-  ;; http://whattheemacsd.com/setup-magit.el-01.html#comment-748135498
-  ;; and http://irreal.org/blog/?p=2253
-  (defadvice magit-status (around magit-fullscreen activate)
-    (window-configuration-to-register :magit-fullscreen)
-    ad-do-it
-    (delete-other-windows))
-  (defadvice magit-quit-window (after magit-restore-screen activate)
-    (jump-to-register :magit-fullscreen))
-  :config
-  (setq magit-refresh-verbose t)
-  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-tags-header)
-  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-status-headers)
-  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-pushremote)
-  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-pushremote)
-  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-upstream)
-  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream-or-recent)
-  (setq git-commit-summary-max-length 70)
-  (setq git-commit-style-convention-checks '(non-empty-second-line))
-  ;; properly kill leftover magit buffers on quit
-  (define-key magit-status-mode-map
-	          [remap magit-mode-bury-buffer]
-	          #'vcs-quit)
-  (setq magit-revision-show-gravatars
-        '("^Author:     " . "^Commit:     "))
-  ;; (setq magit-commit-show-diff nil)
-  (setq magit-delete-by-moving-to-trash nil)
-  (setq magit-display-buffer-function
-        #'magit-display-buffer-same-window-except-diff-v1)
-  ;; (setq magit-log-auto-more t)
-  (setq magit-log-margin-show-committer-date t)
-  (setq magit-revert-buffers 'silent)
-  (setq magit-save-repository-buffers 'dontask)
-  (setq magit-wip-after-apply-mode t)
-  (setq magit-wip-after-save-mode t)
-  (setq magit-wip-before-change-mode t)
-  (setq transient-values
-        '((magit-log:magit-log-mode "--graph" "--color" "--decorate")))
-
-  ;; Show icons for files in the Magit status and other buffers.
-  (setq magit-format-file-function #'magit-format-file-nerd-icons)
-
+  
   (defun vcs-quit (&optional _kill-buffer)
     "Clean up magit buffers after quitting `magit-status'.
     And don't forget to refresh version control in all buffers of
@@ -491,7 +447,51 @@ mode.")
                               (selected-window) t)))
     (set-window-buffer target-window buffer)
     target-window))
+  :init
+  (setq magit-define-global-key-bindings nil)
+  (setq magit-section-visibility-indicator '(magit-fringe-bitmap> . magit-fringe-bitmapv))
+    ;; Have magit-status go full screen and quit to previous
+  ;; configuration.  Taken from
+  ;; http://whattheemacsd.com/setup-magit.el-01.html#comment-748135498
+  ;; and http://irreal.org/blog/?p=2253
+  (defadvice magit-status (around magit-fullscreen activate)
+    (window-configuration-to-register :magit-fullscreen)
+    ad-do-it
+    (delete-other-windows))
+  (defadvice magit-quit-window (after magit-restore-screen activate)
+    (jump-to-register :magit-fullscreen))
+  :config
+  ;; (setq magit-refresh-verbose t)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-tags-header)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-status-headers)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-pushremote)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-pushremote)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-upstream)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream-or-recent)
+  (setq git-commit-summary-max-length 70)
+  (setq git-commit-style-convention-checks '(non-empty-second-line))
+  ;; properly kill leftover magit buffers on quit
+  (define-key magit-status-mode-map
+	          [remap magit-mode-bury-buffer]
+	          #'vcs-quit)
+  (setq magit-revision-show-gravatars
+        '("^Author:     " . "^Commit:     "))
+  ;; (setq magit-commit-show-diff nil)
+  (setq magit-delete-by-moving-to-trash nil)
+  (setq magit-display-buffer-function
+        #'magit-display-buffer-same-window-except-diff-v1)
+  ;; (setq magit-log-auto-more t)
+  (setq magit-log-margin-show-committer-date t)
+  (setq magit-revert-buffers 'silent)
+  (setq magit-save-repository-buffers 'dontask)
+  (setq magit-wip-after-apply-mode t)
+  (setq magit-wip-after-save-mode t)
+  (setq magit-wip-before-change-mode t)
+  (setq transient-values
+        '((magit-log:magit-log-mode "--graph" "--color" "--decorate")))
 
+  ;; Show icons for files in the Magit status and other buffers.
+  (setq magit-format-file-function #'magit-format-file-nerd-icons)
   (add-to-list 'display-buffer-alist
                '("\\(magit-revision:\\|magit-diff:\\)"
                  (my/magit-display-buffer)
@@ -503,13 +503,13 @@ mode.")
   :config
   (add-to-list 'project-switch-commands '(magit-project-status "Magit") t))
 
-(use-package magit-todos
-  :disable t
-  :ensure t
-  :functions
-  (magit-todos-mode)
-  :after magit
-  :config (magit-todos-mode 1))
+;; (use-package magit-todos
+;;   :disable t
+;;   :ensure t
+;;   :functions
+;;   (magit-todos-mode)
+;;   :after magit
+;;   :config (magit-todos-mode 1))
 
 (use-package hl-todo
   :ensure t
