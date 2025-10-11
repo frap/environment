@@ -166,7 +166,10 @@ unreadable. Returns the names of envvars that were changed."
    ("C-S-n" . crux-move-line-down)
 
    ;; Crux kill and rename
-   ("C-x C-k" . crux-kill-buffer)
+   ("C-x k" . crux-kill-buffer)
+   ("C-x K" . kill-buffer) ; leaving this here to contrast with the above
+   ("M-s b" . prot-simple-buffers-major-mode)
+   ("M-s v" . prot-simple-buffers-vc-root)
    ("C-x C-r" . crux-rename-buffer-file)
    ("C-x f"   . crux-recentf-find-file)
 
@@ -200,15 +203,15 @@ unreadable. Returns the names of envvars that were changed."
   ;; Extra useful config for crux
   (crux-reopen-as-root-mode +1))
 
-;; (use-package prot-simple
-;;   :ensure nil
-;;   :demand t
-;;   :config
-;;   (setq prot-simple-date-specifier "%F")
-;;   (setq prot-simple-time-specifier "%R %z")
-;; 
-;;   (advice-add #'save-buffers-kill-emacs :before #'prot-simple-display-unsaved-buffers-on-exit)
-;; 
+(use-package prot-simple
+  :ensure nil
+  :demand t
+  :config
+  (setq prot-simple-date-specifier "%F")
+  (setq prot-simple-time-specifier "%R %z")
+
+  (advice-add #'save-buffers-kill-emacs :before #'prot-simple-display-unsaved-buffers-on-exit))
+
 ;;   ;; All `prot-simple-override-mode' does is activate a key map.
 ;;   ;; Below I add keys to that map.  Because the mode is enabled
 ;;   ;; globally, those keys take precedence over the ones specified by
@@ -216,7 +219,7 @@ unreadable. Returns the names of envvars that were changed."
 ;;   ;; always work (though technically they can be overriden by another
 ;;   ;; minor mode, depending on which one is evaluated last).
 ;;   (prot-simple-override-mode 1)
-;; 
+
 ;;   ;; (with-eval-after-load 'pulsar
 ;;   ;;   (add-hook 'prot-simple-file-to-register-jump-hook #'pulsar-recenter-center)
 ;;   ;; (add-hook 'prot-simple-file-to-register-jump-hook #'pulsar-reveal-entry))
@@ -226,14 +229,14 @@ unreadable. Returns the names of envvars that were changed."
 ;;     ("C-M-a"  . frap/smart-top-level-begin)
 ;;     ("C-e"    . frap/puni-smart-eol)
 ;;     ("C-M-e"  . frap/smart-top-level-end)
-;; 
+
 ;;     ("C-d" . prot-simple-delete-line)   ; overrides `delete-char'
-;; 
+
 ;;     ("C-v" . prot-simple-multi-line-below) ; overrides `scroll-up-command'
 ;;     ("<next>" . prot-simple-multi-line-below) ; overrides `scroll-up-command'
 ;;     ("M-v" . prot-simple-multi-line-above) ; overrides `scroll-down-command'
 ;;     ("<prior>" . prot-simple-multi-line-above) ; overrides `scroll-down-command'
-;; 
+
 ;;     :map global-map
 ;;     ("<escape>" . prot-simple-keyboard-quit-dwim)
 ;;     ("C-g" . prot-simple-keyboard-quit-dwim)
@@ -245,7 +248,7 @@ unreadable. Returns the names of envvars that were changed."
 ;;     ("M-j" . delete-indentation)
 ;;     ("C-w" . prot-simple-kill-region)
 ;;     ("M-w" . prot-simple-kill-ring-save)
-;; 
+
 ;;     ("C-S-w" . prot-simple-copy-line)
 ;;     ("C-S-y" . prot-simple-yank-replace-line-or-region)
 ;;     ("<C-return>" . prot-simple-new-line-below)
@@ -283,11 +286,11 @@ unreadable. Returns the names of envvars that were changed."
 
 
 ;;;; Scratch buffers per major mode (prot-scratch.el)
-;; (use-package prot-scratch
-;;   :ensure nil
-;;   :bind ("C-c s" . prot-scratch-buffer)
-;;   :config
-;;   (setq prot-scratch-default-mode 'text-mode))
+(use-package prot-scratch
+  :ensure nil
+  :bind ("C-c s" . prot-scratch-buffer)
+  :config
+  (setq prot-scratch-default-mode 'text-mode))
 
 ;;;; Insert character pairs (prot-pair.el)
 ;; (use-package prot-pair
