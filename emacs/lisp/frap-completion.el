@@ -541,9 +541,11 @@ are defining or executing a macro."
   (add-to-list 'consult-mode-histories '(vc-git-log-edit-mode . log-edit-comment-ring)))
 
 (use-package consult-project-extra
+  :after (project consult)
   :bind
-  (("C-c p f" . consult-project-extra-find)
-   ("C-c p o" . consult-project-extra-find-other-window)))
+  (:map project-prefix-map
+   ("f" . consult-project-extra-find)
+   ("o" . consult-project-extra-find-other-window)))
 
 ;;; Extended minibuffer actions and more (embark.el)
 (use-package embark
