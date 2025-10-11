@@ -32,7 +32,7 @@
   :bind (("C-x p q" . project-query-replace-regexp) ; C-x p is `project-prefix-map'
          ("C-x p <delete>" . my/project-remove-project)
          ("C-x p DEL" . my/project-remove-project)
-         ;; ("M-s p" . my/project-switch-project)
+         ("M-s p" . my/project-switch-project)
          ;; ("M-s f" . my/project-find-file-vc-or-dir)
          ("M-s L" . find-library)
          :map project-prefix-map
@@ -43,7 +43,7 @@
           ("K" . project-kill-buffers)
           ("t" . eshell)
           ("v" . magit)
-          ("s-p" . project-switch-project))
+          ("p" . project-switch-project))
   :custom
   ;; This is one of my favorite things: you can customize
   ;; the options shown upon switching projects.
@@ -170,30 +170,30 @@ mode.")
         (call-interactively #'ibuffer))))
   )
 
-(use-package ibuffer-project
-  :disabled true
-  ;; Load only if present as a built-in (Emacs 29+) or installed package.
-  :if (locate-library "ibuffer-project")
-  :ensure nil ;; use built-in
-  :after (ibuffer project)
-  :hook (ibuffer . my/ibuffer-project-group)
-  :config
-  (setq ibuffer-project-use-cache t)
-  (defun my/ibuffer-project-group ()
-    "Group ibuffer by project, whether using built-in or MELPA API."
-    (let ((group-fn (cond
-                     ((fboundp 'ibuffer-project-set-filter-groups)
-                      #'ibuffer-project-set-filter-groups) ; Emacs 29+
-                     ((fboundp 'ibuffer-project-generate-filter-groups)
-                      (lambda ()
-                        (setq ibuffer-filter-groups
-                              (ibuffer-project-generate-filter-groups))))
-                     (t nil))))
-      (when group-fn
-        (funcall group-fn)
-        ;; pick a stable default; change to 'recency if you like
-        (unless (eq ibuffer-sorting-mode 'recency)
-          (ibuffer-do-sort-by-recency))))))
+;; (use-package ibuffer-project
+;;   :disabled true
+;;   ;; Load only if present as a built-in (Emacs 29+) or installed package.
+;;   :if (locate-library "ibuffer-project")
+;;   :ensure nil ;; use built-in
+;;   :after (ibuffer project)
+;;   :hook (ibuffer . my/ibuffer-project-group)
+;;   :config
+;;   (setq ibuffer-project-use-cache t)
+;;   (defun my/ibuffer-project-group ()
+;;     "Group ibuffer by project, whether using built-in or MELPA API."
+;;     (let ((group-fn (cond
+;;                      ((fboundp 'ibuffer-project-set-filter-groups)
+;;                       #'ibuffer-project-set-filter-groups) ; Emacs 29+
+;;                      ((fboundp 'ibuffer-project-generate-filter-groups)
+;;                       (lambda ()
+;;                         (setq ibuffer-filter-groups
+;;                               (ibuffer-project-generate-filter-groups))))
+;;                      (t nil))))
+;;       (when group-fn
+;;         (funcall group-fn)
+;;         ;; pick a stable default; change to 'recency if you like
+;;         (unless (eq ibuffer-sorting-mode 'recency)
+;;           (ibuffer-do-sort-by-recency))))))
 
 (use-package ibuffer-vc
   ;; :disabled true
@@ -367,12 +367,134 @@ mode.")
   :config
   (setq transient-show-popup 0.3))
 
+(defgroup gas/vcs nil
+  "VCS utilities."
+  :group 'tools)
+
+(defcustom gas/vcs-protected-buffers-regexp
+  (rx string-start
+      (or "*Messages*" "*scratch*" "*Warnings*" "*Backtrace*" "*Help*")
+      string-end)
+  "Regexp of buffers that must never be killed by VCS cleanup."
+  :type 'regexp)
+
+(defun vcs--magit-buffer-p (buffer)
+  "Return non-nil if BUFFER is a Magit-related buffer."
+  (when (buffer-live-p buffer)
+    (with-current-buffer buffer
+      (or
+       ;; Most Magit modes derive from `magit-mode'
+       (derived-mode-p 'magit-mode)
+       ;; Fallbacks for safety
+       (memq major-mode
+             '(magit-status-mode magit-diff-mode magit-process-mode
+               magit-revision-mode magit-log-mode magit-stash-mode
+               magit-refs-mode magit-blame-mode))
+       ;; Name heuristics (covers e.g. *magit-process* etc.)
+       (string-match-p (rx string-start "*" (? " ") "magit") (buffer-name))))))
+
+(defun vcs--killable-buffer-p (buffer)
+  "Return non-nil if BUFFER is safe for Magit cleanup to kill."
+  (and (buffer-live-p buffer)
+       (not (minibufferp buffer))
+       (not (string-match-p my/vcs-protected-buffers-regexp (buffer-name buffer)))
+       (vcs--magit-buffer-p buffer)))
+
+(defun vcs--kill-buffer (buffer)
+  "Gracefully kill Magit BUFFER and any finished process it owns.
+Live processes get a 5s grace and are retried."
+  (when (vcs--killable-buffer-p buffer)
+    (let ((process (get-buffer-process buffer)))
+      (cond
+       ((not (processp process))
+        (kill-buffer buffer))
+       ((process-live-p process)
+        ;; Recheck in 5 seconds to avoid nuking an active Git process.
+        (run-with-timer 5 nil #'vcs--kill-buffer buffer))
+       (t
+        (ignore-errors (kill-process process))
+        (kill-buffer buffer))))))
+
+(defun vcs-quit (&optional _kill-buffer)
+  "Quit the current Magit window and clean up *only* Magit buffers
+once no Magit status windows remain."
+  (interactive)
+  ;; Close/bury current magit window first.
+  (quit-window)
+  ;; If there are no more visible magit-status buffers, clean up Magit buffers.
+  (unless (catch 'found
+            (dolist (win (window-list))
+              (with-selected-window win
+                (when (eq major-mode 'magit-status-mode)
+                  (throw 'found t))))
+            nil)
+    (when (fboundp 'magit-mode-get-buffers)
+      (dolist (buf (magit-mode-get-buffers))
+        (vcs--kill-buffer buf)))))
+
+(defun gas/get-display-window (source-window &optional create-if-needed)
+  "Return a good window to display Magit aux buffers near SOURCE-WINDOW.
+Prefer a right neighbor, then a non-minibuffer, non-dedicated window below.
+If CREATE-IF-NEEDED is non-nil, split SOURCE-WINDOW below."
+  (let* ((valid-win-p
+          (lambda (w)
+            (and w (window-live-p w)
+                 (not (window-minibuffer-p w))
+                 (not (window-dedicated-p w))))))
+    (or
+     (let ((right (window-in-direction 'right source-window)))
+       (when (funcall valid-win-p right) right))
+     (let ((below (window-in-direction 'below source-window)))
+       (when (funcall valid-win-p below) below))
+     (when create-if-needed
+       (when (window-live-p source-window)
+         (let ((new (split-window source-window nil 'below)))
+           (when (funcall valid-win-p new) new)))))))
+
+(defun gas/magit-display-buffer (buffer _alist)
+  "Display Magit BUFFER in a neighbor window chosen by `my/get-display-window'."
+  (when-let ((target (gas/get-display-window (selected-window) t)))
+    (set-window-buffer target buffer)
+    target))
+
+  ;; (defun my/get-display-window
+  ;; (source-window &optional create-if-needed)
+  ;; (save-excursion
+  ;;   (goto-char (window-start source-window))
+  ;;   (or
+  ;;     (window-in-direction 'right source-window)
+  ;;     (let ((below-window (window-in-direction 'below source-window)))
+  ;;       (when (and below-window
+  ;;                  (not (window-minibuffer-p below-window)))
+  ;;         below-window))
+  ;;      (when create-if-needed
+  ;;        (split-window source-window nil 'below)))))
+
+  ;; (defun my/magit-display-buffer (buffer alist)
+  ;; (when-let ((target-window (my/get-display-window
+  ;;                             (selected-window) t)))
+  ;;   (set-window-buffer target-window buffer)
+  ;;   target-window))
+
+(defun gas/magit-extract-branch-tag (branch-name)
+  "Extract branch tag from BRANCH-NAME."
+  (let ((ticket-pattern "\\([[:alpha:]]+-[[:digit:]]+\\)"))
+    (when (string-match-p ticket-pattern branch-name)
+      (upcase (replace-regexp-in-string ticket-pattern "\\1: " branch-name)))))
+(defun gas/magit-git-commit-insert-branch ()
+  "Insert the branch tag in the commit buffer if feasible."
+  (when-let* ((tag (gas/magit-extract-branch-tag (magit-get-current-branch))))
+    (unless
+        ;; avoid repeated insertion when amending
+        (save-excursion (search-forward (string-trim tag) nil 'no-error))
+      (insert tag))))
+
 (use-package magit
   :ensure t
   :custom
   (magit-git-executable "/opt/homebrew/bin/git")
   :hook ((git-commit-mode . flyspell-mode)
-         ;; (git-commit-mode . magit-git-commit-insert-branch)
+        ;; (git-commit-mode . gas/magit-git-commit-insert-branch)
          )
   :bind
    (("C-c g" . magit-status)
@@ -384,70 +506,9 @@ mode.")
   (magit-ediff-dwim-show-on-hunks t)
   (magit-diff-refine-ignore-whitespace t)
   (magit-diff-refine-hunk 'all)
-  :preface
-  (setq magit-refresh-verbose t)
-  (defun magit-extract-branch-tag (branch-name)
-    "Extract branch tag from BRANCH-NAME."
-    (let ((ticket-pattern "\\([[:alpha:]]+-[[:digit:]]+\\)"))
-      (when (string-match-p ticket-pattern branch-name)
-        (upcase (replace-regexp-in-string ticket-pattern "\\1: " branch-name)))))
-  (defun magit-git-commit-insert-branch ()
-    "Insert the branch tag in the commit buffer if feasible."
-    (when-let* ((tag (magit-extract-branch-tag (magit-get-current-branch))))
-      (unless
-          ;; avoid repeated insertion when amending
-          (save-excursion (search-forward (string-trim tag) nil 'no-error))
-        (insert tag))))
-  
-  (defun vcs-quit (&optional _kill-buffer)
-    "Clean up magit buffers after quitting `magit-status'.
-    And don't forget to refresh version control in all buffers of
-    current workspace."
-    (interactive)
-    (quit-window)
-    (unless (cdr
-             (delq nil
-                   (mapcar (lambda (win)
-                             (with-selected-window win
-                               (eq major-mode 'magit-status-mode)))
-                           (window-list))))
-      (when (fboundp 'magit-mode-get-buffers)
-        (mapc #'vcs--kill-buffer (magit-mode-get-buffers)))))
-
-  (defun vcs--kill-buffer (buffer)
-    "Gracefully kill `magit' BUFFER.
-    If any alive process is related to this BUFFER, wait for 5
-    seconds before nuking BUFFER and the process. If it's dead -
-    don't wait at all."
-    (when (and (bufferp buffer) (buffer-live-p buffer))
-      (let ((process (get-buffer-process buffer)))
-	    (if (not (processp process))
-            (kill-buffer buffer)
-          (with-current-buffer buffer
-            (if (process-live-p process)
-		        (run-with-timer 5 nil #'vcs--kill-buffer buffer)
-              (kill-process process)
-              (kill-buffer buffer)))))))
-
-  (defun my/get-display-window
-  (source-window &optional create-if-needed)
-  (save-excursion
-    (goto-char (window-start source-window))
-    (or
-      (window-in-direction 'right source-window)
-      (let ((below-window (window-in-direction 'below source-window)))
-        (when (and below-window
-                   (not (window-minibuffer-p below-window)))
-          below-window))
-       (when create-if-needed
-         (split-window source-window nil 'below)))))
-
-  (defun my/magit-display-buffer (buffer alist)
-  (when-let ((target-window (my/get-display-window
-                              (selected-window) t)))
-    (set-window-buffer target-window buffer)
-    target-window))
+;;  :preface
   :init
+  ;; (setq magit-refresh-verbose t)        
   (setq magit-define-global-key-bindings nil)
   (setq magit-section-visibility-indicator '(magit-fringe-bitmap> . magit-fringe-bitmapv))
     ;; Have magit-status go full screen and quit to previous
@@ -522,4 +583,4 @@ mode.")
 ;;   (setq magit-repository-directories
 ;;         '(("~/work" . 2))))
 
-(provide 'frap-git)
+(provide 'frap-tools)
