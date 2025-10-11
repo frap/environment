@@ -467,8 +467,7 @@ are defining or executing a macro."
 	      ("M-g M-g" . consult-goto-line)
 	      ("M-K" . consult-keep-lines) ; M-S-k is similar to M-S-5 (M-%)
 	      ("M-F" . consult-focus-lines) ; same principle
-	      ("C-x b"   . my/consult-project-buffer-smart)
-              ;; ("C-x b"   . consult-buffer)
+          ;; ("C-x b"   . consult-buffer)
 	      ("M-s M-b" . my/consult-project-buffer-or-pick)
 	      ("M-s M-f" . consult-find)
 	      ("M-s M-g" . consult-grep)
@@ -480,12 +479,14 @@ are defining or executing a macro."
 	      ("M-s M-m" . consult-mark)
 	      ("M-s M-y" . consult-yank-pop)
 	      ("M-s M-s" . consult-outline)
-              :map ctl-x-map
-              ("c" . consult-prefix-map)
-              :map consult-prefix-map
-              ("r" . consult-recent-file)
-	          :map consult-narrow-map
-	          ("?" . consult-narrow-help))
+          :map ctl-x-map
+          ("c" . consult-prefix-map)
+          :map consult-prefix-map
+          ("r" . consult-recent-file)
+          ("b"   . my/consult-project-buffer-smart)
+
+	      :map consult-narrow-map
+	      ("?" . consult-narrow-help))
    :custom
   (consult-preview-key nil)
   :config
