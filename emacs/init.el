@@ -64,6 +64,9 @@
 (require 'init-ui)
 (require 'frap-modeline)
 
+;;; Tools - git, project, shell
+(require 'frap-tools)
+
 ;;; Minibuffer & Navigation
 (require  'frap-completion)
 
@@ -76,10 +79,6 @@
 
 ;;; Coding Languages
 (require 'frap-coding)
-
-;;; Tools - git, project, shell
-(require 'frap-git)
-;;(require 'init-tools)
 
 (require 'init-copilot)
 
