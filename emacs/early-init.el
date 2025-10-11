@@ -173,6 +173,7 @@
               (let ((elapsed (float-time (time-subtract (current-time) emacs-start-time))))
                 (message "[Emacs chargé dans %.3fs secondes avec %d ramasse-miettes]" elapsed gcs-done)))))
 
+(add-hook 'after-init-hook (lambda () (set-frame-name "casa")))
 
 (provide 'early-init)
 ;;; early-init.el ends here
