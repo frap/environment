@@ -287,18 +287,22 @@
   ;; way `use-package' does it is by wrapping a lambda around it that
   ;; then breaks `describe-key' for those keys.
   (prot-emacs-keybind global-map
-		      ;; Override the `set-fill-column' that I have no use for.
-		      "C-x f" #'other-frame-prefix
-		      ;; Bind Beframe commands to a prefix key. Notice the -map as I am
-		      ;; binding keymap here, not a command.
-		      "C-c b" #'beframe-prefix-map
-		      ;; Replace the generic `buffer-menu'.  With a prefix argument, this
-		      ;; commands prompts for a frame.  Call the `buffer-menu' via M-x if
-		      ;; you absolutely need the global list of buffers.
-		      "C-x C-b" #'beframe-buffer-menu
-		      ;; Not specific to Beframe, but since it renames frames (by means
-		      ;; of `beframe-mode') it is appropriate to have this here:
-		      "C-x B" #'select-frame-by-name))
+    	      ;; Override the `set-fill-column' that I have no use for.
+    	      "C-x f" #'other-frame-prefix
+    	      ;; Bind Beframe commands to a prefix key. Notice the -map as I am
+    	      ;; binding keymap here, not a command.
+    	      "C-c b" #'beframe-prefix-map
+    	      ;; Replace the generic `buffer-menu'.  With a prefix argument, this
+    	      ;; commands prompts for a frame.  Call the `buffer-menu' via M-x if
+    	      ;; you absolutely need the global list of buffers.
+    	      "C-x C-b" #'beframe-buffer-menu
+    	      ;; Not specific to Beframe, but since it renames frames (by means
+    	      ;; of `beframe-mode') it is appropriate to have this here:
+    	      "C-x B" #'select-frame-by-name))
+;; Bind Beframe commands to a prefix key, such as C-c b:
+;; (define-key global-map (kbd "C-c b") #'beframe-prefix-map)
+;; OR use the transient instead of the prefix map:
+;; (define-key global-map (kbd "C-c b") #'beframe-transient)
 
 ;;; Frame history (undelete-frame-mode)
 (use-package frame
