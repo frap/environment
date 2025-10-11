@@ -53,7 +53,7 @@
           (?d "Dired" project-dired)
           (?b "Buffer" project-switch-to-buffer)
           (?q "Query replace" project-query-replace-regexp)
-          (?v "magit" project-magit-status)
+          ;; (?v "magit" project-magit-status)
           (?k "Kill buffers" project-kill-buffers)
           (?! "Shell command" project-shell-command)
           (?e "Eshell" project-eshell)))
@@ -93,7 +93,7 @@ mode.")
   :config
   (setq project-list-file (file-name-concat user-cache-directory "projects"))
 
-    (defun project-magit-status ()
+  (defun project-magit-status ()
     "Run magit-status in the current project's root."
     (interactive)
     (magit-status-setup-buffer (project-root (project-current t))))
@@ -120,7 +120,8 @@ mode.")
                '(project-save-some-buffers "Save") t))
 
 (use-feature ibuffer
-  :bind (("C-x B" . my/ibuffer-project))
+  :disabled true
+  :bind (("C-x b" . my/ibuffer-project))
   :config
   ;; Don't show filter groups if there are no buffers in that group
   (setq ibuffer-show-empty-filter-groups nil)
@@ -196,7 +197,7 @@ mode.")
 ;;           (ibuffer-do-sort-by-recency))))))
 
 (use-package ibuffer-vc
-  ;; :disabled true
+  :disabled true
   :if (locate-library "ibuffer-vc")
   :ensure t
   :after ibuffer
@@ -555,9 +556,8 @@ If CREATE-IF-NEEDED is non-nil, split SOURCE-WINDOW below."
   (setq magit-format-file-function #'magit-format-file-nerd-icons)
   (add-to-list 'display-buffer-alist
                '("\\(magit-revision:\\|magit-diff:\\)"
-                 (my/magit-display-buffer)
-                 (inhibit-same-window . t)))
-  )
+                 (gas/magit-display-buffer)
+                 (inhibit-same-window . t))))
 
 (use-package magit
   :after project
