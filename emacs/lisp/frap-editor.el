@@ -288,7 +288,7 @@
 ;; The records are used to recreate that file/buffer inside of Emacs.
 ;; Use the bookmark-set command (C-x r m by default) to record a bookmark.
 ;; visit one of your bookmarks with bookmark-jump (C-x r b by default).
-((use-feature bookmark
+(use-feature bookmark
   :commands (bookmark-set bookmark-jump bookmark-bmenu-list)
   :hook (bookmark-bmenu-mode . hl-line-mode)
   :config
@@ -304,7 +304,7 @@
  
 ;;;; Delete selection
  ;; delete the selected text upon the insertion of new text
- (use-feature delsel
+(use-feature delsel
    :hook (after-init . delete-selection-mode))
 
 ;;;; `dictionary'
