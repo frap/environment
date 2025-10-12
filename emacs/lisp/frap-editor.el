@@ -986,11 +986,5 @@
   (setq xref-show-xrefs-function #'xref-show-definitions-buffer) ; for grep and the like
   (setq xref-file-name-display 'project-relative))
 
-;; some emacs commands are disabled by default
-;; Enable these
-(mapc
- (lambda (command)
-   (put command 'disabled nil))
- '(list-timers narrow-to-region narrow-to-page narrow-to-defun downcase-region scroll-left))
 
 (provide 'frap-editor)

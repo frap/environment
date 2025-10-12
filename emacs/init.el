@@ -17,15 +17,28 @@
 ;; (setq backup-inhibited nil) ; Not sure if needed, given `make-backup-files'
 ;; (setq create-lockfiles nil)
 
+;; Disable native compilation - new builds LD_LIBARRY path emacs-plus
+;; https://github.com/d12frosted/homebrew-emacs-plus/issues/378
+;; (setq native-comp-jit-compilation nil
+;;       package-native-compile nil
+;;       native-comp-async-report-warnings-errors nil
+;;       native-comp-enable-subr-trampolines nil)
 ;; native complilation is silent
 ;; Make native compilation silent and prune its cache.
-(when (native-comp-available-p)
-  (setq native-comp-async-report-warnings-errors 'silent) ; Emacs 28 with native compilation
-  (setq native-compile-prune-cache t))                    ; Emacs 29
+;; (when (native-comp-available-p)
+;;   (setq native-comp-async-report-warnings-errors 'silent) ; Emacs 28 with native compilation
+;;   (setq native-compile-prune-cache t))        
+                                        ; Emacs 29
 
 ;; Disable the damn thing by making it disposable.
 (setq custom-file (make-temp-file "emacs-custom-"))
 
+;; some emacs commands are disabled by default
+;; Enable these
+(mapc
+ (lambda (command)
+   (put command 'disabled nil))
+ '(list-timers narrow-to-region narrow-to-page narrow-to-defun downcase-region scroll-left))
 
 ;; And disable these
 (mapc
@@ -49,6 +62,10 @@
  (lambda (string)
    (add-to-list 'load-path (locate-user-emacs-file string)))
  '("prot-lisp" "lisp"))
+
+;; make the feature available before Alpaca tries to compile Magit
+;; (require 'compat)     ;; ensure recent compat is installed via Alpaca
+;; (require 'cond-let)   ;; satisfied by your shim in lisp/
 
 ;; * CORE
 
