@@ -1,6 +1,6 @@
 ;;; Mode line
 (use-package prot-modeline
-  ;; :disabled t
+  :disabled t
   :ensure nil
   :config
   (setq mode-line-compact nil) ; Emacs 28
@@ -59,20 +59,34 @@
              (emacs-lisp-mode "Ɛlisp" :major)))
  :delight)
 
+(use-package nerd-icons :ensure t)
 (use-package doom-modeline
-  :disabled t
+  ;; :disabled t
   :ensure t
-  :init
-  (setq doom-modeline-buffer-file-name-style 'truncate-upto-project
-        doom-modeline-modal-icon nil
-        doom-modeline-height 26
-        doom-modeline-persp-name nil
-        doom-modeline-major-mode-icon t
-        doom-modeline-minor-modes t
-        doom-modeline-buffer-encoding nil
-        doom-modeline-window-width-limit (- fill-column 10))
-  :config
-  (doom-modeline-mode 1))
+  :hook (after-init . doom-modeline-mode)
+  :custom
+  ;; Optional: tweak appearance
+  (doom-modeline-height 25)
+  (doom-modeline-bar-width 4)
+  (doom-modeline-minor-modes nil)
+  (doom-modeline-enable-word-count t)
+  (doom-modeline-buffer-file-name-style 'relative-to-project)
+  (doom-modeline-icon t)
+  (doom-modeline-major-mode-icon t)
+  (doom-modeline-buffer-encoding nil)
+  (doom-modeline-vcs-max-length 20)
+  (doom-modeline-lsp t)
+  (doom-modeline-env-version t)
+  ;; :init
+  ;; (setq doom-modeline-buffer-file-name-style 'truncate-upto-project
+  ;;       doom-modeline-modal-icon nil
+  ;;       doom-modeline-height 26
+  ;;       doom-modeline-persp-name nil
+  ;;       doom-modeline-major-mode-icon t
+  ;;       doom-modeline-minor-modes t
+  ;;       doom-modeline-buffer-encoding nil
+  ;;       doom-modeline-window-width-limit (- fill-column 10))
+  )
 
 ;;; Keycast mode
 (use-package keycast
