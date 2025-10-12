@@ -225,32 +225,10 @@ otherwise runs FALLBACK-BODY."
   :defer t
   :delight)
 
+(add-to-list 'treesit-language-source-alist
+             '(clojure "https://github.com/sogaiu/tree-sitter-clojure"))
 ;;; Mark syntactic constructs efficiently if tree-sitter is available (expreg)
 (when (treesit-available-p)
-  (use-package expreg
-    :ensure t
-    :functions (prot/expreg-expand prot/expreg-expand-dwim)
-    ;; There is also an `expreg-contract' command, though I have no use for it.
-    :bind ("C-M-SPC" . prot/expreg-expand-dwim) ; overrides `mark-sexp'
-    :config
-    (defun prot/expreg-expand (n)
-      "Expand to N syntactic units, defaulting to 1 if none is provided interactively."
-      (interactive "p")
-      (dotimes (_ n)
-	(expreg-expand)))
-
-    (defun prot/expreg-expand-dwim ()
-      "Do-What-I-Mean `expreg-expand' to start with symbol or word.
-If over a real symbol, mark that directly, else start with a
-word.  Fall back to regular `expreg-expand'."
-      (interactive)
-      (let ((symbol (bounds-of-thing-at-point 'symbol)))
-	(cond
-	 ((equal (bounds-of-thing-at-point 'word) symbol)
-	  (prot/expreg-expand 1))
-	 (symbol (prot/expreg-expand 2))
-	 (t (expreg-expand))))))
-
   (use-package treesit-auto
   :ensure t
   :custom
@@ -258,7 +236,7 @@ word.  Fall back to regular `expreg-expand'."
   :config
   (setq treesit-font-lock-level 4)
   (treesit-auto-add-to-auto-mode-alist 'all) ;; all known remappings
-  (global-treesit-auto-mode)))
+  (global-treesit-auto-mode 1)))
 
 ;;; lang major modes
 
@@ -267,6 +245,19 @@ word.  Fall back to regular `expreg-expand'."
   :ensure (:host github :repo "andreyorst/common-lisp-modes.el")
   :commands common-lisp-modes-mode ;; minor mode
   :delight " δ"
+  ;; Enable the minor mode in these major modes
+  :hook (((lisp-mode
+           emacs-lisp-mode
+           clojure-ts-mode
+           fennel-mode
+           racket-mode
+           cider-repl-mode
+           ;; shell-mode
+           eval-expression-minibuffer-setup) . common-lisp-modes-mode))
+
+  :bind ( :map common-lisp-modes-mode-map
+	      ("M-q" . indent-sexp-or-fill))
+  
   :preface
   (defun indent-sexp-or-fill ()
     "Indent an s-expression or fill string/comment."
@@ -278,17 +269,7 @@ word.  Fall back to regular `expreg-expand'."
 	    (save-excursion
 	      (mark-sexp)
 	      (indent-region (point) (mark))))))
-  (dolist (hook '(common-lisp-mode-hook
-                  clojure-ts-mode-hook
-                  cider-repl-mode
-                  emacs-lisp-mode-hook
-                  racket-mode-hook
-                  fennel-mode-hook
-                  ;; shell-mode-hook
-                  eval-expression-minibuffer-setup-hook))
-    (add-hook hook 'common-lisp-modes-mode))
-  :bind ( :map common-lisp-modes-mode-map
-	      ("M-q" . indent-sexp-or-fill))
+  
   :config
   (add-hook 'common-lisp-modes-mode-hook #'puni-mode)
   (add-hook 'common-lisp-modes-mode-hook #'rainbow-delimiters-mode))
@@ -524,8 +505,7 @@ See `cider-find-and-clear-repl-output' for more info."
   (defun my-terraform-mode-init ()
     ;; if you want to use outline-minor-mode
     (outline-minor-mode 1))
-  (add-hook 'terraform-mode-hook 'my-terraform-mode-init)
-  )
+  (add-hook 'terraform-mode-hook 'my-terraform-mode-init))
 
 (use-feature typescript-ts-mode
   :mode ("\\.ts\\'" . typescript-ts-mode)
