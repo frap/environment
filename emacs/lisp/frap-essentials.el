@@ -38,30 +38,30 @@
 (add-hook 'server-after-make-frame-hook 'setup-input)
 (add-hook 'after-init-hook 'setup-input)
 
-(defun doom-load-envvars-file (file &optional noerror)
-  "Read and set envvars from FILE.
-If NOERROR is non-nil, don't throw an error if the file doesn't exist or is
-unreadable. Returns the names of envvars that were changed."
-  (if (null (file-exists-p file))
-      (unless noerror
-        (signal 'file-error (list "Aucun fichier envvar n'existe" file)))
-    (with-temp-buffer
-      (insert-file-contents file)
-      (when-let (env (read (current-buffer)))
-        (let ((tz (getenv-internal "TZ")))
-          (setq-default
-           process-environment
-           (append env (default-value 'process-environment))
-           exec-path
-           (append (split-string (getenv "PATH") path-separator t)
-                   (list exec-directory))
-           shell-file-name
-           (or (getenv "SHELL")
-               (default-value 'shell-file-name)))
-          (when-let (newtz (getenv-internal "TZ"))
-            (unless (equal tz newtz)
-              (set-time-zone-rule newtz))))
-        env))))
+;; (defun doom-load-envvars-file (file &optional noerror)
+;;   "Read and set envvars from FILE.
+;; If NOERROR is non-nil, don't throw an error if the file doesn't exist or is
+;; unreadable. Returns the names of envvars that were changed."
+;;   (if (null (file-exists-p file))
+;;       (unless noerror
+;;         (signal 'file-error (list "Aucun fichier envvar n'existe" file)))
+;;     (with-temp-buffer
+;;       (insert-file-contents file)
+;;       (when-let* (env (read (current-buffer)))
+;;         (let ((tz (getenv-internal "TZ")))
+;;           (setq-default
+;;            process-environment
+;;            (append env (default-value 'process-environment))
+;;            exec-path
+;;            (append (split-string (getenv "PATH") path-separator t)
+;;                    (list exec-directory))
+;;            shell-file-name
+;;            (or (getenv "SHELL")
+;;                (default-value 'shell-file-name)))
+;;           (when-let* (newtz (getenv-internal "TZ"))
+;;             (unless (equal tz newtz)
+;;               (set-time-zone-rule newtz))))
+;;         env))))
 
 ;; use-package is built-in as of Emacs 29, but since we use :bind, we
 ;; need to load bind-key. If we forget, we get the error: Symbol's
@@ -69,6 +69,9 @@ unreadable. Returns the names of envvars that were changed."
 (use-package bind-key
   :ensure nil
   :demand t)
+
+;; C-a is defined as common-lisp-modes-command in puni
+(autoload 'common-lisp-modes-mode "common-lisp-modes" nil t)
 
 ;;; Essential configurations
 (use-package emacs

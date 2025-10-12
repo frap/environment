@@ -94,6 +94,21 @@
 ;;                  (org-babel-tangle))
 ;;               nil t)))
 
+;; Temporarily turn off native compilation entirely
+(setq native-comp-jit-compilation nil
+      package-native-compile nil
+      native-comp-async-report-warnings-errors nil
+      native-comp-enable-subr-trampolines nil)
+
+;; Homebrew GCC/libgccjit path wiring (Apple Silicon)
+(setenv "LIBRARY_PATH"
+	(mapconcat 'identity
+	           '(
+                 "/opt/homebrew/lib"
+                 "/opt/homebrew/opt/gcc/lib/gcc/current"
+                "/opt/homebrew/Cellar/libgccjit/15.2.0/lib/gcc/current")
+         ":"))
+
 ;; Temporarily increase the garbage collection threshold.  These
 ;; changes help shave off about half a second of startup time.  The
 ;; `most-positive-fixnum' is DANGEROUS AS A PERMANENT VALUE.  See the

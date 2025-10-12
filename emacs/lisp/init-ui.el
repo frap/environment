@@ -4,10 +4,10 @@
 ;; 'doom env' generates an envvar file. This is a snapshot of your shell
 ;; environment, which Doom loads here. This is helpful in scenarios where Emacs
 ;; is launched from an environment detached from the user's shell environment.
-(when (and (or initial-window-system
-               (daemonp))
-           doom-env-file)
-  (doom-load-envvars-file doom-env-file 'noerror))
+;; (when (and (or initial-window-system
+;;                (daemonp))
+;;            doom-env-file)
+;;   (doom-load-envvars-file doom-env-file 'noerror))
 
 ;; utility hooks and functions from Doom Emacs
 ;; (use-package on
