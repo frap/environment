@@ -365,7 +365,7 @@ face.  Let other buffers have no face.")
   (let ((indicator (cond
                     ((derived-mode-p 'text-mode) "§")
                     ((derived-mode-p 'prog-mode) "λ")
-		    ;; ((derived-mode-p 'emacs-lisp-mode) "Ɛ")
+		            ((derived-mode-p 'emacs-lisp-mode) "Ɛ")
                     ((derived-mode-p 'comint-mode) ">_")
                     (t "◦"))))
     (propertize indicator 'face 'shadow)))
