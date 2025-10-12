@@ -120,8 +120,7 @@ mode.")
                '(project-save-some-buffers "Save") t))
 
 (use-feature ibuffer
-  :disabled true
-  :bind (("C-x b" . my/ibuffer-project))
+  :bind (("C-x C-b" . my/ibuffer-project))
   :config
   ;; Don't show filter groups if there are no buffers in that group
   (setq ibuffer-show-empty-filter-groups nil)
@@ -197,7 +196,6 @@ mode.")
 ;;           (ibuffer-do-sort-by-recency))))))
 
 (use-package ibuffer-vc
-  :disabled true
   :if (locate-library "ibuffer-vc")
   :ensure t
   :after ibuffer
@@ -361,12 +359,19 @@ mode.")
 ;; 
 ;;   (setq agitate-log-edit-informative-show-root-log nil
 ;;         agitate-log-edit-informative-show-files nil))
+(use-package cond-let
+  :ensure (:host github :repo "tarsius/cond-let"))
+
+(use-package llama
+  :ensure (:host github :repo "tarsius/llama"))
 
 ;;; Interactive and powerful git front-end (Magit)
 (use-package transient
+  :ensure (:host github :repo "magit/transient")
   :defer t
   :config
-  (setq transient-show-popup 0.3))
+  (setq transient-show-popup 0.2))
+(use-package with-editor :ensure (:host github :repo "magit/with-editor"))     
 
 (defgroup gas/vcs nil
   "VCS utilities."
@@ -398,7 +403,7 @@ mode.")
   "Return non-nil if BUFFER is safe for Magit cleanup to kill."
   (and (buffer-live-p buffer)
        (not (minibufferp buffer))
-       (not (string-match-p my/vcs-protected-buffers-regexp (buffer-name buffer)))
+       (not (string-match-p gas/vcs-protected-buffers-regexp (buffer-name buffer)))
        (vcs--magit-buffer-p buffer)))
 
 (defun vcs--kill-buffer (buffer)
@@ -407,6 +412,7 @@ Live processes get a 5s grace and are retried."
   (when (vcs--killable-buffer-p buffer)
     (let ((process (get-buffer-process buffer)))
       (cond
+       
        ((not (processp process))
         (kill-buffer buffer))
        ((process-live-p process)
@@ -454,7 +460,7 @@ If CREATE-IF-NEEDED is non-nil, split SOURCE-WINDOW below."
 
 (defun gas/magit-display-buffer (buffer _alist)
   "Display Magit BUFFER in a neighbor window chosen by `my/get-display-window'."
-  (when-let ((target (gas/get-display-window (selected-window) t)))
+  (when-let* ((target (gas/get-display-window (selected-window) t)))
     (set-window-buffer target buffer)
     target))
 
@@ -472,7 +478,7 @@ If CREATE-IF-NEEDED is non-nil, split SOURCE-WINDOW below."
   ;;        (split-window source-window nil 'below)))))
 
   ;; (defun my/magit-display-buffer (buffer alist)
-  ;; (when-let ((target-window (my/get-display-window
+  ;; (when-let* ((target-window (my/get-display-window
   ;;                             (selected-window) t)))
   ;;   (set-window-buffer target-window buffer)
   ;;   target-window))
@@ -491,7 +497,7 @@ If CREATE-IF-NEEDED is non-nil, split SOURCE-WINDOW below."
       (insert tag))))
 
 (use-package magit
-  :ensure t
+  :ensure (:host github :repo "magit/magit")
   :custom
   (magit-git-executable "/opt/homebrew/bin/git")
   :hook ((git-commit-mode . flyspell-mode)
@@ -516,12 +522,12 @@ If CREATE-IF-NEEDED is non-nil, split SOURCE-WINDOW below."
   ;; configuration.  Taken from
   ;; http://whattheemacsd.com/setup-magit.el-01.html#comment-748135498
   ;; and http://irreal.org/blog/?p=2253
-  (defadvice magit-status (around magit-fullscreen activate)
-    (window-configuration-to-register :magit-fullscreen)
-    ad-do-it
-    (delete-other-windows))
-  (defadvice magit-quit-window (after magit-restore-screen activate)
-    (jump-to-register :magit-fullscreen))
+  ;; (defadvice magit-status (around magit-fullscreen activate)
+  ;;   (window-configuration-to-register :magit-fullscreen)
+  ;;   ad-do-it
+  ;;   (delete-other-windows))
+  ;; (defadvice magit-quit-window (after magit-restore-screen activate)
+  ;;   (jump-to-register :magit-fullscreen))
   :config
   ;; (setq magit-refresh-verbose t)
   ;; (remove-hook 'magit-status-sections-hook 'magit-insert-tags-header)
@@ -554,10 +560,11 @@ If CREATE-IF-NEEDED is non-nil, split SOURCE-WINDOW below."
 
   ;; Show icons for files in the Magit status and other buffers.
   (setq magit-format-file-function #'magit-format-file-nerd-icons)
-  (add-to-list 'display-buffer-alist
-               '("\\(magit-revision:\\|magit-diff:\\)"
-                 (gas/magit-display-buffer)
-                 (inhibit-same-window . t))))
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '("\\(magit-revision:\\|magit-diff:\\)"
+  ;;                (gas/magit-display-buffer)
+  ;;                (inhibit-same-window . t)))
+  )
 
 (use-package magit
   :after project
