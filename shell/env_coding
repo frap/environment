@@ -2,7 +2,7 @@
 # +-------------+
 # |    GCC      |
 # +-------------+
-export LIBRARY_PATH="/opt/homebrew/lib:/opt/homebrew/opt/gcc/lib/gcc/current:$LIBRARY_PATH"
+export LIBRARY_PATH="/opt/homebrew/lib:/opt/homebrew/opt/gcc/lib/gcc/current:/opt/homebrew/Cellar/libgccjit/15.2.0/lib/gcc/current/:$LIBRARY_PATH"
 
 # Setup some apps for XDG_CONFIG
 # +-------------+
