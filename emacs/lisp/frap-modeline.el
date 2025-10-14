@@ -1,6 +1,5 @@
 ;;; Mode line
 (use-package prot-modeline
-  :disabled t
   :ensure nil
   :config
   (setq mode-line-compact nil) ; Emacs 28
@@ -59,9 +58,8 @@
              (emacs-lisp-mode "Ɛlisp" :major)))
  :delight)
 
-(use-package nerd-icons :ensure t)
 (use-package doom-modeline
-  ;; :disabled t
+  :disabled t
   :ensure t
   :hook (after-init . doom-modeline-mode)
   :custom
