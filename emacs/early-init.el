@@ -15,7 +15,7 @@
       frame-inhibit-implied-resize 'force
       frame-title-format '("%b")
       ring-bell-function 'ignore
-      use-dialog-box t     ; only for mouse events, which I seldom use
+      use-dialog-box t               ; only for mouse events, which I seldom use
       use-file-dialog nil
       use-short-answers t
       inhibit-splash-screen t
@@ -95,19 +95,10 @@
 ;;               nil t)))
 
 ;; Temporarily turn off native compilation entirely
-(setq native-comp-jit-compilation nil
-      package-native-compile nil
-      native-comp-async-report-warnings-errors nil
-      native-comp-enable-subr-trampolines nil)
-
-;; Homebrew GCC/libgccjit path wiring (Apple Silicon)
-(setenv "LIBRARY_PATH"
-	(mapconcat 'identity
-	           '(
-                 "/opt/homebrew/lib"
-                 "/opt/homebrew/opt/gcc/lib/gcc/current"
-                "/opt/homebrew/Cellar/libgccjit/15.2.0/lib/gcc/current")
-         ":"))
+;; (setq native-comp-jit-compilation nil
+;;       package-native-compile nil
+;;       native-comp-async-report-warnings-errors nil
+;;       native-comp-enable-subr-trampolines nil)
 
 ;; Temporarily increase the garbage collection threshold.  These
 ;; changes help shave off about half a second of startup time.  The
@@ -174,13 +165,6 @@
 ;;   (defvar native-comp-async-report-warnings-errors)
 ;;   (setq native-comp-async-report-warnings-errors 'silent))
 
-;; Initialise installed packages at this early stage, by using the
-;; available cache.  I had tried a setup with this set to nil in the
-;; early-init.el, but (i) it ended up being slower and (ii) various
-;; package commands, like `describe-package', did not have an index of
-;; packages to work with, requiring a `package-refresh-contents'.
-(setq package-enable-at-startup t)
-
 ;; startup time
 (let ((emacs-start-time (current-time)))
   (add-hook 'emacs-startup-hook
@@ -190,5 +174,9 @@
 
 (add-hook 'after-init-hook (lambda () (set-frame-name "casa")))
 
+;; required for elpaca
+(setq package-enable-at-startup nil)
+
 (provide 'early-init)
 ;;; early-init.el ends here
+

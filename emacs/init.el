@@ -10,28 +10,45 @@
 ;;; Code:
 ;; Produce backtraces when errors occur: can be helpful to diagnose
 ;; startup issues
-;;(setq debug-on-error t)
+;; make errors loud
+;; (setq init-file-debug t
+;;       debug-on-signal t
+;;       message-log-max 100000
+;;       ;; warning-minimum-level :debug
+;;       load-prefer-newer t)
+
+;; show every `load` during init in *Messages*
+;;(setq debug-on-error t)			
 
 ;; Disable backups and lockfiles
-;; (setq make-backup-files nil)
-;; (setq backup-inhibited nil) ; Not sure if needed, given `make-backup-files'
-;; (setq create-lockfiles nil)
-
-;; Disable native compilation - new builds LD_LIBARRY path emacs-plus
-;; https://github.com/d12frosted/homebrew-emacs-plus/issues/378
-;; (setq native-comp-jit-compilation nil
-;;       package-native-compile nil
-;;       native-comp-async-report-warnings-errors nil
-;;       native-comp-enable-subr-trampolines nil)
-;; native complilation is silent
-;; Make native compilation silent and prune its cache.
-;; (when (native-comp-available-p)
-;;   (setq native-comp-async-report-warnings-errors 'silent) ; Emacs 28 with native compilation
-;;   (setq native-compile-prune-cache t))        
-                                        ; Emacs 29
+(setq make-backup-files nil)
+(setq backup-inhibited nil) ; Not sure if needed, given `make-backup-files'
+(setq create-lockfiles nil)
 
 ;; Disable the damn thing by making it disposable.
 (setq custom-file (make-temp-file "emacs-custom-"))
+
+;; * PATHS
+;; Adds ~/.config/emacs/lisp and protesilaos modules to the load-path
+(mapc
+ (lambda (string)
+   (add-to-list 'load-path (locate-user-emacs-file string)))
+ '("prot-lisp" "lisp"))
+
+;; start with *scratch* buffer
+(setq initial-buffer-choice t)
+(setq initial-major-mode 'lisp-interaction-mode)
+(setq initial-scratch-message
+      (format ";; This is `%s'.  Use `%s' to evaluate and print results.\n\n"
+              'lisp-interaction-mode
+              (propertize
+               (substitute-command-keys "\\<lisp-interaction-mode-map>\\[eval-print-last-sexp]")
+               'face 'help-key-binding)))
+
+;; * CORE
+  
+;;; Package Management
+(require 'init-elpa)
 
 ;; some emacs commands are disabled by default
 ;; Enable these
@@ -45,32 +62,6 @@
  (lambda (command)
    (put command 'disabled t))
  '(eshell project-eshell overwrite-mode iconify-frame diary))
-
-;; start with *scratch* buffer
-(setq initial-buffer-choice t)
-(setq initial-major-mode 'lisp-interaction-mode)
-(setq initial-scratch-message
-      (format ";; This is `%s'.  Use `%s' to evaluate and print results.\n\n"
-              'lisp-interaction-mode
-              (propertize
-               (substitute-command-keys "\\<lisp-interaction-mode-map>\\[eval-print-last-sexp]")
-               'face 'help-key-binding)))
-
-;; * PATHS
-;; Adds ~/.config/emacs/lisp and protesilaos modules to the load-path
-(mapc
- (lambda (string)
-   (add-to-list 'load-path (locate-user-emacs-file string)))
- '("prot-lisp" "lisp"))
-
-;; make the feature available before Alpaca tries to compile Magit
-;; (require 'compat)     ;; ensure recent compat is installed via Alpaca
-;; (require 'cond-let)   ;; satisfied by your shim in lisp/
-
-;; * CORE
-
-;;; Package Management
-(require 'init-elpa)
 
 (defmacro prot-emacs-keybind (keymap &rest definitions)
   "Expand key binding DEFINITIONS for the given KEYMAP.
@@ -91,32 +82,31 @@ DEFINITIONS is a sequence of string and command pairs."
                 `(define-key map (kbd ,key) ,command))))
           (cl-mapcar #'cons keys commands)))))
 
+(use-package exec-path-from-shell
+  :ensure t
+  :config
+  (when (memq window-system '(mac ns))
+    (setq exec-path-from-shell-variables '("PATH" "MANPATH" "LIBRARY_PATH" "UV_PYTHON"))
+    (exec-path-from-shell-initialize)))
 
 ;; Optimisations and Defaults to make Emacs more responsive. These are mostly copied from
 ;; Doom Emacs.
 ;; (require 'setup-core)
 (require 'frap-essentials)
 
-;; UI
-(require 'init-ui)
-(require 'frap-modeline)
-
-;;; Tools - git, project, shell
-(require 'frap-tools)
-
 ;;; Minibuffer & Navigation
 (require  'frap-completion)
-
-;; (require 'init-files-buffers)
-;; (require 'prot-emacs-dired)
-(require 'prot-emacs-window)
 
 ;;; Editor Text
 (require 'frap-editor)
 
+;; UI
+(require 'prot-emacs-window)
+(require 'frap-modeline)
+(require 'init-ui)
+
 ;;; Coding Languages
 (require 'frap-coding)
-
 (require 'init-copilot)
 
 ;; Personal
@@ -124,6 +114,11 @@ DEFINITIONS is a sequence of string and command pairs."
   (load-library "personal")
   (setq user-full-name my-full-name)
   (setq user-mail-address my-email-address))
+
+
+;;; Tools - git, project, shell
+(require 'frap-tools)
+
 
 ;; (require 'setup-shells)
 
