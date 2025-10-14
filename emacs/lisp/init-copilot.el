@@ -1,5 +1,5 @@
 
-;;; lisp/init-copilot.el --- CoPiloting -*- lexical-binding: t -*-
+;;; lisp/init-copilot.el --- CoPiloting  -*- lexical-binding: t; -*-
 ;; always in copilot-disable-predicates turns off automatic
 ;; completion. We can still reach it from M-`, which is chosen to be
 ;; close to M-TAB and bound to a menubar command I don’t ever use.
