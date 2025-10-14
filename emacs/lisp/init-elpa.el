@@ -2,6 +2,22 @@
 ;;; Commentary:
 ;;; Code:
 
+;; Disable native compilation - new builds LD_LIBARRY path emacs-plus
+;; https://github.com/d12frosted/homebrew-emacs-plus/issues/378
+;; (setq native-comp-jit-compilation nil
+;;      package-native-compile nil
+;;      native-comp-async-report-warnings-errors nil
+;;      native-comp-enable-subr-trampolines nil
+;;      load-prefer-newer t)
+
+;; native complilation is silent
+;; Make native compilation silent and prune its cache.
+ (when (native-comp-available-p)
+   (setq native-comp-async-report-warnings-errors 'silent) ; Emacs 28 with native compilation
+   (setq native-compile-prune-cache t)
+   (setq load-prefer-newer t))
+
+
 ;; * PACKAGE MANAGEMENT
 ;; ;; ** ELPACA
 (defvar elpaca-installer-version 0.11)
@@ -12,6 +28,7 @@
                               :ref nil :depth 1 :inherit ignore
                               :files (:defaults "elpaca-test.el" (:exclude "extensions"))
                               :build (:not elpaca--activate-package)))
+
 (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
        (build (expand-file-name "elpaca/" elpaca-builds-directory))
        (order (cdr elpaca-order))
@@ -43,39 +60,15 @@
 (add-hook 'after-init-hook #'elpaca-process-queues)
 (elpaca `(,@elpaca-order))
 
-
 ;; Elpaca use-package support
 (elpaca elpaca-use-package
   ;; Enable use-package :ensure support for Elpaca.
   (elpaca-use-package-mode)
   ;; Assume :elpaca t unless otherwise specified.
-  (setq elpaca-use-package-by-default t)
-  )
+  (setq elpaca-use-package-by-default t))
 
 ;; Block until current queue processed.
-;; (elpaca-wait)
-
-;; (use-feature elpaca-ui
-;;   :ensure nil
-;;   :bind (:map elpaca-ui-mode-map
-;;               ("p" . previous-line)
-;;               ("F" . elpaca-ui-mark-pull))
-;;   :after popper
-;;   :init
-;;   (add-to-list 'popper-reference-buffers
-;;                'elpaca-log-mode)
-;;   (setf (alist-get (lambda (buf &rest _)
-;;                      (eq
-;;                       (buffer-local-value 'major-mode
-;;                                           (get-buffer buf))
-;;                       'elpaca-log-mode))
-;;                    display-buffer-alist)
-;;         '((display-buffer-at-bottom
-;;            display-buffer-in-side-window)
-;;           (side . bottom)
-;;           (slot . 60)
-;;           (window-height . 0.4)
-;;           (body-function . select-window))))
+(elpaca-wait)
 
 ;; Add `:doc' support for use-package so that we can use it like what a doc-strings is for
 (eval-and-compile
@@ -113,6 +106,28 @@
         ;; use-package-expand-minimally t
         use-package-enable-imenu-support t)
   (require 'use-package))
+
+(use-feature elpaca-ui
+  :ensure nil
+  :bind (:map elpaca-ui-mode-map
+              ("p" . previous-line)
+              ("F" . elpaca-ui-mark-pull))
+  :after popper
+  :init
+  (add-to-list 'popper-reference-buffers
+               'elpaca-log-mode)
+  (setf (alist-get (lambda (buf &rest _)
+                     (eq
+                      (buffer-local-value 'major-mode
+                                          (get-buffer buf))
+                      'elpaca-log-mode))
+                   display-buffer-alist)
+        '((display-buffer-at-bottom
+           display-buffer-in-side-window)
+          (side . bottom)
+          (slot . 60)
+          (window-height . 0.4)
+          (body-function . select-window))))
 
 ;;; Security
 ;; For the love of all that is holy, do not continue with untrusted
