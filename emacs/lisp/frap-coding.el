@@ -225,8 +225,13 @@ otherwise runs FALLBACK-BODY."
   :defer t
   :delight)
 
-(add-to-list 'treesit-language-source-alist
-             '(clojure "https://github.com/sogaiu/tree-sitter-clojure"))
+(eval-and-compile
+  ;; Define it so “void-variable” can’t happen if treesit isn't loaded yet.
+  (defvar treesit-language-source-alist nil))
+
+(with-eval-after-load 'treesit
+      (add-to-list 'treesit-language-source-alist
+             '(clojure "https://github.com/sogaiu/tree-sitter-clojure")))
 ;;; Mark syntactic constructs efficiently if tree-sitter is available (expreg)
 (when (treesit-available-p)
   (use-package treesit-auto
@@ -234,6 +239,10 @@ otherwise runs FALLBACK-BODY."
   :custom
   (treesit-auto-install 'prompt) ;; auto install missing grammars with prompt
   :config
+  (setq major-mode-remap-alist
+      '((clojure-mode . clojure-ts-mode)
+        (clojurescript-mode . clojure-ts-mode)
+        (clojurec-mode . clojure-ts-mode)))
   (setq treesit-font-lock-level 4)
   (treesit-auto-add-to-auto-mode-alist 'all) ;; all known remappings
   (global-treesit-auto-mode 1)))
@@ -242,7 +251,7 @@ otherwise runs FALLBACK-BODY."
 
 ;;;; Common Lisp Modes Mode
 (use-package common-lisp-modes
-  :ensure (:host github :repo "andreyorst/common-lisp-modes.el")
+  :ensure (:host gitlab :repo "andreyorst/common-lisp-modes.el")
   :commands common-lisp-modes-mode ;; minor mode
   :delight " δ"
   ;; Enable the minor mode in these major modes
