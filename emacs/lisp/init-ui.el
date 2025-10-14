@@ -97,6 +97,42 @@
 ;;   (add-hook 'kill-buffer-query-functions #'+scratch-immortal)
 ;;   )
 
+;; doom-modeline dropped all-the-icons support in favor of nerd-icons
+;;; Icons
+(use-package nerd-icons
+  :ensure t)
+
+(use-package nerd-icons-completion
+  :ensure t
+  :if (display-graphic-p)
+  :after marginalia
+  ;; FIXME 2024-09-01: For some reason this stopped working because it
+  ;; macroexpands to `marginalia-mode' instead of
+  ;; `marginalia-mode-hook'.  What is more puzzling is that this does
+  ;; not happen in the next :hook...
+  ;; :hook (marginalia-mode . nerd-icons-completion-marginalia-setup))
+  :config
+  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+
+(use-package nerd-icons-corfu
+  :ensure t
+  :if (display-graphic-p)
+  :after corfu
+  :config
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+
+(use-package nerd-icons-dired
+  :ensure t
+  :if (display-graphic-p)
+  :hook
+  (dired-mode . nerd-icons-dired-mode))
+
+(use-feature pixel-scroll
+  :when (fboundp #'pixel-scroll-precision-mode)
+  :hook (after-init . pixel-scroll-precision-mode)
+  :custom
+  (scroll-margin 0))
+
 ;;;; Pulsar
 ;; Read the pulsar manual: <https://protesilaos.com/emacs/pulsar>.
 (use-package pulsar
@@ -243,36 +279,6 @@
   ;; We have to use the "point" mnemonic, because C-c c is often the
   ;; suggested binding for `org-capture' and is the one I use as well.
   ("C-c p" . cursory-set-preset))
-
-;;;; Theme buffet
-(use-package theme-buffet
-  :ensure t
-  :after (:any modus-themes ef-themes)
-  :defer 1
-  :config
-  (let ((modus-themes-p (featurep 'modus-themes))
-        (ef-themes-p (featurep 'ef-themes)))
-    (setq theme-buffet-menu 'end-user)
-    (setq theme-buffet-end-user
-          (cond
-           ((and modus-themes-p ef-themes-p)
-            '( :night     (modus-vivendi ef-dark ef-winter ef-autumn ef-night ef-duo-dark ef-symbiosis)
-               :morning   (modus-operandi ef-light ef-cyprus ef-spring ef-frost ef-duo-light)
-               :afternoon (modus-operandi-tinted ef-arbutus ef-day ef-kassio ef-summer ef-elea-light ef-maris-light ef-melissa-light ef-trio-light ef-reverie)
-               :evening   (modus-vivendi-tinted ef-rosa ef-elea-dark ef-maris-dark ef-melissa-dark ef-trio-dark ef-dream)))
-           (ef-themes-p
-            '( :night     (ef-dark ef-winter ef-autumn ef-night ef-duo-dark ef-symbiosis ef-owl)
-               :morning   (ef-light ef-cyprus ef-spring ef-frost ef-duo-light ef-eagle)
-               :afternoon (ef-arbutus ef-day ef-kassio ef-summer ef-elea-light ef-maris-light ef-melissa-light ef-trio-light ef-reverie)
-               :evening   (ef-rosa ef-elea-dark ef-maris-dark ef-melissa-dark ef-trio-dark ef-dream)))
-           (modus-themes-p
-            '( :night     (modus-vivendi modus-vivendi-tinted modus-vivendi-tritanopia modus-vivendi-deuteranopia)
-               :morning   (modus-operandi modus-operandi-tinted modus-operandi-tritanopia modus-operandi-deuteranopia)
-               :afternoon (modus-operandi modus-operandi-tinted modus-operandi-tritanopia modus-operandi-deuteranopia)
-               :evening   (modus-vivendi modus-vivendi-tinted modus-vivendi-tritanopia modus-vivendi-deuteranopia)))))
-
-    (when (or modus-themes-p ef-themes-p)
-      (theme-buffet-timer-hours 1))))
 
 ;;;; Show Font (preview fonts)
 ;; Read the manual: <https://protesilaos.com/emacs/show-font>
@@ -751,49 +757,8 @@ x×X .,·°;:¡!¿?`'‘’   ÄAÃÀ TODO
 ;;   :config
 ;;   (load-theme local-config-light-theme t))
 
-(use-package doom-themes
-  :ensure t)
-
-;; doom-modeline dropped all-the-icons support in favor of nerd-icons
-;;; Icons
-(use-package nerd-icons
-  :ensure t)
-
-(use-package nerd-icons-completion
-  :ensure t
-  :if (display-graphic-p)
-  :after marginalia
-  ;; FIXME 2024-09-01: For some reason this stopped working because it
-  ;; macroexpands to `marginalia-mode' instead of
-  ;; `marginalia-mode-hook'.  What is more puzzling is that this does
-  ;; not happen in the next :hook...
-  ;; :hook (marginalia-mode . nerd-icons-completion-marginalia-setup))
-  :config
-  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
-
-(use-package nerd-icons-corfu
-  :ensure t
-  :if (display-graphic-p)
-  :after corfu
-  :config
-  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
-
-(use-package nerd-icons-dired
-  :ensure t
-  :if (display-graphic-p)
-  :hook
-  (dired-mode . nerd-icons-dired-mode))
-
-;; Prevent bold in icons
-(with-eval-after-load 'nerd-icons-completion
-  (+customize-faces-by-prefix "nerd-icons-" :weight regular))
-
-(use-feature pixel-scroll
-  :when (fboundp #'pixel-scroll-precision-mode)
-  :hook (after-init . pixel-scroll-precision-mode)
-  :custom
-  (scroll-margin 0))
-
+;; (use-package doom-themes
+;;   :ensure t)
 
 ;; paste in text terminalform gui
 (when (and (not (display-graphic-p))
@@ -874,6 +839,37 @@ x×X .,·°;:¡!¿?`'‘’   ÄAÃÀ TODO
 ;; ;; Font lock of special Dash variables (it, acc, etc.). Comes default with Emacs.
 ;; (global-dash-fontify-mode)
 (when window-system (global-prettify-symbols-mode t))
+
+(use-package ef-themes :ensure t)
+;;;; Theme buffet
+(use-package theme-buffet
+  :ensure t
+  :after modus-themes
+  :defer 1
+  :config
+  (let ((modus-themes-p (featurep 'modus-themes))
+        (ef-themes-p (featurep 'ef-themes)))
+    (setq theme-buffet-menu 'end-user)
+    (setq theme-buffet-end-user
+          (cond
+           ((and modus-themes-p ef-themes-p)
+            '( :night     (modus-vivendi ef-dark ef-winter ef-autumn ef-night ef-duo-dark ef-symbiosis)
+               :morning   (modus-operandi ef-light ef-cyprus ef-spring ef-frost ef-duo-light)
+               :afternoon (modus-operandi-tinted ef-arbutus ef-day ef-kassio ef-summer ef-elea-light ef-maris-light ef-melissa-light ef-trio-light ef-reverie)
+               :evening   (modus-vivendi-tinted ef-rosa ef-elea-dark ef-maris-dark ef-melissa-dark ef-trio-dark ef-dream)))
+           (ef-themes-p
+            '( :night     (ef-dark ef-winter ef-autumn ef-night ef-duo-dark ef-symbiosis ef-owl)
+               :morning   (ef-light ef-cyprus ef-spring ef-frost ef-duo-light ef-eagle)
+               :afternoon (ef-arbutus ef-day ef-kassio ef-summer ef-elea-light ef-maris-light ef-melissa-light ef-trio-light ef-reverie)
+               :evening   (ef-rosa ef-elea-dark ef-maris-dark ef-melissa-dark ef-trio-dark ef-dream)))
+           (modus-themes-p
+            '( :night     (modus-vivendi modus-vivendi-tinted modus-vivendi-tritanopia modus-vivendi-deuteranopia)
+               :morning   (modus-operandi modus-operandi-tinted modus-operandi-tritanopia modus-operandi-deuteranopia)
+               :afternoon (modus-operandi modus-operandi-tinted modus-operandi-tritanopia modus-operandi-deuteranopia)
+               :evening   (modus-vivendi modus-vivendi-tinted modus-vivendi-tritanopia modus-vivendi-deuteranopia)))))
+
+    (when (or modus-themes-p ef-themes-p)
+      (theme-buffet-timer-hours 1))))
 
 (provide 'init-ui)
 ;;; init-ui.el ends here
