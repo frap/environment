@@ -359,19 +359,8 @@ mode.")
 ;; 
 ;;   (setq agitate-log-edit-informative-show-root-log nil
 ;;         agitate-log-edit-informative-show-files nil))
-(use-package cond-let
-  :ensure (:host github :repo "tarsius/cond-let"))
-
-(use-package llama
-  :ensure (:host github :repo "tarsius/llama"))
 
 ;;; Interactive and powerful git front-end (Magit)
-(use-package transient
-  :ensure (:host github :repo "magit/transient")
-  :defer t
-  :config
-  (setq transient-show-popup 0.2))
-(use-package with-editor :ensure (:host github :repo "magit/with-editor"))     
 
 (defgroup gas/vcs nil
   "VCS utilities."
@@ -439,137 +428,172 @@ once no Magit status windows remain."
       (dolist (buf (magit-mode-get-buffers))
         (vcs--kill-buffer buf)))))
 
-(defun gas/get-display-window (source-window &optional create-if-needed)
-  "Return a good window to display Magit aux buffers near SOURCE-WINDOW.
-Prefer a right neighbor, then a non-minibuffer, non-dedicated window below.
-If CREATE-IF-NEEDED is non-nil, split SOURCE-WINDOW below."
-  (let* ((valid-win-p
-          (lambda (w)
-            (and w (window-live-p w)
-                 (not (window-minibuffer-p w))
-                 (not (window-dedicated-p w))))))
-    (or
-     (let ((right (window-in-direction 'right source-window)))
-       (when (funcall valid-win-p right) right))
-     (let ((below (window-in-direction 'below source-window)))
-       (when (funcall valid-win-p below) below))
-     (when create-if-needed
-       (when (window-live-p source-window)
-         (let ((new (split-window source-window nil 'below)))
-           (when (funcall valid-win-p new) new)))))))
-
-(defun gas/magit-display-buffer (buffer _alist)
-  "Display Magit BUFFER in a neighbor window chosen by `my/get-display-window'."
-  (when-let* ((target (gas/get-display-window (selected-window) t)))
-    (set-window-buffer target buffer)
-    target))
-
-  ;; (defun my/get-display-window
-  ;; (source-window &optional create-if-needed)
-  ;; (save-excursion
-  ;;   (goto-char (window-start source-window))
-  ;;   (or
-  ;;     (window-in-direction 'right source-window)
-  ;;     (let ((below-window (window-in-direction 'below source-window)))
-  ;;       (when (and below-window
-  ;;                  (not (window-minibuffer-p below-window)))
-  ;;         below-window))
-  ;;      (when create-if-needed
-  ;;        (split-window source-window nil 'below)))))
-
-  ;; (defun my/magit-display-buffer (buffer alist)
-  ;; (when-let* ((target-window (my/get-display-window
-  ;;                             (selected-window) t)))
-  ;;   (set-window-buffer target-window buffer)
-  ;;   target-window))
-
-(defun gas/magit-extract-branch-tag (branch-name)
-  "Extract branch tag from BRANCH-NAME."
-  (let ((ticket-pattern "\\([[:alpha:]]+-[[:digit:]]+\\)"))
-    (when (string-match-p ticket-pattern branch-name)
-      (upcase (replace-regexp-in-string ticket-pattern "\\1: " branch-name)))))
-(defun gas/magit-git-commit-insert-branch ()
-  "Insert the branch tag in the commit buffer if feasible."
-  (when-let* ((tag (gas/magit-extract-branch-tag (magit-get-current-branch))))
-    (unless
-        ;; avoid repeated insertion when amending
-        (save-excursion (search-forward (string-trim tag) nil 'no-error))
-      (insert tag))))
+;; (defun gas/magit-extract-branch-tag (branch-name)
+;;   "Extract branch tag from BRANCH-NAME."
+;;   (let ((ticket-pattern "\\([[:alpha:]]+-[[:digit:]]+\\)"))
+;;     (when (string-match-p ticket-pattern branch-name)
+;;       (upcase (replace-regexp-in-string ticket-pattern "\\1: " branch-name)))))
+;; (defun gas/magit-git-commit-insert-branch ()
+;;   "Insert the branch tag in the commit buffer if feasible."
+;;   (when-let* ((tag (gas/magit-extract-branch-tag (magit-get-current-branch))))
+;;     (unless
+;;         ;; avoid repeated insertion when amending
+;;         (save-excursion (search-forward (string-trim tag) nil 'no-error))
+;;       (insert tag))))
 
 (use-package magit
   :ensure (:host github :repo "magit/magit")
-  :custom
-  (magit-git-executable "/opt/homebrew/bin/git")
+  :after project
+  ;; :custom
+  ;; (magit-git-executable "/opt/homebrew/bin/git")
   :hook ((git-commit-mode . flyspell-mode)
-        ;; (git-commit-mode . gas/magit-git-commit-insert-branch)
-         )
+         (git-commit-mode . gas/magit-insert-branch-tag-maybe))
   :bind
-   (("C-c g" . magit-status)
-    :map magit-mode-map
-    ("C-w" . nil)
-    ("M-w" . nil))
+  (("C-c g" . magit-status)
+   ("C-x g" . magit-status)
+   ;;     :map magit-mode-map
+   ;;     ("C-w" . nil)
+   ;;     ("M-w" . nil)
+   )
   :functions (magit-get-current-branch)
   :custom
   (magit-ediff-dwim-show-on-hunks t)
   (magit-diff-refine-ignore-whitespace t)
   (magit-diff-refine-hunk 'all)
-;;  :preface
-  :init
-  ;; (setq magit-refresh-verbose t)        
-  (setq magit-define-global-key-bindings nil)
+  :preface
+  (defun gas/get-display-window
+      (source-window &optional create-if-needed)
+    (save-excursion
+      (goto-char (window-start source-window))
+      (or
+       (window-in-direction 'right source-window)
+       (let ((below-window (window-in-direction 'below source-window)))
+         (when (and below-window
+                    (not (window-minibuffer-p below-window)))
+           below-window))
+       (when create-if-needed
+         (split-window source-window nil 'below)))))
+  (defun gas/magit-display-buffer (buffer alist)
+    (when-let ((target-window (gas/get-display-window
+                               (selected-window) t)))
+      (set-window-buffer target-window buffer)
+      target-window))
+  (defun gas/magit-extract-branch-tag (branch-name)
+    "Extract a ticket tag like 'abc-123' from BRANCH-NAME and return 'abc-123: '.
+Lowercases the match and replaces underscores with hyphens."
+    (let ((ticket-pattern "\\([[:alpha:]_]+-[[:digit:]]+\\)")) ; allow underscores in the alpha chunk
+      (when (string-match ticket-pattern branch-name)
+        (let* ((raw (match-string 1 branch-name))
+               (norm (downcase (subst-char-in-string ?_ ?- raw))))
+          (concat norm ": ")))))
+  (defun gas/magit-insert-branch-tag-maybe ()
+    "Insert the branch tag at the start of a commit message when appropriate.
+Skips if this is an --amend commit, or if the tag is already present."
+    (when-let* ((branch (ignore-errors (magit-get-current-branch)))
+                (tag    (and branch (gas/magit-extract-branch-tag branch))))
+      (unless (or
+               ;; 1) Skip if this commit is an --amend in Magit
+               (and (boundp 'magit-commit-arguments)
+                    (listp magit-commit-arguments)
+                    (member "--amend" magit-commit-arguments))
+               ;; 2) Skip if the tag is already in the buffer (avoid duplicates)
+               (save-excursion
+                 (goto-char (point-min))
+                 (search-forward (string-trim tag) nil t)))
+        (save-excursion
+          (goto-char (point-min))
+          (insert tag)))))
+  :init      
   (setq magit-section-visibility-indicator '(magit-fringe-bitmap> . magit-fringe-bitmapv))
-    ;; Have magit-status go full screen and quit to previous
+  ;; Have magit-status go full screen and quit to previous
   ;; configuration.  Taken from
   ;; http://whattheemacsd.com/setup-magit.el-01.html#comment-748135498
   ;; and http://irreal.org/blog/?p=2253
-  ;; (defadvice magit-status (around magit-fullscreen activate)
-  ;;   (window-configuration-to-register :magit-fullscreen)
-  ;;   ad-do-it
-  ;;   (delete-other-windows))
-  ;; (defadvice magit-quit-window (after magit-restore-screen activate)
-  ;;   (jump-to-register :magit-fullscreen))
+  (defadvice magit-status (around magit-fullscreen activate)
+    (window-configuration-to-register :magit-fullscreen)
+    ad-do-it
+    (delete-other-windows))
+  (defadvice magit-quit-window (after magit-restore-screen activate)
+    (jump-to-register :magit-fullscreen))
   :config
-  ;; (setq magit-refresh-verbose t)
-  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-tags-header)
-  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-status-headers)
-  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-pushremote)
-  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-pushremote)
-  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-upstream)
-  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream-or-recent)
+  (setq magit-refresh-verbose t)
   (setq git-commit-summary-max-length 70)
   (setq git-commit-style-convention-checks '(non-empty-second-line))
-  ;; properly kill leftover magit buffers on quit
-  (define-key magit-status-mode-map
-	          [remap magit-mode-bury-buffer]
-	          #'vcs-quit)
-  (setq magit-revision-show-gravatars
-        '("^Author:     " . "^Commit:     "))
-  ;; (setq magit-commit-show-diff nil)
-  (setq magit-delete-by-moving-to-trash nil)
-  (setq magit-display-buffer-function
-        #'magit-display-buffer-same-window-except-diff-v1)
-  ;; (setq magit-log-auto-more t)
   (setq magit-log-margin-show-committer-date t)
   (setq magit-revert-buffers 'silent)
   (setq magit-save-repository-buffers 'dontask)
+  ;; (setq magit-log-auto-more t)
   (setq magit-wip-after-apply-mode t)
   (setq magit-wip-after-save-mode t)
   (setq magit-wip-before-change-mode t)
-  (setq transient-values
-        '((magit-log:magit-log-mode "--graph" "--color" "--decorate")))
+  ;;   (setq transient-values
+  ;;         '((magit-log:magit-log-mode "--graph" "--color" "--decorate")))
+  ;;   ;; properly kill leftover magit buffers on quit
+  ;;   (define-key magit-status-mode-map
+  ;;               [remap magit-mode-bury-buffer]
+  ;;               #'vcs-quit)
+  ;;   (setq magit-revision-show-gravatars
+  ;;         '("^Author:     " . "^Commit:     "))
+  ;;   ;; (setq magit-commit-show-diff nil)
+  (setq magit-delete-by-moving-to-trash nil)
+  ;;   (setq magit-display-buffer-function
+  ;;         #'magit-display-buffer-same-window-except-diff-v1)
+  (add-to-list 'display-buffer-alist
+               '("\\(magit-revision:\\|magit-diff:\\)"
+                 (gas/magit-display-buffer)
+                 (inhibit-same-window . t))))
+;; (use-package magit
+;;   :ensure (:host github :repo "magit/magit")
+;;   :after project
+;;   ;; :custom
+;;   ;; (magit-git-executable "/opt/homebrew/bin/git")
+;;   :hook ((git-commit-mode . flyspell-mode)
+;;          (git-commit-mode . gas/magit-git-commit-insert-branch))
+;;   :bind
+;;    (("C-c g" . magit-status)
+;;     :map magit-mode-map
+;;     ("C-w" . nil)
+;;     ("M-w" . nil))
+;;   :functions (magit-get-current-branch)
+;;   :custom
+;;   (magit-ediff-dwim-show-on-hunks t)
+;;   (magit-diff-refine-ignore-whitespace t)
+;;   (magit-diff-refine-hunk 'all)
+;; ;;  :preface
+;;   :init      
+;;   (setq magit-section-visibility-indicator '(magit-fringe-bitmap> . magit-fringe-bitmapv))
+;;   ;; Have magit-status go full screen and quit to previous
+;;   ;; configuration.  Taken from
+;;   ;; http://whattheemacsd.com/setup-magit.el-01.html#comment-748135498
+;;   ;; and http://irreal.org/blog/?p=2253
+;;   (defadvice magit-status (around magit-fullscreen activate)
+;;     (window-configuration-to-register :magit-fullscreen)
+;;     ad-do-it
+;;     (delete-other-windows))
+;;   (defadvice magit-quit-window (after magit-restore-screen activate)
+;;     (jump-to-register :magit-fullscreen))
+;;   :config
+;;   ;; (setq magit-refresh-verbose t)
+;;   ;; (remove-hook 'magit-status-sections-hook 'magit-insert-tags-header)
+;;   ;; (remove-hook 'magit-status-sections-hook 'magit-insert-status-headers)
+;;   ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-pushremote)
+;;   ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-pushremote)
+;;   ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-upstream)
+;;   ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream-or-recent)
+;;   (setq git-commit-summary-max-length 70)
 
-  ;; Show icons for files in the Magit status and other buffers.
-  (setq magit-format-file-function #'magit-format-file-nerd-icons)
-  ;; (add-to-list 'display-buffer-alist
-  ;;              '("\\(magit-revision:\\|magit-diff:\\)"
-  ;;                (gas/magit-display-buffer)
-  ;;                (inhibit-same-window . t)))
-  )
 
-(use-package magit
-  :after project
-  :config
-  (add-to-list 'project-switch-commands '(magit-project-status "Magit") t))
+;; 
+;;   ;; Show icons for files in the Magit status and other buffers.
+;;   (setq magit-format-file-function #'magit-format-file-nerd-icons)
+;;   (add-to-list 'display-buffer-alist
+;;                '("\\(magit-revision:\\|magit-diff:\\)"
+;;                  (gas/magit-display-buffer)
+;;                  (inhibit-same-window . t)))
+;;   (with-eval-after-load 'project
+;;     (add-to-list 'project-switch-commands '(magit-project-status "Magit") t))
+;;   (with-eval-after-load 'transient
+;;     (setq transient-show-popup 0.2))
 
 ;; (use-package magit-todos
 ;;   :disable t
@@ -582,12 +606,5 @@ If CREATE-IF-NEEDED is non-nil, split SOURCE-WINDOW below."
 (use-package hl-todo
   :ensure t
   :hook (prog-mode . hl-todo-mode))
-
-;; (use-package magit-repos
-;;   :ensure nil                           ; part of `magit'
-;;   :commands (magit-list-repositories)
-;;   :init
-;;   (setq magit-repository-directories
-;;         '(("~/work" . 2))))
 
 (provide 'frap-tools)
