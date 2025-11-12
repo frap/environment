@@ -1,15 +1,42 @@
-layout_uv() {
-    if [[ -d ".venv" ]]; then
-        VIRTUAL_ENV="$(pwd)/.venv"
-    fi
+# layout_uv() {
+#     if [[ -d ".venv" ]]; then
+#         VIRTUAL_ENV="$(pwd)/.venv"
+#     fi
+# 
+#     if [[ -z $VIRTUAL_ENV || ! -d $VIRTUAL_ENV ]]; then
+#         log_status "No virtual environment exists. Executing \`uv venv\` to create one."
+#         uv venv
+#         VIRTUAL_ENV="$(pwd)/.venv"
+#     fi
+# 
+#     PATH_add "$VIRTUAL_ENV/bin"
+#     export UV_ACTIVE=1  # or VENV_ACTIVE=1
+#     export VIRTUAL_ENV
+# }
+# Helper: load uv .venv if it exists
+load_dotenv_if_exists() {
+  local file="${1:-.venv}"
+  if [[ -f "$file" ]]; then
+    # 'dotenv' is a direnv stdlib function, usable *inside* .envrc
+    dotenv "$file"
+  fi
+}
 
-    if [[ -z $VIRTUAL_ENV || ! -d $VIRTUAL_ENV ]]; then
-        log_status "No virtual environment exists. Executing \`uv venv\` to create one."
-        uv venv
-        VIRTUAL_ENV="$(pwd)/.venv"
-    fi
+# Helper: load .env if it exists
+load_dotenv_if_exists() {
+  local file="${1:-.env}"
+  if [[ -f "$file" ]]; then
+    # 'dotenv' is a direnv stdlib function, usable *inside* .envrc
+    dotenv "$file"
+  fi
+}
 
-    PATH_add "$VIRTUAL_ENV/bin"
-    export UV_ACTIVE=1  # or VENV_ACTIVE=1
-    export VIRTUAL_ENV
+# Your opinionated default “profile” for new projects
+default_envrc() {
+  # auto-load .env if present
+  load_dotenv_if_exists .env
+
+  # sensible AWS defaults
+  export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-ap-southeast-2}"
+  export AWS_REGION="${AWS_REGION:-$AWS_DEFAULT_REGION}"
 }
