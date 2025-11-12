@@ -51,7 +51,7 @@
      (dot . t)
      (plantuml . t)
      ))
-   (setq org-plantuml-jar-path (expand-file-name "/opt/homebrew/Cellar/plantuml/1.2024.7/libexec/plantuml.jar"))
+   (setq org-plantuml-jar-path (expand-file-name "/opt/homebrew/Cellar/plantuml/1.2025.8/libexec/plantuml.jar"))
    (defun org-babel-edit-prep:emacs-lisp (_)
      "Setup Emacs Lisp buffer for Org Babel."
      (setq lexical-binding t))
