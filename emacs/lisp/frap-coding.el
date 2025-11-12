@@ -23,7 +23,6 @@
   (setq show-paren-when-point-inside-paren nil)
   (setq show-paren-context-when-offscreen 'overlay)) ; Emacs 29
 
-
 (use-package puni
   :ensure (:host github :repo "AmaiKinono/puni")
   :defer t
@@ -39,91 +38,67 @@
   (add-hook 'eshell-mode-hook #'puni-disable-puni-mode)
   ;; paredit-like keys
   :bind
-  (:map region-bindings-mode-map
+  (("C-a" . frap/puni-smart-bol)
+   ("C-e" . frap/puni-smart-eol)
+   
+   :map region-bindings-mode-map
    ("(" . puni-wrap-round)
    ("[" . puni-wrap-square)
    ("{" . puni-wrap-curly)
    ("<" . puni-wrap-angle)
-   ;; paredit-like keys
+   
    :map puni-mode-map
-   ;; Smart movement
-   ("C-a" . frap/puni-smart-bol)
-   ("C-e" . frap/puni-smart-eol)
-   ("C-M-a" . beginning-of-defun)
-   ("C-M-e" . end-of-defun)
+   ;; Movement / transpose
    ("C-M-f" . puni-forward-sexp-or-up-list)
    ("C-M-b" . puni-backward-sexp-or-up-list)
    ("C-M-t" . puni-transpose)
-   ;; slurping & barfing
-   ("C-<left>" . puni-barf-forward)
-   ("C-}" . puni-barf-forward)
-   ("C-<right>" . puni-slurp-forward)
-   ("C-)" . puni-slurp-forward)
-   ("C-(" . puni-slurp-backward)
-   ("C-M-<left>" . puni-slurp-backward)
-   ("C-{" . puni-barf-backward)
+
+   ;; Slurp/Barf: arrow keys are reliable in terminals
+   ;; slurp pulls a neighbour inside your current pair; barf kicks one child out.
+   ;; Forward means toward the right, backward toward the left. 
+   ("C-<right>"   . puni-slurp-forward)
+   ("C-<left>"    . puni-barf-forward)
    ("C-M-<right>" . puni-barf-backward)
-   ("C-(" . puni-slurp-backward)
-   ("M-(" . puni-barf-backward)
-   ("C-)" . puni-slurp-forward)
-   ("M-)" . puni-barf-forward)
-   ;; depth chaining
+   ("C-M-<left>"  . puni-slurp-backward)
+
+   ;; depth ops
    ("M-r" . puni-raise)
    ("M-s" . puni-splice)
-   ;; ("M-<up>" . puni-splice-killing-backward)
-   ;; ("M-<down>" . puni-splice-killing-forward)
-   ("M-(" . puni-wrap-round)
-   ("M-{" . puni-wrap-curly)
    ("M-?" . puni-convolute)
    ("M-S" . puni-split)
-   ;; moving
-   ("M-<up>" . puni-beginning-of-sexp)
-   ("M-<down>" . puni-end-of-sexp))
+
+   ;; Wrap round/curly (handy without region)
+   ("M-(" . puni-wrap-round)
+   ("M-{" . puni-wrap-curly))
   :preface
-  (define-advice puni-kill-line (:before (&rest _) back-to-indentation)
-    "Go back to indentation before killing the line if it makes sense to."
-    (when (looking-back "^[[:space:]]*" nil)
-      (if (bound-and-true-p indent-line-function)
-          (funcall indent-line-function)
-        (back-to-indentation))))
+  (defun frap/back-to-indentation-or-bol ()
+    "Go to indentation, or beginning if already there."
+    (interactive)
+    (let ((pt (point)))
+      (back-to-indentation)
+      (when (= pt (point))
+        (move-beginning-of-line 1))))
 
-  (defun frap/back-to-indentation-or-beginning ()
-  "Go to indentation or beginning of line if already at indentation."
-  (let ((pt (point)))
-    (back-to-indentation)
-    (when (= pt (point))
-      (move-beginning-of-line 1))))
+  (defun frap/in-sexp-bounds ()
+    "Return cons of (beg . end) of sexp around point if available, else nil.
+Uses puni if present and active."
+    (when (and (bound-and-true-p puni-mode)
+               (fboundp 'puni-bounds-of-sexp-around-point))
+      (puni-bounds-of-sexp-around-point)))
 
-  (defun frap/goto-puni-bound-if-in-sexp (bound-type fallback)
-  "If in a sexp, go to its BOUND-TYPE (:car or :cdr), otherwise call FALLBACK."
-  (let ((bounds (puni-bounds-of-sexp-around-point)))
-    (if bounds
-        (goto-char (funcall (if (eq bound-type :car) #'car #'cdr) bounds))
-      (funcall fallback))))
+  (defun frap/smart-bol ()
+    "BOL that hops to outer sexp start if inside one."
+    (interactive)
+    (let ((b (frap/in-sexp-bounds)))
+      (if b (goto-char (car b))
+        (frap/back-to-indentation-or-bol))))
 
-  (defmacro define-common-lisp-modes-command (name docstring lisp-body fallback-body)
-    "Define a command NAME with DOCSTRING.
-Runs LISP-BODY when `common-lisp-modes-mode` and `puni-mode` are active,
-otherwise runs FALLBACK-BODY."
-    `(defun ,name ()
-       ,docstring
-       (interactive)
-       (if (and (bound-and-true-p common-lisp-modes-mode)
-                (bound-and-true-p puni-mode))
-           ,lisp-body
-         ,fallback-body)))
-
-  (define-common-lisp-modes-command
-   frap/puni-smart-bol
-   "Smart C-a: Go to start of outermost sexp if in one, otherwise smart BOL."
-   (frap/goto-puni-bound-if-in-sexp :car #'frap/back-to-indentation-or-beginning)
-   #'frap/back-to-indentation-or-beginning)
-
-  (define-common-lisp-modes-command
-   frap/puni-smart-eol
-   "Smart C-e: Go to end of outermost sexp if in one, otherwise end-of-line."
-   (frap/goto-puni-bound-if-in-sexp :cdr #'end-of-line)
-   #'end-of-line))
+  (defun frap/smart-eol ()
+    "EOL that hops to outer sexp end if inside one."
+    (interactive)
+    (let ((b (frap/in-sexp-bounds)))
+      (if b (goto-char (cdr b))
+        (move-end-of-line 1)))))
 
 (use-package puni
   :when IS-GUI?
@@ -306,8 +281,9 @@ otherwise runs FALLBACK-BODY."
               ))
   :hook ((clojure-ts-mode . eglot-ensure))
   :commands (clojure-project-dir)
-  :bind ( :map clojure-mode-map
-          ("C-:" . nil))
+  :bind ( :map clojure-ts-mode-map
+          ("C-:" . nil)
+          ("M-<return>" . clay-make))  ;; clerk-show
   :mode (("\\.clj\\'" . clojure-ts-mode)
          ("\\.cljs\\'" . clojure-ts-mode)
          ("\\.cljc\\'" . clojure-ts-mode)
@@ -330,7 +306,25 @@ otherwise runs FALLBACK-BODY."
             (">=" . ?≥)
             ("comp" . ?υ)
             ("partial" . ?ρ)))
-    (prettify-symbols-mode 1)))
+    (prettify-symbols-mode 1))
+  (defun clerk-show ()
+  (interactive)
+  (when-let
+      ((filename
+        (buffer-file-name)))
+    (save-buffer)
+    (cider-interactive-eval
+     (concat "(nextjournal.clerk/show! \"" filename "\")"))))
+  (defun clay-make ()
+  (interactive)
+  (when-let
+   ((filename
+     (buffer-file-name)))
+    (save-buffer)
+    (cider-interactive-eval
+     (concat "(do (require '[scicloj.clay.v2.snippets])
+                  (scicloj.clay.v2.snippets/make-ns-html!
+                    \"" filename "\" {}))")))))
 
 (use-package flycheck-clj-kondo
   :ensure t)
