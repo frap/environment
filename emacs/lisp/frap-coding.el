@@ -71,6 +71,13 @@
    ("M-(" . puni-wrap-round)
    ("M-{" . puni-wrap-curly))
   :preface
+  (define-advice puni-kill-line (:before (&rest _) back-to-indentation)
+    "Go back to indentation before killing the line if it makes sense to."
+    (when (looking-back "^[[:space:]]*" nil)
+      (if (bound-and-true-p indent-line-function)
+          (funcall indent-line-function)
+        (back-to-indentation))))
+  
   (defun frap/back-to-indentation-or-bol ()
     "Go to indentation, or beginning if already there."
     (interactive)
@@ -283,7 +290,7 @@ Uses puni if present and active."
   :commands (clojure-project-dir)
   :bind ( :map clojure-ts-mode-map
           ("C-:" . nil)
-          ("M-<return>" . clay-make))  ;; clerk-show
+          ("M-<return>" . clay-make)) ;; clerk-show
   :mode (("\\.clj\\'" . clojure-ts-mode)
          ("\\.cljs\\'" . clojure-ts-mode)
          ("\\.cljc\\'" . clojure-ts-mode)
@@ -308,21 +315,21 @@ Uses puni if present and active."
             ("partial" . ?ρ)))
     (prettify-symbols-mode 1))
   (defun clerk-show ()
-  (interactive)
-  (when-let
-      ((filename
-        (buffer-file-name)))
-    (save-buffer)
-    (cider-interactive-eval
-     (concat "(nextjournal.clerk/show! \"" filename "\")"))))
+    (interactive)
+    (when-let
+        ((filename
+          (buffer-file-name)))
+      (save-buffer)
+      (cider-interactive-eval
+       (concat "(nextjournal.clerk/show! \"" filename "\")"))))
   (defun clay-make ()
-  (interactive)
-  (when-let
-   ((filename
-     (buffer-file-name)))
-    (save-buffer)
-    (cider-interactive-eval
-     (concat "(do (require '[scicloj.clay.v2.snippets])
+    (interactive)
+    (when-let
+        ((filename
+          (buffer-file-name)))
+      (save-buffer)
+      (cider-interactive-eval
+       (concat "(do (require '[scicloj.clay.v2.snippets])
                   (scicloj.clay.v2.snippets/make-ns-html!
                     \"" filename "\" {}))")))))
 
@@ -402,6 +409,9 @@ See `cider-find-and-clear-repl-output' for more info."
 		        :project-dir default-directory
 		        :repl-init-function (lambda ()
                                       (rename-buffer "*babashka-repl*")))))))))
+
+(use-package clay
+  :ensure (:host github :repo "scicloj/clay.el"))
 
 
 ;; (use-package niel
