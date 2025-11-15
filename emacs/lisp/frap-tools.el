@@ -428,24 +428,10 @@ once no Magit status windows remain."
       (dolist (buf (magit-mode-get-buffers))
         (vcs--kill-buffer buf)))))
 
-;; (defun gas/magit-extract-branch-tag (branch-name)
-;;   "Extract branch tag from BRANCH-NAME."
-;;   (let ((ticket-pattern "\\([[:alpha:]]+-[[:digit:]]+\\)"))
-;;     (when (string-match-p ticket-pattern branch-name)
-;;       (upcase (replace-regexp-in-string ticket-pattern "\\1: " branch-name)))))
-;; (defun gas/magit-git-commit-insert-branch ()
-;;   "Insert the branch tag in the commit buffer if feasible."
-;;   (when-let* ((tag (gas/magit-extract-branch-tag (magit-get-current-branch))))
-;;     (unless
-;;         ;; avoid repeated insertion when amending
-;;         (save-excursion (search-forward (string-trim tag) nil 'no-error))
-;;       (insert tag))))
-
 (use-package magit
   :ensure (:host github :repo "magit/magit")
   :after project
-  ;; :custom
-  ;; (magit-git-executable "/opt/homebrew/bin/git")
+  :custom (magit-git-executable "/opt/homebrew/bin/git")
   :hook ((git-commit-mode . flyspell-mode)
          (git-commit-mode . gas/magit-insert-branch-tag-maybe))
   :bind
@@ -509,12 +495,12 @@ Skips if this is an --amend commit, or if the tag is already present."
   ;; configuration.  Taken from
   ;; http://whattheemacsd.com/setup-magit.el-01.html#comment-748135498
   ;; and http://irreal.org/blog/?p=2253
-  (defadvice magit-status (around magit-fullscreen activate)
-    (window-configuration-to-register :magit-fullscreen)
-    ad-do-it
-    (delete-other-windows))
-  (defadvice magit-quit-window (after magit-restore-screen activate)
-    (jump-to-register :magit-fullscreen))
+  ;; (defadvice magit-status (around magit-fullscreen activate)
+  ;;   (window-configuration-to-register :magit-fullscreen)
+  ;;   ad-do-it
+  ;;   (delete-other-windows))
+  ;; (defadvice magit-quit-window (after magit-restore-screen activate)
+  ;;   (jump-to-register :magit-fullscreen))
   :config
   (setq magit-refresh-verbose t)
   (setq git-commit-summary-max-length 70)
@@ -526,22 +512,26 @@ Skips if this is an --amend commit, or if the tag is already present."
   (setq magit-wip-after-apply-mode t)
   (setq magit-wip-after-save-mode t)
   (setq magit-wip-before-change-mode t)
-  ;;   (setq transient-values
-  ;;         '((magit-log:magit-log-mode "--graph" "--color" "--decorate")))
-  ;;   ;; properly kill leftover magit buffers on quit
-  ;;   (define-key magit-status-mode-map
-  ;;               [remap magit-mode-bury-buffer]
-  ;;               #'vcs-quit)
-  ;;   (setq magit-revision-show-gravatars
-  ;;         '("^Author:     " . "^Commit:     "))
+  (setq transient-values
+        '((magit-log:magit-log-mode "--graph" "--color" "--decorate")))
+    ;; properly kill leftover magit buffers on quit
+  (define-key magit-status-mode-map
+              [remap magit-mode-bury-buffer]
+              #'vcs-quit)
+  (setq magit-revision-show-gravatars
+        '("^Author:     " . "^Commit:     "))
   ;;   ;; (setq magit-commit-show-diff nil)
   (setq magit-delete-by-moving-to-trash nil)
-  ;;   (setq magit-display-buffer-function
-  ;;         #'magit-display-buffer-same-window-except-diff-v1)
+  (setq magit-display-buffer-function
+        #'magit-display-buffer-same-window-except-diff-v1)
   (add-to-list 'display-buffer-alist
                '("\\(magit-revision:\\|magit-diff:\\)"
                  (gas/magit-display-buffer)
                  (inhibit-same-window . t))))
+
+(use-package git-timemachine
+  :ensure t)
+
 ;; (use-package magit
 ;;   :ensure (:host github :repo "magit/magit")
 ;;   :after project
