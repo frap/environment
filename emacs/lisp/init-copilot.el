@@ -35,7 +35,7 @@
         (eq major-mode 'compilation-mode)))
 
   (add-to-list 'copilot-disable-predicates #'my/copilot-disable-p)
-  
+
   (defun rk/no-copilot-mode ()
     "Helper for `rk/no-copilot-modes'."
     (copilot-mode -1))
@@ -118,6 +118,9 @@ cleared, make sure the overlay doesn't come back too soon."
 
   (advice-add 'keyboard-quit :before #'rk/copilot-quit)
   )
+
+(use-package llama-cpp
+  :ensure t)
 
 ;; (use-package copilot
 ;;   :ensure
