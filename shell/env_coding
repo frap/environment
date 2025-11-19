@@ -132,7 +132,9 @@ fi
 # +-------------+
 # |    NODE     |
 # +-------------+
+export NPM_CONFIG_USERCONFIG="$XDG_CONFIG_HOME/npm/npmrc"
 export NVM_DIR="${XDG_CACHE_HOME}/nvm"
+
 if [[ -n "$MACOS" ]]; then
     ssource "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh" # This loads nvm
     ssource "${HOMEBREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"
@@ -149,15 +151,15 @@ fi
 # +-------------+
 # |    LUA      |
 # +-------------+
-if cmd_exists luarocks; then
-    eval "$(luarocks path)"
-
-    #  for path in "$XDG_DATA_HOME"/lua/*; do
-    #      LUA_PATH="$path/?.lua;$LUA_PATH"
-    #   done
-
-    # export LUA_PATH
-fi
+# if cmd_exists luarocks; then
+#     eval "$(luarocks path)"
+# 
+#     #  for path in "$XDG_DATA_HOME"/lua/*; do
+#     #      LUA_PATH="$path/?.lua;$LUA_PATH"
+#     #   done
+# 
+#     # export LUA_PATH
+# fi
 
 # +-------------+
 # |   PYTHON    |
