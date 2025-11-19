@@ -141,8 +141,18 @@ cleared, make sure the overlay doesn't come back too soon."
 ;;   (add-to-list 'copilot-indentation-alist '(emacs-lisp-mode 2))
 ;;   )
 
-;; (use-package gptel
-;;   :ensure t)
+(use-package gptel
+  :ensure t
+  :config
+  (setq gptel-backend
+      (gptel-make-openai "Llamafile"
+        :protocol "http"
+        :host "localhost:8080"
+        :endpoint "/v1/chat/completions"
+        :models '(LLaMA_CPP)       ;; model name as exposed by the server
+        :stream t
+        :key (lambda () "no-key"))) ;; llamafile doesn’t require a real key
+  )
 
 (provide 'init-copilot)
 ;; init-copilot.el ends here
