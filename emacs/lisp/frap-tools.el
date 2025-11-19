@@ -502,8 +502,25 @@ Skips if this is an --amend commit, or if the tag is already present."
   ;; (defadvice magit-quit-window (after magit-restore-screen activate)
   ;;   (jump-to-register :magit-fullscreen))
   :config
-  (setq magit-refresh-verbose t)
-  (setq git-commit-summary-max-length 70)
+  ;; (setq magit-refresh-verbose t)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-tags-header)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-status-headers)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-pushremote)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-pushremote)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-upstream)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream-or-recent)
+  ;; properly kill leftover magit buffers on quit
+  (define-key magit-status-mode-map
+              [remap magit-mode-bury-buffer]
+              #'vcs-quit)
+  (setq magit-revision-show-gravatars
+        '("^Author:     " . "^Commit:     ")
+        magit-display-buffer-function
+        #'magit-display-buffer-same-window-except-diff-v1
+        ;; show word-granularity on selected hunk
+        magit-diff-refine-hunk t)
+  (setq git-commit-summary-max-length 100)
+  (setq magit-delete-by-moving-to-trash nil)
   (setq git-commit-style-convention-checks '(non-empty-second-line))
   (setq magit-log-margin-show-committer-date t)
   (setq magit-revert-buffers 'silent)
@@ -514,16 +531,13 @@ Skips if this is an --amend commit, or if the tag is already present."
   (setq magit-wip-before-change-mode t)
   (setq transient-values
         '((magit-log:magit-log-mode "--graph" "--color" "--decorate")))
-    ;; properly kill leftover magit buffers on quit
-  (define-key magit-status-mode-map
-              [remap magit-mode-bury-buffer]
-              #'vcs-quit)
-  (setq magit-revision-show-gravatars
-        '("^Author:     " . "^Commit:     "))
-  ;;   ;; (setq magit-commit-show-diff nil)
   (setq magit-delete-by-moving-to-trash nil)
   (setq magit-display-buffer-function
         #'magit-display-buffer-same-window-except-diff-v1)
+  (with-eval-after-load 'project
+    (add-to-list 'project-switch-commands '(magit-project-status "Magit") t))
+  (with-eval-after-load 'transient
+    (setq transient-show-popup 0.2))
   (add-to-list 'display-buffer-alist
                '("\\(magit-revision:\\|magit-diff:\\)"
                  (gas/magit-display-buffer)
@@ -531,59 +545,6 @@ Skips if this is an --amend commit, or if the tag is already present."
 
 (use-package git-timemachine
   :ensure t)
-
-;; (use-package magit
-;;   :ensure (:host github :repo "magit/magit")
-;;   :after project
-;;   ;; :custom
-;;   ;; (magit-git-executable "/opt/homebrew/bin/git")
-;;   :hook ((git-commit-mode . flyspell-mode)
-;;          (git-commit-mode . gas/magit-git-commit-insert-branch))
-;;   :bind
-;;    (("C-c g" . magit-status)
-;;     :map magit-mode-map
-;;     ("C-w" . nil)
-;;     ("M-w" . nil))
-;;   :functions (magit-get-current-branch)
-;;   :custom
-;;   (magit-ediff-dwim-show-on-hunks t)
-;;   (magit-diff-refine-ignore-whitespace t)
-;;   (magit-diff-refine-hunk 'all)
-;; ;;  :preface
-;;   :init      
-;;   (setq magit-section-visibility-indicator '(magit-fringe-bitmap> . magit-fringe-bitmapv))
-;;   ;; Have magit-status go full screen and quit to previous
-;;   ;; configuration.  Taken from
-;;   ;; http://whattheemacsd.com/setup-magit.el-01.html#comment-748135498
-;;   ;; and http://irreal.org/blog/?p=2253
-;;   (defadvice magit-status (around magit-fullscreen activate)
-;;     (window-configuration-to-register :magit-fullscreen)
-;;     ad-do-it
-;;     (delete-other-windows))
-;;   (defadvice magit-quit-window (after magit-restore-screen activate)
-;;     (jump-to-register :magit-fullscreen))
-;;   :config
-;;   ;; (setq magit-refresh-verbose t)
-;;   ;; (remove-hook 'magit-status-sections-hook 'magit-insert-tags-header)
-;;   ;; (remove-hook 'magit-status-sections-hook 'magit-insert-status-headers)
-;;   ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-pushremote)
-;;   ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-pushremote)
-;;   ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-upstream)
-;;   ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream-or-recent)
-;;   (setq git-commit-summary-max-length 70)
-
-
-;; 
-;;   ;; Show icons for files in the Magit status and other buffers.
-;;   (setq magit-format-file-function #'magit-format-file-nerd-icons)
-;;   (add-to-list 'display-buffer-alist
-;;                '("\\(magit-revision:\\|magit-diff:\\)"
-;;                  (gas/magit-display-buffer)
-;;                  (inhibit-same-window . t)))
-;;   (with-eval-after-load 'project
-;;     (add-to-list 'project-switch-commands '(magit-project-status "Magit") t))
-;;   (with-eval-after-load 'transient
-;;     (setq transient-show-popup 0.2))
 
 ;; (use-package magit-todos
 ;;   :disable t
@@ -593,8 +554,51 @@ Skips if this is an --amend commit, or if the tag is already present."
 ;;   :after magit
 ;;   :config (magit-todos-mode 1))
 
-(use-package hl-todo
+;; edit parts of a buffer (like comments, docstrings, or heredocs) in a separate indirect buffer 
+(use-package separedit
   :ensure t
-  :hook (prog-mode . hl-todo-mode))
+  :hook (separedit-buffer-creation . separedit-header-line-setup)
+  :bind ( :map prog-mode-map
+          ("C-c '" . separedit)
+          :map separedit-mode-map
+          ("C-c C-c" . separedit-commit)
+          :map edit-indirect-mode-map
+          ("C-c '" . separedit))
+  :custom
+  (separedit-default-mode 'markdown-mode)
+  :config
+  (nconc (assoc '(";+") separedit-comment-delimiter-alist)
+         '(clojure-mode clojure-ts-mode cider-mode))
+  (defun separedit-header-line-setup ()
+    (setq-local
+     header-line-format
+     (substitute-command-keys
+      "Modifiez, puis quittez avec `\\[separedit-commit]' ou annulez avec \\<edit-indirect-mode-map>`\\[edit-indirect-abort]'"))))
+
+(use-package hl-todo
+  :ensure (:host github :repo "tarsius/hl-todo")
+  :hook (prog-mode . hl-todo-mode)
+  :config
+  (setq hl-todo-keyword-faces
+        (append
+         hl-todo-keyword-faces
+         '(("BUG"   . "#ee5555")
+           ("FIX"   . "#0fa050")
+           ("PROJ"  . "#447f44")
+           ("IDEA"  . "#0fa050")
+           ("INFO"  . "#0e9030")
+           ("TWEAK" . "#fe9030")
+           ("PERF"  . "#e09030")))))
+
+
+;;; Messaging
+(use-feature message
+  :defer t
+  :custom
+  (message-kill-buffer-on-exit t))
+
+(use-package message-view-patch
+  :ensure t
+  :hook (gnus-part-display . message-view-patch-highlight))
 
 (provide 'frap-tools)
