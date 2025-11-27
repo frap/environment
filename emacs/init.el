@@ -123,7 +123,7 @@ DEFINITIONS is a sequence of string and command pairs."
 ;; (require 'setup-shells)
 
 ;;; Org mode
-;; (require 'init-org)
+(require 'init-org)
 
 ;; (use-package esup
 ;;   :config
