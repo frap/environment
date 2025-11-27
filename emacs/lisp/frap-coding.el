@@ -120,15 +120,115 @@ Uses puni if present and active."
 
 ;;; linting, environment and lSp setup
 ;;;; Eglot (built-in client for the language server protocol)
-(use-package eglot
-  :ensure nil
-  ;; :functions (eglot-ensure)
-  :commands (eglot eglot-ensure)
-  :config
-  (setq eglot-sync-connect nil)
-  (setq eglot-autoshutdown t)
-  ;; Prefer LSP + Orderless completions
-  (add-to-list 'completion-category-overrides '(eglot (styles . (orderless basic)))))
+;; (use-package eglot
+;;   :ensure nil
+;;   ;; :functions (eglot-ensure)
+;;   :commands (eglot eglot-ensure)
+;;   :config
+;;   (setq eglot-sync-connect nil)
+;;   (setq eglot-autoshutdown t)
+;;   ;; Prefer LSP + Orderless completions
+;;   (add-to-list 'completion-category-overrides '(eglot (styles . (orderless basic)))))
+
+(use-package lsp-mode
+  :diminish "LSP"
+  :ensure t
+  :hook ((lsp-mode . lsp-diagnostics-mode)
+         (lsp-mode . lsp-enable-which-key-integration)
+         ((tsx-ts-mode
+           typescript-ts-mode
+           clojure-ts-mode
+           python-ts-mode
+           js-ts-mode) . lsp-deferred))
+  :commands (lsp lsp-deferred)
+  :bind (:map lsp-mode-map
+              ("M-." . lsp-ui-peek-find-definitions)
+              ("M-?" . lsp-ui-peek-find-references)
+              ("C-c C-d" . 'lsp-ui-doc-glance))
+  :custom
+  (lsp-keymap-prefix "C-c l")           ; Prefix for LSP actions
+  (lsp-completion-provider :none)       ; Using Corfu as the provider
+  (lsp-diagnostics-provider :flycheck)
+  (lsp-session-file (locate-user-emacs-file ".lsp-session"))
+  (lsp-log-io nil) ; IMPORTANT! Use only for debugging! Drastically affects performance
+  (lsp-keep-workspace-alive nil) ; Close LSP server if all project buffers are closed
+  (lsp-idle-delay 0.5)           ; Debounce timer for `after-change-function'
+  ;; core
+  (lsp-enable-xref t)            ; Use xref to find references
+  (lsp-auto-configure t)         ; Used to decide between current active servers
+  (lsp-eldoc-enable-hover t)    ; Display signature information in the echo area
+  (lsp-enable-dap-auto-configure t)     ; Debug support
+  (lsp-enable-file-watchers nil)
+  (lsp-enable-folding nil)              ; I disable folding since I use origami
+  (lsp-enable-imenu t)
+  (lsp-enable-indentation nil)            ; I use prettier
+  (lsp-enable-links nil)                  ; No need since we have `browse-url'
+  (lsp-enable-on-type-formatting nil)     ; Prettier handles this
+  (lsp-enable-suggest-server-download t) ; Useful prompt to download LSP providers
+  (lsp-enable-symbol-highlighting t) ; Shows usages of symbol at point in the current buffer
+  (lsp-enable-text-document-color nil)  ; This is Treesitter's job
+
+  (lsp-ui-sideline-show-hover nil)      ; Sideline used only for diagnostics
+  (lsp-ui-sideline-diagnostic-max-lines 20) ; 20 lines since typescript errors can be quite big
+  ;; completion
+  (lsp-completion-enable t)
+  (lsp-completion-enable-additional-text-edit t) ; Ex: auto-insert an import for a completion candidate
+  (lsp-enable-snippet t)              ; Important to provide full JSX completion
+  (lsp-completion-show-kind t)        ; Optional
+  ;; headerline
+  (lsp-headerline-breadcrumb-enable t)  ; Optional, I like the breadcrumbs
+  (lsp-headerline-breadcrumb-enable-diagnostics nil) ; Don't make them red, too noisy
+  (lsp-headerline-breadcrumb-enable-symbol-numbers nil)
+  (lsp-headerline-breadcrumb-icons-enable nil)
+  ;; modeline
+  (lsp-modeline-code-actions-enable nil) ; Modeline should be relatively clean
+  (lsp-modeline-diagnostics-enable nil)  ; Already supported through `flycheck'
+  (lsp-modeline-workspace-status-enable nil) ; Modeline displays "LSP" when lsp-mode is enabled
+  (lsp-signature-doc-lines 1)      ; Don't raise the echo area. It's distracting
+  (lsp-ui-doc-use-childframe t)    ; Show docs for symbol at point
+  (lsp-eldoc-render-all nil) ; This would be very useful if it would respect `lsp-signature-doc-lines', currently it's distracting
+  ;; lens
+  (lsp-lens-enable nil)                ; Optional, I don't need it
+  ;; semantic
+  (lsp-semantic-tokens-enable nil) ; Related to highlighting, and we defer to treesitter
+  )
+
+(use-feature lsp-completion
+  :after lsp-mode
+  :hook (lsp-mode . lsp-completion-mode-maybe)
+  :preface
+  (defun lsp-completion-mode-maybe ()
+    "Enable `lsp-completion-mode' only if not inside CIDER."
+    (unless (bound-and-true-p cider-mode)
+      (lsp-completion-mode 1)))
+  ;; :config
+  ;; (defun corfu-lsp-setup ()
+  ;;   (setq-local completion-styles '(orderless)
+  ;;               completion-category-defaults nil))
+  ;; (defun lsp:setup-completion-for-corfu ()
+  ;;   "Tweak lsp-mode completion styles for Corfu+Orderless."
+  ;;   (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+  ;;         '(orderless)))
+  ;; 
+  ;; (add-hook 'lsp-completion-mode-hook #'lsp:setup-completion-for-corfu)
+  )
+
+(use-package lsp-ui
+  :ensure t
+  :commands
+  (lsp-ui-doc-show
+   lsp-ui-doc-glance)
+  :bind (:map lsp-ui-mode-map
+              ("M-<mouse-1>" . lsp-find-definition-mouse)
+              ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+              ([remap xref-find-references]  . lsp-ui-peek-find-references))
+  :after (lsp-mode)
+  :config (setq lsp-ui-doc-enable t
+                lsp-ui-doc-show-with-cursor nil ; Don't show doc when cursor is over symbol - too distracting
+                lsp-ui-doc-include-signature t  ; Show signature
+                ;; lsp-ui-sideline-enable nil      ; can be noisy
+                lsp-ui-doc-position 'at-point))
+
 
 ;;;; Eldoc (Emacs live documentation feedback)
 (use-package eldoc
@@ -207,27 +307,107 @@ Uses puni if present and active."
   :defer t
   :delight)
 
-(eval-and-compile
-  ;; Define it so “void-variable” can’t happen if treesit isn't loaded yet.
-  (defvar treesit-language-source-alist nil))
+;; (eval-and-compile
+;;   ;; Define it so “void-variable” can’t happen if treesit isn't loaded yet.
+;;   (defvar treesit-language-source-alist nil))
+;; 
+;; (with-eval-after-load 'treesit
+;;       (add-to-list 'treesit-language-source-alist
+;;              '(clojure "https://github.com/sogaiu/tree-sitter-clojure")))
+;; ;;; Mark syntactic constructs efficiently if tree-sitter is available (expreg)
+;; (when (treesit-available-p)
+;;   (use-package treesit-auto
+;;   :ensure t
+;;   :custom
+;;   (treesit-auto-install 'prompt) ;; auto install missing grammars with prompt
+;;   :config
+;;   (setq major-mode-remap-alist
+;;       '((clojure-mode . clojure-ts-mode)
+;;         (clojurescript-mode . clojure-ts-mode)
+;;         (clojurec-mode . clojure-ts-mode)))
+;;   (setq treesit-font-lock-level 4)
+;;   (treesit-auto-add-to-auto-mode-alist 'all) ;; all known remappings
+;;   (global-treesit-auto-mode 1)))
 
-(with-eval-after-load 'treesit
-      (add-to-list 'treesit-language-source-alist
-             '(clojure "https://github.com/sogaiu/tree-sitter-clojure")))
-;;; Mark syntactic constructs efficiently if tree-sitter is available (expreg)
-(when (treesit-available-p)
-  (use-package treesit-auto
-  :ensure t
-  :custom
-  (treesit-auto-install 'prompt) ;; auto install missing grammars with prompt
+
+(use-package treesit
+  :ensure nil
+  :mode (("\\.clj\\'"  . clojure-ts-mode)
+         ("\\.edn\\'"  . clojure-ts-mode)
+         ("\\.cljs\\'"  . clojure-ts-mode)
+         ("\\.tsx\\'" . tsx-ts-mode)
+         ("\\.js\\'"  . typescript-ts-mode)
+         ("\\.mjs\\'" . typescript-ts-mode)
+         ("\\.mts\\'" . typescript-ts-mode)
+         ("\\.cjs\\'" . typescript-ts-mode)
+         ("\\.ts\\'"  . typescript-ts-mode)
+         ("\\.jsx\\'" . tsx-ts-mode)
+         ("\\.json\\'" .  json-ts-mode)
+         ("\\.Dockerfile\\'" . dockerfile-ts-mode)
+         ("\\.prisma\\'" . prisma-ts-mode)
+         ;; More modes defined here...
+         )
+  :preface
+  (defun os/setup-install-grammars ()
+    "Install Tree-sitter grammars if they are absent."
+    (interactive)
+    (dolist (grammar
+             '((clojure "https://github.com/sogaiu/tree-sitter-clojure")
+               (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+               (bash "https://github.com/tree-sitter/tree-sitter-bash")
+               (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+               (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.21.2" "src"))
+               (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+               (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
+               (go "https://github.com/tree-sitter/tree-sitter-go" "v0.20.0")
+               (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+               (make "https://github.com/alemuller/tree-sitter-make")
+               (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+               (cmake "https://github.com/uyha/tree-sitter-cmake")
+               (c "https://github.com/tree-sitter/tree-sitter-c")
+               (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+               (toml "https://github.com/tree-sitter/tree-sitter-toml")
+               (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
+               (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
+               (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
+               (prisma "https://github.com/victorhqc/tree-sitter-prisma")
+               (terraform "https://github.com/tree-sitter-grammars/tree-sitter-hcl")
+               ))
+      (add-to-list 'treesit-language-source-alist grammar)
+      ;; Only install `grammar' if we don't already have it
+      ;; installed. However, if you want to *update* a grammar then
+      ;; this obviously prevents that from happening.
+      (unless (treesit-language-available-p (car grammar))
+        (treesit-install-language-grammar (car grammar)))))
+
+  ;; Optional, but recommended. Tree-sitter enabled major modes are
+  ;; distinct from their ordinary counterparts.
+  ;;
+  ;; You can remap major modes with `major-mode-remap-alist'. Note
+  ;; that this does *not* extend to hooks! Make sure you migrate them
+  ;; also
+  (dolist (mapping
+           '((clojure-mode . clojure-ts-mode)
+             (clojurescript-mode . clojure-ts-mode)
+             (clojurec-mode . clojure-ts-mode)
+             (python-mode . python-ts-mode)
+             (css-mode . css-ts-mode)
+             (typescript-mode . typescript-ts-mode)
+             (js-mode . typescript-ts-mode)
+             (js2-mode . typescript-ts-mode)
+             (c-mode . c-ts-mode)
+             (c++-mode . c++-ts-mode)
+             (c-or-c++-mode . c-or-c++-ts-mode)
+             (bash-mode . bash-ts-mode)
+             (css-mode . css-ts-mode)
+             (json-mode . json-ts-mode)
+             (js-json-mode . json-ts-mode)
+             (sh-mode . bash-ts-mode)
+             (sh-base-mode . bash-ts-mode)
+             ))
+    (add-to-list 'major-mode-remap-alist mapping))
   :config
-  (setq major-mode-remap-alist
-      '((clojure-mode . clojure-ts-mode)
-        (clojurescript-mode . clojure-ts-mode)
-        (clojurec-mode . clojure-ts-mode)))
-  (setq treesit-font-lock-level 4)
-  (treesit-auto-add-to-auto-mode-alist 'all) ;; all known remappings
-  (global-treesit-auto-mode 1)))
+  (os/setup-install-grammars))
 
 ;;; lang major modes
 
@@ -286,7 +466,6 @@ Uses puni if present and active."
               (clojure-lisp-pretty-symbols)
               (flycheck-mode)
               ))
-  :hook ((clojure-ts-mode . eglot-ensure))
   :commands (clojure-project-dir)
   :bind ( :map clojure-ts-mode-map
           ("C-:" . nil)
@@ -434,19 +613,20 @@ See `cider-find-and-clear-repl-output' for more info."
 
 (use-feature js
   :mode ("\\.js\\'" . js-ts-mode)
-  :hook (js-ts-mode . eglot-ensure)
+  ;; :hook (js-ts-mode . eglot-ensure)
   :custom
   (js-indent-level 2))
 
 (use-feature json-ts-mode
   :mode ("\\.json\\'" . json-ts-mode)
-  :hook (json-ts-mode . eglot-ensure))
+  ;; :hook (json-ts-mode . eglot-ensure)
+  )
 
 ;; Setup Python with tree-sitter and LSP
 (use-feature python
   :mode ("\\.py\\'" . python-ts-mode)
   :interpreter ("python" . python-ts-mode)
-  :hook (python-ts-mode . eglot-ensure)
+  ;; :hook (python-ts-mode . eglot-ensure)
   :custom
   (python-indent-offset 4) ;; 4 spaces standard
   (python-shell-interpreter "python") ;; uv creates venv, expects python available
@@ -483,7 +663,11 @@ See `cider-find-and-clear-repl-output' for more info."
 ;;  Optionally: Flycheck with Ruff for linting
 (use-package flycheck
   :ensure t
-  :hook (python-ts-mode . flycheck-mode)
+  ;; :hook (python-ts-mode . flycheck-mode)
+  :init (global-flycheck-mode)
+  :bind (:map flycheck-mode-map
+              ("M-n" . flycheck-next-error) ; optional but recommended error navigation
+              ("M-p" . flycheck-previous-error))
   :config
   ;; Define Ruff as a checker
   (flycheck-define-checker python-ruff
@@ -511,8 +695,8 @@ See `cider-find-and-clear-repl-output' for more info."
 
 (use-feature terraform-mode
   :custom (terraform-format-on-save t)
-  :mode (("\\.tf\\'" . terraform-mode))
-  :hook (terraform-mode . eglot-ensure)
+  :mode (("\\.tf\\'" . terraform-mode)
+         ("\\.hcl\\'" . terraform-mode))
   :ensure t
   :config
   (defun my-terraform-mode-init ()
@@ -525,10 +709,11 @@ See `cider-find-and-clear-repl-output' for more info."
   :custom
   (typescript-ts-mode-indent-offset 2)
   :config
-  (add-hook 'typescript-ts-mode-hook
-            (lambda ()
-              (eglot-ensure)
-              (add-hook 'before-save-hook #'eglot-format-buffer nil t)))) ;; format on save
+  ;; (add-hook 'typescript-ts-mode-hook
+  ;;           (lambda ()
+  ;;             (eglot-ensure)
+  ;;             (add-hook 'before-save-hook #'eglot-format-buffer nil t))) ;; format on save
+  ) 
 
 
 (use-package web-mode
