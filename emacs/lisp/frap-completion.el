@@ -117,6 +117,12 @@
         (buffer (styles . (orderless basic)))))
   )
 
+;; General completion setting
+(setq completion-ignore-case t)
+(setq read-buffer-completion-ignore-case t)
+(setq read-file-name-completion-ignore-case t)
+(setq-default case-fold-search t)   ; For general regexp
+
 ;;; Orderless completion style (and prot-orderless.el)
 (use-package orderless
   :ensure t
@@ -138,12 +144,6 @@
   ;;     (define-key m (kbd "?")   nil)))
   )
 
-;; General completion setting
-(setq completion-ignore-case t)
-(setq read-buffer-completion-ignore-case t)
-(setq read-file-name-completion-ignore-case t)
-(setq-default case-fold-search t)   ; For general regexp
-
 ;;; Recursive Minibuffers
 ;; The need to have multiple (i.e. “recursive”) minibuffers arises when you
 ;; initiate a command, such as M-x followed by some incomplete command where
@@ -160,7 +160,7 @@
 (use-feature mb-depth
   :hook (after-init . minibuffer-depth-indicate-mode)
   :config
-  (setq read-minibuffer-restore-windows nil) ; Emacs 28
+  ;; (setq read-minibuffer-restore-windows nil) ; Emacs 28
   (setq enable-recursive-minibuffers t)
   :preface
   (unless (fboundp 'minibuffer-keyboard-quit)
@@ -197,9 +197,8 @@ are defining or executing a macro."
   :hook (minibuffer-setup . cursor-intangible-mode)
   :config
   ;; Not everything here comes from rfn-eshadow.el, but this is fine.
-
   (setq resize-mini-windows t)
-  (setq read-answer-short t)        ; also check `use-short-answers' for Emacs28
+  (setq read-answer-short t)            ; also check `use-short-answers' for Emacs28
   (setq echo-keystrokes 0.25)
   (setq kill-ring-max 60)               ; Keep it small
 
@@ -414,34 +413,58 @@ are defining or executing a macro."
 (use-package corfu
   :ensure t
   :if (display-graphic-p)
-  :hook (after-init . global-corfu-mode)
-  ;; I also have (setq tab-always-indent 'complete) for TAB to complete
-  ;; when it does not need to perform an indentation change.
-  :bind (:map corfu-map
-              ("<tab>" . corfu-complete)
-              ("TAB" . corfu-complete))
+  :init
+  (global-corfu-mode)
+  (corfu-history-mode)
+  (corfu-popupinfo-mode) ; Popup completion info
   :commands (corfu-quit)
   :custom
-  (corfu-auto t)
-  (corfu-auto-delay 0.05)
-  (corfu-auto-prefix 2)
-  (corfu-cycle t)
-  (corfu-preselect-first t)
-  (corfu-scroll-margin 4)
-  (corfu-quit-no-match t)
-  (corfu-quit-at-boundary t)
-  (corfu-max-width 100)
-  (corfu-min-width 42)
-  (corfu-count 9)
+  (corfu-cycle t)                       ; Allows cycling through candidates
+  (corfu-auto t)                        ; Enable auto completion
+  (corfu-auto-prefix 2)                 ; Minimum length of prefix for completion
+  (corfu-auto-delay 0)                   ; No delay for completion
+  (corfu-popupinfo-delay '(0.5 . 0.2))  ; Automatically update info popup after that numver of seconds
+  (corfu-preview-current 'insert)       ; insert previewed candidate
+  (corfu-preselect 'prompt)
+  (corfu-on-exact-match nil)             ; Don't auto expand tempel snippets
+  ;; Optionally use TAB for cycling, default is `corfu-complete'.
+   :bind (:map corfu-map
+                  ("M-SPC"      . corfu-insert-separator)
+                  ("TAB"        . corfu-next)
+                  ([tab]        . corfu-next)
+                  ("S-TAB"      . corfu-previous)
+                  ([backtab]    . corfu-previous)
+                  ("S-<return>" . corfu-insert)
+                  ("RET"        . corfu-insert))
+  ;; (corfu-preselect-first t)
+  ;; (corfu-scroll-margin 4)
+  ;; (corfu-quit-no-match t)
+  ;; (corfu-quit-at-boundary t)
+  ;; (corfu-max-width 100)
+  ;; (corfu-min-width 42)
+  ;; (corfu-count 9)
   ;; should be configured in the `indent' package, but `indent.el'
   ;; doesn't provide the `indent' feature.
-  (tab-always-indent 'complete)
-  :config
+   ;; (tab-always-indent 'complete)
+   ;; I also have (setq tab-always-indent 'complete) for TAB to complete
+   ;; when it does not need to perform an indentation change.
+   ;; :bind (:map corfu-map
+   ;;             ("<tab>" . corfu-complete)
+   ;;             ("TAB" . corfu-complete))
+
+   :config
   (defun corfu-complete-and-quit ()
     (interactive)
     (corfu-complete)
     (corfu-quit))
 
+  (add-hook 'eshell-mode-hook
+                (lambda () (setq-local corfu-quit-at-boundary t
+                                       corfu-quit-no-match t
+                                       corfu-auto nil)
+                  (corfu-mode))
+                nil
+                t)
   ;; Sort by input history (no need to modify `corfu-sort-function').
   (with-eval-after-load 'savehist
     (corfu-history-mode 1)
@@ -452,7 +475,6 @@ are defining or executing a macro."
   :bind ( :map corfu-popupinfo-map
           ("M-p" . corfu-popupinfo-scroll-down)
           ("M-n" . corfu-popupinfo-scroll-up))
-  :hook (corfu-mode . corfu-popupinfo-mode)
   :custom-face
   (corfu-popupinfo ((t :height 1.0))))
 
