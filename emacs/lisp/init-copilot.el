@@ -6,6 +6,7 @@
 
 (use-package copilot
   :ensure
+  :disabled true
   (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
   ;; :custom
   ;; (copilot-disable-predicates '(always))
