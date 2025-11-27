@@ -51,7 +51,10 @@
      (dot . t)
      (plantuml . t)
      ))
-   (setq org-plantuml-jar-path (expand-file-name "/opt/homebrew/Cellar/plantuml/1.2025.8/libexec/plantuml.jar"))
+   (setq org-plantuml-jar-path
+      (expand-file-name
+       (car (file-expand-wildcards
+             "/opt/homebrew/Cellar/plantuml/*/libexec/plantuml.jar"))))
    (defun org-babel-edit-prep:emacs-lisp (_)
      "Setup Emacs Lisp buffer for Org Babel."
      (setq lexical-binding t))
@@ -253,11 +256,11 @@ ARG is taken as a number."
                 (prettify-symbols-mode)))
   )
 
-  (use-feature org-capture
+(use-feature org-capture
   ;; :bind ( :map mode-specific-map
   ;;         ("o c" . org-capture))
   :config
-   (setq org-capture-templates
+  (setq org-capture-templates
         `(("t" "Brève description de la tâche non urgente" entry (file+headline "inbox.org" "Tâches" )
            ,(string-join '("* TODO %?"
                            ":PROPERTIES:"
