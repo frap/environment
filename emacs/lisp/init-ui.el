@@ -670,6 +670,9 @@ x×X .,·°;:¡!¿?`'‘’   ÄAÃÀ TODO
     (setq tooltip-delay 0.5
           tooltip-short-delay 0.5))
 
+(use-package alabaster-theme
+  :ensure (:host github :repo "uzhne/alabaster-emacs"))
+
 (use-package modus-themes
   :ensure t
   :demand t
