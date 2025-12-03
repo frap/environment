@@ -148,7 +148,7 @@ Uses puni if present and active."
   :custom
   (lsp-keymap-prefix "C-c l")           ; Prefix for LSP actions
   (lsp-completion-provider :none)       ; Using Corfu as the provider
-  (lsp-diagnostics-provider :flycheck)
+  (lsp-diagnostics-provider :flycheck)  ; flycheck not flymake 
   (lsp-session-file (locate-user-emacs-file ".lsp-session"))
   (lsp-log-io nil) ; IMPORTANT! Use only for debugging! Drastically affects performance
   (lsp-keep-workspace-alive nil) ; Close LSP server if all project buffers are closed
@@ -191,27 +191,36 @@ Uses puni if present and active."
   (lsp-lens-enable nil)                ; Optional, I don't need it
   ;; semantic
   (lsp-semantic-tokens-enable nil) ; Related to highlighting, and we defer to treesitter
-  )
+  (with-eval-after-load 'flycheck
+  (defun my/flycheck-show-error-at-mouse (event)
+    "Show Flycheck error(s) at mouse EVENT."
+    (interactive "e")
+    (mouse-set-point event)
+    (let ((errs (flycheck-overlay-errors-at (point))))
+      (if errs
+          (message "%s"
+                   (mapconcat #'flycheck-error-message errs "\n"))
+        (message "No Flycheck errors here."))))
+   ;; Click in the left fringe on an error indicator to see the message(s)
+  (define-key flycheck-mode-map [left-fringe mouse-1]
+              #'my/flycheck-show-error-at-mouse)))
 
-(use-feature lsp-completion
-  :after lsp-mode
-  :hook (lsp-mode . lsp-completion-mode-maybe)
-  :preface
-  (defun lsp-completion-mode-maybe ()
-    "Enable `lsp-completion-mode' only if not inside CIDER."
-    (unless (bound-and-true-p cider-mode)
-      (lsp-completion-mode 1)))
-  ;; :config
-  ;; (defun corfu-lsp-setup ()
-  ;;   (setq-local completion-styles '(orderless)
-  ;;               completion-category-defaults nil))
-  ;; (defun lsp:setup-completion-for-corfu ()
-  ;;   "Tweak lsp-mode completion styles for Corfu+Orderless."
-  ;;   (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-  ;;         '(orderless)))
-  ;; 
-  ;; (add-hook 'lsp-completion-mode-hook #'lsp:setup-completion-for-corfu)
-  )
+  (use-feature lsp-completion
+    :after lsp-mode
+    :hook (lsp-mode . lsp-completion-mode-maybe)
+    :preface
+    (defun lsp-completion-mode-maybe ()
+      "Enable `lsp-completion-mode' only if not inside CIDER."
+      (unless (bound-and-true-p cider-mode)
+        (lsp-completion-mode 1)))
+    :config
+    (defun lsp:setup-completion-for-corfu ()
+      "Tweak lsp-mode completion styles for Corfu+Orderless."
+      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+            '(orderless)))
+    
+    (add-hook 'lsp-completion-mode-hook #'lsp:setup-completion-for-corfu)
+    )
 
 (use-package lsp-ui
   :ensure t
@@ -242,59 +251,83 @@ Uses puni if present and active."
   :hook (after-init . envrc-global-mode))
 
 ;;; Flymake
-(use-package flymake
-  :preface
-  (defvar flymake-prefix-map (make-sparse-keymap))
-  (fset 'flymake-prefix-map flymake-prefix-map)
-  (defvar prot/flymake-mode-projects-path
-    (file-name-as-directory (expand-file-name "frap" "~/work/"))
-    "Path to my Git projects.")
+;; (use-feature flymake
+;;   :preface
+;;   (defvar flymake-prefix-map (make-sparse-keymap))
+;;   (fset 'flymake-prefix-map flymake-prefix-map)
+;;   (defvar prot/flymake-mode-projects-path
+;;     (file-name-as-directory (expand-file-name "frap" "~/work/"))
+;;     "Path to my Git projects.")
+;; 
+;;   (defun prot/flymake-mode-lexical-binding ()
+;;     (when lexical-binding
+;;       (flymake-mode 1)))
+;; 
+;;   (defun prot/flymake-mode-in-my-projects ()
+;;     (when-let* ((file (buffer-file-name))
+;;                 ((string-prefix-p prot/flymake-mode-projects-path (expand-file-name file)))
+;;                 ((not (file-directory-p file)))
+;;                 ((file-regular-p file)))
+;;       (add-hook 'find-file-hook #'prot/flymake-mode-lexical-binding nil t)))
+;; 
+;;   (add-hook 'emacs-lisp-mode-hook #'prot/flymake-mode-in-my-projects)
+;;   :bind
+;;   ( :map ctl-x-map
+;;      ("!" . flymake-prefix-map)
+;;      :map flymake-prefix-map
+;;      ("s" . flymake-start)
+;;      ("d" . flymake-show-buffer-diagnostics)
+;;      ("D" . flymake-show-project-diagnostics)
+;;      ("n" . flymake-goto-next-error)
+;;      ("p" . flymake-goto-prev-error))
+;;   :config
+;;   (setq flymake-fringe-indicator-position 'left-fringe)
+;;   (setq flymake-suppress-zero-counters t)
+;;   (setq flymake-no-changes-timeout nil)
+;;   (setq flymake-start-on-flymake-mode t)
+;;   (setq flymake-start-on-save-buffer t)
+;;   (setq flymake-proc-compilation-prevents-syntax-check t)
+;;   (setq flymake-wrap-around nil)
+;;   (setq flymake-mode-line-format
+;;         '("" flymake-mode-line-exception flymake-mode-line-counters))
+;;   ;; NOTE 2023-07-03: `prot-modeline.el' actually defines the counters
+;;   ;; itself and ignores this.
+;;   (setq flymake-mode-line-counter-format
+;;         '("" flymake-mode-line-error-counter
+;;           flymake-mode-line-warning-counter
+;;           flymake-mode-line-note-counter ""))
+;;   (setq flymake-show-diagnostics-at-end-of-line nil)) ; Emacs 30
+;; 
+;; ;;; Elisp packaging requirements
+;; (use-package package-lint-flymake
+;;   :ensure t
+;;   :after flymake
+;;   :config
+;; (add-hook 'flymake-diagnostic-functions #'package-lint-flymake))
 
-  (defun prot/flymake-mode-lexical-binding ()
-    (when lexical-binding
-      (flymake-mode 1)))
-
-  (defun prot/flymake-mode-in-my-projects ()
-    (when-let* ((file (buffer-file-name))
-                ((string-prefix-p prot/flymake-mode-projects-path (expand-file-name file)))
-                ((not (file-directory-p file)))
-                ((file-regular-p file)))
-      (add-hook 'find-file-hook #'prot/flymake-mode-lexical-binding nil t)))
-
-  (add-hook 'emacs-lisp-mode-hook #'prot/flymake-mode-in-my-projects)
-  :bind
-  ( :map ctl-x-map
-     ("!" . flymake-prefix-map)
-     :map flymake-prefix-map
-     ("s" . flymake-start)
-     ("d" . flymake-show-buffer-diagnostics)
-     ("D" . flymake-show-project-diagnostics)
-     ("n" . flymake-goto-next-error)
-     ("p" . flymake-goto-prev-error))
-  :config
-  (setq flymake-fringe-indicator-position 'left-fringe)
-  (setq flymake-suppress-zero-counters t)
-  (setq flymake-no-changes-timeout nil)
-  (setq flymake-start-on-flymake-mode t)
-  (setq flymake-start-on-save-buffer t)
-  (setq flymake-proc-compilation-prevents-syntax-check t)
-  (setq flymake-wrap-around nil)
-  (setq flymake-mode-line-format
-        '("" flymake-mode-line-exception flymake-mode-line-counters))
-  ;; NOTE 2023-07-03: `prot-modeline.el' actually defines the counters
-  ;; itself and ignores this.
-  (setq flymake-mode-line-counter-format
-        '("" flymake-mode-line-error-counter
-          flymake-mode-line-warning-counter
-          flymake-mode-line-note-counter ""))
-  (setq flymake-show-diagnostics-at-end-of-line nil)) ; Emacs 30
-
-;;; Elisp packaging requirements
-(use-package package-lint-flymake
+;;  Flycheck 
+(use-package flycheck
   :ensure t
-  :after flymake
+  ;; :hook (python-ts-mode . flycheck-mode)
+  :init (global-flycheck-mode)
+  :bind (:map flycheck-mode-map
+              ("M-n" . flycheck-next-error) ; optional but recommended error navigation
+              ("M-p" . flycheck-previous-error))
   :config
-  (add-hook 'flymake-diagnostic-functions #'package-lint-flymake))
+  ;; Define Ruff as a checker
+  (flycheck-define-checker python-ruff
+    "A Python syntax and style checker using ruff."
+    :command ("ruff" "check" source)
+    :error-patterns
+    ((error line-start
+            (file-name) ":" line ":" column ": "
+            (or "E" "F") (id (one-or-more not-newline)) " "
+            (message)
+            line-end))
+    :modes (python-mode python-ts-mode))
+
+  ;; Add it to Flycheck
+  (add-to-list 'flycheck-checkers 'python-ruff))
 
 ;;; Indent S-Exp As I Type
 (use-package isayt
@@ -660,29 +693,6 @@ See `cider-find-and-clear-repl-output' for more info."
               (add-hook 'before-save-hook #'my/ruff-format-buffer nil t))))
 
 
-;;  Optionally: Flycheck with Ruff for linting
-(use-package flycheck
-  :ensure t
-  ;; :hook (python-ts-mode . flycheck-mode)
-  :init (global-flycheck-mode)
-  :bind (:map flycheck-mode-map
-              ("M-n" . flycheck-next-error) ; optional but recommended error navigation
-              ("M-p" . flycheck-previous-error))
-  :config
-  ;; Define Ruff as a checker
-  (flycheck-define-checker python-ruff
-    "A Python syntax and style checker using ruff."
-    :command ("ruff" "check" source)
-    :error-patterns
-    ((error line-start
-            (file-name) ":" line ":" column ": "
-            (or "E" "F") (id (one-or-more not-newline)) " "
-            (message)
-            line-end))
-    :modes (python-mode python-ts-mode))
-
-  ;; Add it to Flycheck
-  (add-to-list 'flycheck-checkers 'python-ruff))
 
 (use-package restclient
   :ensure t
