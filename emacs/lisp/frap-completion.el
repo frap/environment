@@ -192,13 +192,12 @@ are defining or executing a macro."
 ;; File name shadowing happens when we invoke find-file and instead of first
 ;; deleting the contents of the minibuffer, we start typing out the file
 ;; system path we wish to visit.
-(use-package rfn-eshadow
-  :ensure nil
+(use-feature rfn-eshadow
   :hook (minibuffer-setup . cursor-intangible-mode)
   :config
   ;; Not everything here comes from rfn-eshadow.el, but this is fine.
   (setq resize-mini-windows t)
-  (setq read-answer-short t)            ; also check `use-short-answers' for Emacs28
+  (setq read-answer-short t)        ; also check `use-short-answers' for Emacs28
   (setq echo-keystrokes 0.25)
   (setq kill-ring-max 60)               ; Keep it small
 
@@ -209,8 +208,8 @@ are defining or executing a macro."
         '(read-only t cursor-intangible t face minibuffer-prompt))
 
   (setq crm-prompt (format "%s %%p" (propertize "[%d]" 'face 'shadow))) ; Emacs 31
-
-  (file-name-shadow-mode 1))
+  (file-name-shadow-mode 1) ;; grays out the “old” path.
+  )
 
 (use-feature minibuffer
   :demand t
@@ -643,151 +642,102 @@ are defining or executing a macro."
   :config
   (setq marginalia-max-relative-age 0)) ; absolute time
 
-;;; Vertical completion layout (vertico)
+;;; Minibuffer completion
+;; Used for: M-x, find-file, consult-*, project-*, etc.
 (use-package vertico
-  :ensure t
-  :hook (after-init . vertico-mode)
-  :bind (:map vertico-map
-	      ("<left>" . backward-char)
-	      ("<right>" . forward-char)
-	      ("TAB" . prot-vertico-private-complete)
-	      ("DEL" . vertico-directory-delete-char)
-	      ("M-DEL" . vertico-directory-delete-word)
-	      ("M-," . vertico-quick-insert)
-	      ("M-." . vertico-quick-exit)
-	      ("RET" . vertico-exit)      ;; 🔥 Fix: always exit cleanly
-	      ("<return>" . vertico-exit) ;; 🔥 Fix: always exit cleanly
-	      :map vertico-multiform-map
-	      ("RET" . prot-vertico-private-exit)
-	      ("<return>" . prot-vertico-private-exit)
-	      ("C-n" . prot-vertico-private-next)
-	      ("<down>" . prot-vertico-private-next)
-	      ("C-p" . prot-vertico-private-previous)
-	      ("<up>" . prot-vertico-private-previous)
-	      ("C-l" . vertico-multiform-vertical))
+  :ensure (vertico :files (:defaults "extensions/*"))
   :init
-  ;; prot-vertico fns
-  (defvar prot-vertico-multiform-minimal
-    '(unobtrusive
-      (vertico-flat-format . ( :multiple  ""
-                               :single    ""
-                               :prompt    ""
-                               :separator ""
-                               :ellipsis  ""
-                               :no-match  ""))
-      (vertico-preselect . prompt))
-    "List of configurations for minimal Vertico multiform.
-The minimal view is intended to be more private or less
-revealing.  This is important when, for example, a prompt shows
-names of people.  Of course, such a view also provides a minimal
-style for general usage.
-
-Toggle the vertical view with the `vertico-multiform-vertical'
-command or use the commands `prot-vertico-private-next' and
-`prot-vertico-private-previous', which toggle the vertical view
-automatically.")
-
-  (defvar prot-vertico-multiform-maximal
-    '((vertico-count . 10)
-      (vertico-preselect . directory)
-      (vertico-resize . t))
-    "List of configurations for maximal Vertico multiform.")
-
-  (defun prot-vertico--match-directory (str)
-    "Match directory delimiter in STR."
-    (string-suffix-p "/" str))
-
-  ;; From the Vertico documentation.
-  (defun prot-vertico-sort-directories-first (files)
-    "Sort directories before FILES."
-    (setq files (vertico-sort-alpha files))
-    (nconc (seq-filter #'prot-vertico--match-directory files)
-           (seq-remove #'prot-vertico--match-directory files)))
-
-  (defun prot-vertico-private-next ()
-    "Like `vertico-next' but toggle vertical view if needed.
-This is done to accommodate `prot-vertico-multiform-minimal'."
-    (interactive)
-    (if vertico-unobtrusive-mode
-        (progn
-          (vertico-multiform-vertical)
-          (vertico-next 1))
-      (vertico-next 1)))
-
-  (defun prot-vertico-private-previous ()
-    "Like `vertico-previous' but toggle vertical view if needed.
-This is done to accommodate `prot-vertico-multiform-minimal'."
-    (interactive)
-    (if vertico-unobtrusive-mode
-        (progn
-          (vertico-multiform-vertical)
-          (vertico-previous 1))
-      (vertico-previous 1)))
-
-  (defun prot-vertico-private-complete ()
-    "Expand contents and show remaining candidates, if needed.
-This is done to accommodate `prot-vertico-multiform-minimal'."
-    (interactive)
-    (if (and vertico-unobtrusive-mode (> vertico--total 1))
-        (progn
-          (minibuffer-complete)
-          (prot-vertico-private-next))
-      (vertico-insert)))
-
-  (defun prot-vertico-private-exit ()
-    "Exit with the candidate if `prot-vertico-multiform-minimal'.
-If there are more candidates that match the given input, expand the
-minibuffer to show the remaining candidates and select the first one.
-Else do `vertico-exit'."
-    (interactive)
-    (cond
-     ((and (= vertico--total 1)
-           (not (eq 'file (vertico--metadata-get 'category))))
-      (minibuffer-complete)
-      (vertico-exit))
-     ((and vertico-unobtrusive-mode
-           (not minibuffer--require-match)
-           (or (string-empty-p (minibuffer-contents))
-               minibuffer-default
-               (eq vertico-preselect 'directory)
-               (eq vertico-preselect 'prompt)))
-      (vertico-exit-input))
-     ((and vertico-unobtrusive-mode (> vertico--total 1))
-      (minibuffer-complete-and-exit)
-      (prot-vertico-private-next))
-     (t
-      (vertico-exit))))
-  :config
-  (setq vertico-scroll-margin 0)
-  (setq vertico-count 10)
-  (setq vertico-resize t)
-  (setq vertico-cycle t)
-  (setq vertico-preselect 'directory) ;; optionally for file prompts
-
-  ;; vertico mutliform
-  (setq vertico-multiform-commands
-        `(("consult-\\(.*\\)?\\(find\\|grep\\|ripgrep\\)" ,@prot-vertico-multiform-maximal)
-          ("consult-buffer" (vertico-grid-mode . 1))))
-  (setq vertico-multiform-categories
-        `(;; Maximal
-          (embark-keybinding ,@prot-vertico-multiform-maximal)
-          (multi-category ,@prot-vertico-multiform-maximal)
-          (consult-location ,@prot-vertico-multiform-maximal)
-          (imenu ,@prot-vertico-multiform-maximal)
-          (unicode-name ,@prot-vertico-multiform-maximal)
-          ;; Minimal
-          (file ,@prot-vertico-multiform-minimal
-                (vertico-sort-function . prot-vertico-sort-directories-first))
-          (t ,@prot-vertico-multiform-minimal)))
-
+  (vertico-mode 1)
   (vertico-multiform-mode 1)
+  :custom
+  ;; A reasonable default count
+  (vertico-count 10)
+  (vertico-resize t)
+  (vertico-cycle t)
+  ;; Multiform: different UIs per category/command
+  (vertico-multiform-categories
+   '((file reverse)
+     (buffer unobtrusive)
+     (library reverse indexed)
+     (command indexed)
+     (consult-grep buffer)
+     (imenu buffer)
+     (t reverse)))
+  (vertico-multiform-commands
+   '(("flyspell-correct-*" grid reverse)
+     (org-refile grid reverse indexed)
+     (consult-yank-pop indexed)
+     (consult-line buffer)
+     (consult-buffer buffer)
+     (consult-org-heading buffer)
+     (consult-imenu buffer)
+     (consult-project-buffer buffer)))
+  :bind (:map vertico-map
+              ("<escape>" . minibuffer-keyboard-quit)
+              ;; Directory navigation (works with vertico-directory)
+              ("RET" . vertico-directory-enter)
+              ("DEL" . vertico-directory-delete-char)
+              ("M-DEL" . vertico-directory-delete-word)
+              ;; Quick exit / insert
+              ("C-'" . vertico-quick-exit)
+              ("C-i" . vertico-quick-insert)
+              ("M-RET" . vertico-exit-input)
+              ("C-M-n" . vertico-next-group)
+              ("C-M-p" . vertico-previous-group))
+  :config
+  ;; Highlight current candidate with a » prefix
+  (defun my/vertico-format-candidate (orig cand prefix suffix index _start)
+    (setq cand (funcall orig cand prefix suffix index _start))
+    (concat
+     (if (and (numberp vertico--index)
+              (= vertico--index index))
+         (propertize "» " 'vertico-current)
+       "  ")
+     cand))
+  (advice-add #'vertico--format-candidate :around #'my/vertico-format-candidate)
 
+  ;; TRAMP hostname completion fix (remote paths)
+  (defun my/basic-remote-try-completion (string table pred point)
+    (and (vertico--remote-p string)
+         (completion-basic-try-completion string table pred point)))
+  (defun my/basic-remote-all-completions (string table pred point)
+    (and (vertico--remote-p string)
+         (completion-basic-all-completions string table pred point)))
+
+  (add-to-list 'completion-styles-alist
+               '(basic-remote
+                 my/basic-remote-try-completion
+                 my/basic-remote-all-completions
+                 nil))
+
+  ;; Tidy directory component when using file-name-shadow + Vertico
   (with-eval-after-load 'rfn-eshadow
-    ;; This works with `file-name-shadow-mode' enabled.  When you are in
-    ;; a sub-directory and use, say, `find-file' to go to your home '~/'
-    ;; or root '/' directory, Vertico will clear the old path to keep
-    ;; only your current input.
     (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)))
+
+;; Directory helper extension (already bound above)
+(use-feature vertico-directory
+  :after vertico
+  :ensure nil
+  :bind (:map vertico-map
+              ("RET" . vertico-directory-enter)
+              ("DEL" . vertico-directory-delete-char)
+              ("M-DEL" . vertico-directory-delete-word))
+  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
+
+;; Vertico buffer view (nice but optional)
+(use-feature vertico-buffer
+  :after vertico
+  :config
+  (setq vertico-buffer-display-action
+        '(display-buffer-below-selected
+          (window-height . 10)))
+  (vertico-buffer-mode 1))
+
+;; Vertico repeat (re-run last Vertico session with M-r)
+(use-feature vertico-repeat
+  :after vertico
+  :hook (minibuffer-setup . vertico-repeat-save)
+  :bind ("M-r" . vertico-repeat))
 
 (use-package ov
   :ensure t
