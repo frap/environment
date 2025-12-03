@@ -407,37 +407,65 @@ are defining or executing a macro."
 ;; minimal cape setup
 (use-package cape
   :ensure t
-  :init
-  (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev))
+:init
+  ;; Generic CAPF enrichment for prog modes using LSP
+  (defun my/lsp-cape-setup ()
+    "Enhance LSP completion with cape extras."
+    ;; Append so LSP stays first
+    (add-to-list 'completion-at-point-functions #'cape-file t)
+    (add-to-list 'completion-at-point-functions #'cape-dabbrev t)
+    (add-to-list 'completion-at-point-functions #'cape-keyword t))
+
+  ;; For Emacs Lisp, add some elisp-specific goodness
+  (defun my/elisp-cape-setup ()
+    (add-to-list 'completion-at-point-functions #'cape-symbol t)
+    (add-to-list 'completion-at-point-functions #'cape-dabbrev t))
+
+  ;; Hook into where it matters
+  (dolist (hook '(python-ts-mode-hook
+                  tsx-ts-mode-hook
+                  typescript-ts-mode-hook
+                  clojure-ts-mode-hook
+                  terraform-mode-hook))
+    (add-hook hook #'my/lsp-cape-setup))
+
+  (add-hook 'emacs-lisp-mode-hook #'my/elisp-cape-setup))
 
 ;;; Corfu (in-buffer completion popup)
+;; Used for: LSP / cape / elisp completion inside buffers.
 (use-package corfu
   :ensure t
   :if (display-graphic-p)
   :init
+  ;; Recommended: Enable Corfu globally.  Recommended since many modes provide
+  ;; Capfs and Dabbrev can be used globally (M-/).  See also the customization
+  ;; variable `global-corfu-modes' to exclude certain modes.
   (global-corfu-mode)
   (corfu-history-mode)
-  (corfu-popupinfo-mode) ; Popup completion info
+  (corfu-popupinfo-mode)                ; Popup completion info
   :commands (corfu-quit)
   :custom
-  (corfu-cycle t)                       ; Allows cycling through candidates
-  (corfu-auto t)                        ; Enable auto completion
-  (corfu-auto-prefix 2)                 ; Minimum length of prefix for completion
-  (corfu-auto-delay 0)                   ; No delay for completion
-  (corfu-popupinfo-delay '(0.5 . 0.2))  ; Automatically update info popup after that numver of seconds
-  (corfu-preview-current 'insert)       ; insert previewed candidate
+  (corfu-cycle t)                      ; Allows cycling through candidates
+  (corfu-auto t)                       ; Enable auto completion
+  ;; (corfu-auto-prefix 2)                ; Minimum length of prefix for completion
+  (corfu-auto-delay 0)                 ; No delay for completion
+  (corfu-popupinfo-delay '(0.5 . 0.2)) ; Automatically update info popup after that numver of seconds
+  (corfu-preview-current 'insert)      ; insert previewed candidate
   (corfu-preselect 'prompt)
-  (corfu-on-exact-match nil)             ; Don't auto expand tempel snippets
+  (corfu-on-exact-match nil)            ; Don't auto expand tempel snippets
   ;; Optionally use TAB for cycling, default is `corfu-complete'.
-   :bind (:map corfu-map
-                  ("M-SPC"      . corfu-insert-separator)
-                  ("TAB"        . corfu-next)
-                  ([tab]        . corfu-next)
-                  ("S-TAB"      . corfu-previous)
-                  ([backtab]    . corfu-previous)
-                  ("S-<return>" . corfu-insert)
-                  ("RET"        . corfu-insert))
+  :bind (:map corfu-map
+              ("M-SPC"      . corfu-insert-separator)
+              ("TAB"        . corfu-next)
+              ([tab]        . corfu-next)
+              ("S-TAB"      . corfu-previous)
+              ([backtab]    . corfu-previous)
+              ("S-<return>" . corfu-insert)
+              ;; Use corfu-insert if complete-and-quit not available
+              ([return] . (lambda () (interactive)
+                            (if (fboundp 'corfu-complete-and-quit)
+                                (corfu-complete-and-quit)
+                              (corfu-insert)))))
   ;; (corfu-preselect-first t)
   ;; (corfu-scroll-margin 4)
   ;; (corfu-quit-no-match t)
