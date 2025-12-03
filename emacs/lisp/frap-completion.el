@@ -103,18 +103,18 @@
   ;;       ;; next completion style in the given order.  In other words,
   ;;       ;; `orderless' kicks in as soon as I input a space or one of its
   ;;       ;; style dispatcher characters.
-  ;;       '((file (styles . (basic partial-completion orderless)))
-  ;;         (bookmark (styles . (basic substring)))
-  ;;         (library (styles . (basic substring)))
-  ;;         (embark-keybinding (styles . (basic substring)))
-  ;;         (imenu (styles . (basic substring orderless)))
-  ;;         (consult-location (styles . (basic substring orderless)))
-  ;;         (kill-ring (styles . (emacs22 orderless)))
-  ;;         (eglot (styles . (emacs22 substring orderless)))))
+  ;;       '((file     (styles . (basic partial-completion orderless)))
+  ;;         (lsp-capf (styles . (orderless basic)))
+  ;;         (eglot    (styles . (emacs22 substring orderless)))))
   (setq completion-category-overrides
-      '((file (styles . (partial-completion orderless)))
-        (eglot (styles . (orderless basic)))
-        (buffer (styles . (orderless basic)))))
+        '((file (styles . (partial-completion orderless)))
+          (bookmark (styles . (basic substring)))
+          (library (styles . (basic substring)))
+          (embark-keybinding (styles . (basic substring)))
+          (imenu (styles . (basic substring orderless)))
+          (consult-location (styles . (basic substring orderless)))
+          (kill-ring (styles . (emacs22 orderless)))
+          (buffer (styles . (orderless basic)))))
   )
 
 ;; General completion setting
@@ -220,26 +220,28 @@ are defining or executing a macro."
               ("<up>" . minibuffer-previous-line-completion)
               ("<down>" . minibuffer-next-line-completion)
 
-              :map minibuffer-inactive-mode-map
-              ("<mouse-1>" . ignore))
-   :config
-  (setq completion-auto-deselect nil)
-  (setq completion-auto-help 'always)
-  (setq completion-auto-select 'second-tab)
-  (setq completion-show-help nil)
-  (setq completion-show-inline-help nil)
-  (setq completions-detailed t)
-  (setq completions-format 'one-column)
-  (setq completions-header-format "")
-  ;; (setq completions-header-format (propertize "%s candidates:\n" 'face 'bold-italic))
-  (setq completions-highlight-face 'completions-highlight)
-  (setq completions-max-height 20)
-  (setq completions-sort 'historical)
-  ;; This one is for Emacs 31.  It relies on what I am doing with the `completion-category-overrides'.
-  (setq completion-eager-display 'auto)
-
-  (setq minibuffer-completion-auto-choose t)
-  (setq minibuffer-visible-completions nil) ; Emacs 30
+              ;; :map minibuffer-inactive-mode-map
+              ;; ("<mouse-1>" . ignore)
+              )
+  :config
+  ;; below affect completions buffer but we are using vertico
+  ;; (setq completion-auto-deselect nil)
+  ;; (setq completion-auto-help 'always)
+  ;; (setq completion-auto-select 'second-tab)
+  ;; (setq completion-show-help nil)
+  ;; (setq completion-show-inline-help nil)
+  ;; (setq completions-detailed t)
+  ;; (setq completions-format 'one-column)
+  ;; (setq completions-header-format "")
+  ;; ;; (setq completions-header-format (propertize "%s candidates:\n" 'face 'bold-italic))
+  ;; (setq completions-highlight-face 'completions-highlight)
+  ;; (setq completions-max-height 20)
+  ;; (setq completions-sort 'historical)
+  ;; ;; This one is for Emacs 31.  It relies on what I am doing with the `completion-category-overrides'.
+  ;; (setq completion-eager-display 'auto)
+  ;;
+  ;; (setq minibuffer-completion-auto-choose t)
+  ;; (setq minibuffer-visible-completions nil) ; Emacs 30
   (defun prot/completions-tweak-style ()
     "Tweak the style of the Completions buffer."
     (setq-local mode-line-format nil)
