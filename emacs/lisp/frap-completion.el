@@ -600,20 +600,41 @@ are defining or executing a macro."
    ("f" . consult-project-extra-find)
    ("o" . consult-project-extra-find-other-window)))
 
-;;; Extended minibuffer actions and more (embark.el)
 (use-package embark
-  :ensure t
   :hook (embark-collect-mode . prot-common-truncate-lines-silently)
   :bind
   ( :map minibuffer-local-map
     ("C-c C-c" . embark-collect)
-    ("C-c C-e" . embark-export)))
+    ("C-c C-e" . embark-export)
+    ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+  :init
+  ;; Optionally replace the key help with a completing-read interface
+  (setq prefix-help-command #'embark-prefix-help-command)
+  :config
+  (setq embark-collect-live-update-delay 0.25)
+  (add-hook 'embark-collect-mode-hook #'consult-preview-at-point-mode)
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\'\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none))))
+  (with-eval-after-load 'embark ;; in general buff acts on thing at pt
+    (define-key global-map (kbd "C-.") #'embark-act)
+    (define-key global-map (kbd "C-;") #'embark-dwim))
 
-;; Needed for correct exporting while using Embark with Consult
-;; commands.
-(use-package embark-consult
-  :ensure t
-  :after (embark consult))
+  (with-eval-after-load 'corfu ;; in buffer -> open file, jump to def
+    (define-key corfu-map (kbd "C-.") #'embark-act)
+    (define-key corfu-map (kbd "C-;") #'embark-dwim))
+
+  (with-eval-after-load 'vertico ;; in minibuff -> do stuff with candidate
+    (define-key vertico-map (kbd "C-.") #'embark-act)
+    (define-key vertico-map (kbd "C-;") #'embark-dwim)))
+
+  ;; Needed for correct exporting while using Embark with Consult
+  ;; commands.
+  (use-package embark-consult
+    :ensure t
+    :after (embark consult))
 
 ;;; Detailed completion annotations (marginalia.el)
 (use-package marginalia
