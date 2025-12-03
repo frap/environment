@@ -224,246 +224,245 @@ mode.")
 ;;   (setq diff-font-lock-syntax 'hunk-also))
 
   ;;; Version control framework (vc.el, vc-git.el, and more)
+;; (use-feature vc
+;;   :bind
+;;   (;; NOTE: I override lots of the defaults
+;;    :map global-map
+;;    ("C-x v B" . vc-annotate) ; Blame mnemonic
+;;    ("C-x v e" . vc-ediff)
+;;    ("C-x v k" . vc-delete-file) ; 'k' for kill==>delete is more common
+;;    ("C-x v G" . vc-log-search)  ; git log --grep
+;;    ("C-x v t" . vc-create-tag)
+;;    ("C-x v c" . vc-clone) ; Emacs 31
+;;    ("C-x v d" . vc-diff)
+;;    ("C-x v ." . vc-dir-root) ; `vc-dir-root' is from Emacs 28
+;;    ("C-x v <return>" . vc-dir-root)
+;;    :map vc-dir-mode-map
+;;    ("t" . vc-create-tag)
+;;    ("O" . vc-log-outgoing)
+;;    ("o" . vc-dir-find-file-other-window)
+;;    ("d" . vc-diff)         ; parallel to D: `vc-root-diff'
+;;    ("k" . vc-dir-delete-file)
+;;    ("G" . vc-revert)
+;;    :map vc-git-stash-shared-map
+;;    ("a" . vc-git-stash-apply-at-point)
+;;    ("c" . vc-git-stash) ; "create" named stash
+;;    ("k" . vc-git-stash-delete-at-point) ; symmetry with `vc-dir-delete-file'
+;;    ("p" . vc-git-stash-pop-at-point)
+;;    ("s" . vc-git-stash-snapshot)
+;;    :map vc-annotate-mode-map
+;;    ("M-q" . vc-annotate-toggle-annotation-visibility)
+;;    ("C-c C-c" . vc-annotate-goto-line)
+;;    ("<return>" . vc-annotate-find-revision-at-line)
+;;    :map log-edit-mode-map
+;;    ("M-s" . nil) ; I use M-s for my search commands
+;;    ("M-r" . nil) ; I use `consult-history'
+;;    :map log-view-mode-map
+;;    ("<tab>" . log-view-toggle-entry-display)
+;;    ("<return>" . log-view-find-revision)
+;;    ("s" . vc-log-search)
+;;    ("o" . vc-log-outgoing)
+;;    ("f" . vc-log-incoming)
+;;    ("F" . vc-update)
+;;    ("P" . vc-push))
+;;   :init
+;;   (setq vc-follow-symlinks t)
+;;   :config
+;;   ;; Those offer various types of functionality, such as blaming,
+;;   ;; viewing logs, showing a dedicated buffer with changes to affected
+;;   ;; files.
+;;   (require 'vc-annotate)
+;;   (require 'vc-dir)
+;;   (require 'vc-git)
+;;   (require 'add-log)
+;;   (require 'log-view)
+;; 
+;;   ;; I only use Git.  If I ever need another, I will include it here.
+;;   ;; This may have an effect on performance, as Emacs will not try to
+;;   ;; check for a bunch of backends.
+;;   (setq vc-handled-backends '(Git))
+;; 
+;;   ;; This one is for editing commit messages.
+;;   (require 'log-edit)
+;;   (setq log-edit-confirm 'changed)
+;;   (setq log-edit-keep-buffer nil)
+;;   (setq log-edit-require-final-newline t)
+;;   (setq log-edit-setup-add-author nil)
+;;   ;; I can see the files from the Diff with C-c C-d
+;;   (remove-hook 'log-edit-hook #'log-edit-show-files)
+;; 
+;;   (setq vc-find-revision-no-save t)
+;;   (setq vc-annotate-display-mode 'scale) ; scale to oldest
+;;   ;; I use a different account for git commits
+;;   (setq add-log-mailing-address "info@tuatara.red")
+;;   (setq add-log-keep-changes-together t)
+;;   (setq vc-git-diff-switches '("--patch-with-stat" "--histogram"))
+;;   (setq vc-git-log-switches '("--stat"))
+;;   (setq vc-git-print-log-follow t)
+;;   (setq vc-git-revision-complete-only-branches nil) ; Emacs 28
+;;   (setq vc-git-root-log-format
+;;         `("%d %h %ai %an: %s"
+;;           ;; The first shy group matches the characters drawn by --graph.
+;;           ;; We use numbered groups because `log-view-message-re' wants the
+;;           ;; revision number to be group 1.
+;;           ,(concat "^\\(?:[*/\\|]+\\)\\(?:[*/\\| ]+\\)?"
+;;                    "\\(?2: ([^)]+) \\)?\\(?1:[0-9a-z]+\\) "
+;;                    "\\(?4:[0-9]\\{4\\}-[0-9-]\\{4\\}[0-9\s+:-]\\{16\\}\\) "
+;;                    "\\(?3:.*?\\):")
+;;           ((1 'log-view-message)
+;;            (2 'change-log-list nil lax)
+;;            (3 'change-log-name)
+;;            (4 'change-log-date))))
+;; 
+;;   ;; These two are from Emacs 29
+;;   (setq vc-git-log-edit-summary-target-len 50)
+;;   (setq vc-git-log-edit-summary-max-len 70))
+
 (use-feature vc
-  :bind
-  (;; NOTE: I override lots of the defaults
-   :map global-map
-   ("C-x v B" . vc-annotate) ; Blame mnemonic
-   ("C-x v e" . vc-ediff)
-   ("C-x v k" . vc-delete-file) ; 'k' for kill==>delete is more common
-   ("C-x v G" . vc-log-search)  ; git log --grep
-   ("C-x v t" . vc-create-tag)
-   ("C-x v c" . vc-clone) ; Emacs 31
-   ("C-x v d" . vc-diff)
-   ("C-x v ." . vc-dir-root) ; `vc-dir-root' is from Emacs 28
-   ("C-x v <return>" . vc-dir-root)
-   :map vc-dir-mode-map
-   ("t" . vc-create-tag)
-   ("O" . vc-log-outgoing)
-   ("o" . vc-dir-find-file-other-window)
-   ("d" . vc-diff)         ; parallel to D: `vc-root-diff'
-   ("k" . vc-dir-delete-file)
-   ("G" . vc-revert)
-   :map vc-git-stash-shared-map
-   ("a" . vc-git-stash-apply-at-point)
-   ("c" . vc-git-stash) ; "create" named stash
-   ("k" . vc-git-stash-delete-at-point) ; symmetry with `vc-dir-delete-file'
-   ("p" . vc-git-stash-pop-at-point)
-   ("s" . vc-git-stash-snapshot)
-   :map vc-annotate-mode-map
-   ("M-q" . vc-annotate-toggle-annotation-visibility)
-   ("C-c C-c" . vc-annotate-goto-line)
-   ("<return>" . vc-annotate-find-revision-at-line)
-   :map log-edit-mode-map
-   ("M-s" . nil) ; I use M-s for my search commands
-   ("M-r" . nil) ; I use `consult-history'
-   :map log-view-mode-map
-   ("<tab>" . log-view-toggle-entry-display)
-   ("<return>" . log-view-find-revision)
-   ("s" . vc-log-search)
-   ("o" . vc-log-outgoing)
-   ("f" . vc-log-incoming)
-   ("F" . vc-update)
-   ("P" . vc-push))
   :init
-  (setq vc-follow-symlinks t)
+  (setq vc-follow-symlinks t
+        vc-handled-backends '(Git)
+        vc-find-revision-no-save t
+        vc-annotate-display-mode 'scale
+        add-log-mailing-address "info@tuatara.red"
+        add-log-keep-changes-together t
+        vc-git-diff-switches '("--patch-with-stat" "--histogram")
+        vc-git-log-switches '("--stat")
+        vc-git-print-log-follow t)
+  :bind
+  (("C-x v B" . vc-annotate)
+   ("C-x v d" . vc-diff)
+   ("C-x v D" . vc-root-diff)
+   ("C-x v L" . vc-print-root-log))
   :config
-  ;; Those offer various types of functionality, such as blaming,
-  ;; viewing logs, showing a dedicated buffer with changes to affected
-  ;; files.
   (require 'vc-annotate)
   (require 'vc-dir)
   (require 'vc-git)
   (require 'add-log)
-  (require 'log-view)
+  (require 'log-view))
 
-  ;; I only use Git.  If I ever need another, I will include it here.
-  ;; This may have an effect on performance, as Emacs will not try to
-  ;; check for a bunch of backends.
-  (setq vc-handled-backends '(Git))
-
-  ;; This one is for editing commit messages.
-  (require 'log-edit)
-  (setq log-edit-confirm 'changed)
-  (setq log-edit-keep-buffer nil)
-  (setq log-edit-require-final-newline t)
-  (setq log-edit-setup-add-author nil)
-  ;; I can see the files from the Diff with C-c C-d
-  (remove-hook 'log-edit-hook #'log-edit-show-files)
-
-  (setq vc-find-revision-no-save t)
-  (setq vc-annotate-display-mode 'scale) ; scale to oldest
-  ;; I use a different account for git commits
-  (setq add-log-mailing-address "info@tuatara.red")
-  (setq add-log-keep-changes-together t)
-  (setq vc-git-diff-switches '("--patch-with-stat" "--histogram"))
-  (setq vc-git-log-switches '("--stat"))
-  (setq vc-git-print-log-follow t)
-  (setq vc-git-revision-complete-only-branches nil) ; Emacs 28
-  (setq vc-git-root-log-format
-        `("%d %h %ai %an: %s"
-          ;; The first shy group matches the characters drawn by --graph.
-          ;; We use numbered groups because `log-view-message-re' wants the
-          ;; revision number to be group 1.
-          ,(concat "^\\(?:[*/\\|]+\\)\\(?:[*/\\| ]+\\)?"
-                   "\\(?2: ([^)]+) \\)?\\(?1:[0-9a-z]+\\) "
-                   "\\(?4:[0-9]\\{4\\}-[0-9-]\\{4\\}[0-9\s+:-]\\{16\\}\\) "
-                   "\\(?3:.*?\\):")
-          ((1 'log-view-message)
-           (2 'change-log-list nil lax)
-           (3 'change-log-name)
-           (4 'change-log-date))))
-
-  ;; These two are from Emacs 29
-  (setq vc-git-log-edit-summary-target-len 50)
-  (setq vc-git-log-edit-summary-max-len 70))
-
-;;; Agitate
-;; A package of mine to complement VC and friends.  Read the manual
-;; here: <https://protesilaos.com/emacs/agitate>.
-;; (use-package agitate
-;;   :disabled t
-;;   :ensure t
-;;   :hook
-;;   ((diff-mode . agitate-diff-enable-outline-minor-mode)
-;;    (after-init . agitate-log-edit-informative-mode))
-;;   :bind
-;;   ( :map global-map
-;;     ("C-x v =" . agitate-diff-buffer-or-file) ; replace `vc-diff'
-;;     ("C-x v g" . agitate-vc-git-grep) ; replace `vc-annotate'
-;;     ("C-x v f" . agitate-vc-git-find-revision)
-;;     ("C-x v s" . agitate-vc-git-show)
-;;     ("C-x v w" . agitate-vc-git-kill-commit-message)
-;;     ("C-x v p p" . agitate-vc-git-format-patch-single)
-;;     ("C-x v p n" . agitate-vc-git-format-patch-n-from-head)
-;;     :map diff-mode-map
-;;     ("C-c C-b" . agitate-diff-refine-cycle) ; replace `diff-refine-hunk'
-;;     ("C-c C-n" . agitate-diff-narrow-dwim)
-;;     ("L" . vc-print-root-log)
-;;     ;; Emacs 29 can use C-x v v in diff buffers, which is great, but now I
-;;     ;; need quick access to it...
-;;     ("v" . vc-next-action)
-;;     :map log-view-mode-map
-;;     ("w" . agitate-log-view-kill-revision)
-;;     ("W" . agitate-log-view-kill-revision-expanded)
-;;     :map vc-git-log-view-mode-map
-;;     ("c" . agitate-vc-git-format-patch-single)
-;;     :map log-edit-mode-map
-;;     ("C-c C-i C-n" . agitate-log-edit-insert-file-name)
-;;     ;; See user options `agitate-log-edit-emoji-collection' and
-;;     ;; `agitate-log-edit-conventional-commits-collection'.
-;;     ("C-c C-i C-e" . agitate-log-edit-emoji-commit)
-;;     ("C-c C-i C-c" . agitate-log-edit-conventional-commit))
-;;   :config
-;;   (advice-add #'vc-git-push :override #'agitate-vc-git-push-prompt-for-remote)
+;; (defgroup gas/vcs nil
+;;   "VCS utilities."
+;;   :group 'tools)
 ;; 
-;;   (setq agitate-log-edit-informative-show-root-log nil
-;;         agitate-log-edit-informative-show-files nil))
-
-;;; Interactive and powerful git front-end (Magit)
-
-(defgroup gas/vcs nil
-  "VCS utilities."
-  :group 'tools)
-
-(defcustom gas/vcs-protected-buffers-regexp
-  (rx string-start
-      (or "*Messages*" "*scratch*" "*Warnings*" "*Backtrace*" "*Help*")
-      string-end)
-  "Regexp of buffers that must never be killed by VCS cleanup."
-  :type 'regexp)
-
-(defun vcs--magit-buffer-p (buffer)
-  "Return non-nil if BUFFER is a Magit-related buffer."
-  (when (buffer-live-p buffer)
-    (with-current-buffer buffer
-      (or
-       ;; Most Magit modes derive from `magit-mode'
-       (derived-mode-p 'magit-mode)
-       ;; Fallbacks for safety
-       (memq major-mode
-             '(magit-status-mode magit-diff-mode magit-process-mode
-               magit-revision-mode magit-log-mode magit-stash-mode
-               magit-refs-mode magit-blame-mode))
-       ;; Name heuristics (covers e.g. *magit-process* etc.)
-       (string-match-p (rx string-start "*" (? " ") "magit") (buffer-name))))))
-
-(defun vcs--killable-buffer-p (buffer)
-  "Return non-nil if BUFFER is safe for Magit cleanup to kill."
-  (and (buffer-live-p buffer)
-       (not (minibufferp buffer))
-       (not (string-match-p gas/vcs-protected-buffers-regexp (buffer-name buffer)))
-       (vcs--magit-buffer-p buffer)))
-
-(defun vcs--kill-buffer (buffer)
-  "Gracefully kill Magit BUFFER and any finished process it owns.
-Live processes get a 5s grace and are retried."
-  (when (vcs--killable-buffer-p buffer)
-    (let ((process (get-buffer-process buffer)))
-      (cond
-       
-       ((not (processp process))
-        (kill-buffer buffer))
-       ((process-live-p process)
-        ;; Recheck in 5 seconds to avoid nuking an active Git process.
-        (run-with-timer 5 nil #'vcs--kill-buffer buffer))
-       (t
-        (ignore-errors (kill-process process))
-        (kill-buffer buffer))))))
-
-(defun vcs-quit (&optional _kill-buffer)
-  "Quit the current Magit window and clean up *only* Magit buffers
-once no Magit status windows remain."
-  (interactive)
-  ;; Close/bury current magit window first.
-  (quit-window)
-  ;; If there are no more visible magit-status buffers, clean up Magit buffers.
-  (unless (catch 'found
-            (dolist (win (window-list))
-              (with-selected-window win
-                (when (eq major-mode 'magit-status-mode)
-                  (throw 'found t))))
-            nil)
-    (when (fboundp 'magit-mode-get-buffers)
-      (dolist (buf (magit-mode-get-buffers))
-        (vcs--kill-buffer buf)))))
+;; (defcustom gas/vcs-protected-buffers-regexp
+;;   (rx string-start
+;;       (or "*Messages*" "*scratch*" "*Warnings*" "*Backtrace*" "*Help*")
+;;       string-end)
+;;   "Regexp of buffers that must never be killed by VCS cleanup."
+;;   :type 'regexp)
+;; 
+;; (defun vcs--magit-buffer-p (buffer)
+;;   "Return non-nil if BUFFER is a Magit-related buffer."
+;;   (when (buffer-live-p buffer)
+;;     (with-current-buffer buffer
+;;       (or
+;;        ;; Most Magit modes derive from `magit-mode'
+;;        (derived-mode-p 'magit-mode)
+;;        ;; Fallbacks for safety
+;;        (memq major-mode
+;;              '(magit-status-mode magit-diff-mode magit-process-mode
+;;                magit-revision-mode magit-log-mode magit-stash-mode
+;;                magit-refs-mode magit-blame-mode))
+;;        ;; Name heuristics (covers e.g. *magit-process* etc.)
+;;        (string-match-p (rx string-start "*" (? " ") "magit") (buffer-name))))))
+;; 
+;; (defun vcs--killable-buffer-p (buffer)
+;;   "Return non-nil if BUFFER is safe for Magit cleanup to kill."
+;;   (and (buffer-live-p buffer)
+;;        (not (minibufferp buffer))
+;;        (not (string-match-p gas/vcs-protected-buffers-regexp (buffer-name buffer)))
+;;        (vcs--magit-buffer-p buffer)))
+;; 
+;; (defun vcs--kill-buffer (buffer)
+;;   "Gracefully kill Magit BUFFER and any finished process it owns.
+;; Live processes get a 5s grace and are retried."
+;;   (when (vcs--killable-buffer-p buffer)
+;;     (let ((process (get-buffer-process buffer)))
+;;       (cond
+;;        
+;;        ((not (processp process))
+;;         (kill-buffer buffer))
+;;        ((process-live-p process)
+;;         ;; Recheck in 5 seconds to avoid nuking an active Git process.
+;;         (run-with-timer 5 nil #'vcs--kill-buffer buffer))
+;;        (t
+;;         (ignore-errors (kill-process process))
+;;         (kill-buffer buffer))))))
+;; 
+;; (defun vcs-quit (&optional _kill-buffer)
+;;   "Quit the current Magit window and clean up *only* Magit buffers
+;; once no Magit status windows remain."
+;;   (interactive)
+;;   ;; Close/bury current magit window first.
+;;   (quit-window)
+;;   ;; If there are no more visible magit-status buffers, clean up Magit buffers.
+;;   (unless (catch 'found
+;;             (dolist (win (window-list))
+;;               (with-selected-window win
+;;                 (when (eq major-mode 'magit-status-mode)
+;;                   (throw 'found t))))
+;;             nil)
+;;     (when (fboundp 'magit-mode-get-buffers)
+;;       (dolist (buf (magit-mode-get-buffers))
+;;         (vcs--kill-buffer buf)))))
 
 (use-package magit
   :ensure (:host github :repo "magit/magit")
   :after project
-  :custom (magit-git-executable "/opt/homebrew/bin/git")
+  :custom
+  (magit-git-executable "/opt/homebrew/bin/git")
+  (magit-ediff-dwim-show-on-hunks t)
+  (magit-diff-refine-ignore-whitespace t)
+  (magit-diff-refine-hunk 'all)
+  (magit-ediff-dwim-show-on-hunks t)
+  (magit-diff-refine-ignore-whitespace t)
+  (magit-diff-refine-hunk 'all)
   :hook ((git-commit-mode . flyspell-mode)
          (git-commit-mode . gas/magit-insert-branch-tag-maybe))
   :bind
   (("C-c g" . magit-status)
    ("C-x g" . magit-status)
-   ;;     :map magit-mode-map
+   :map magit-mode-map
+   ("v" . endless/visit-pull-request-url)
    ;;     ("C-w" . nil)
    ;;     ("M-w" . nil)
    )
   :functions (magit-get-current-branch)
-  :custom
-  (magit-ediff-dwim-show-on-hunks t)
-  (magit-diff-refine-ignore-whitespace t)
-  (magit-diff-refine-hunk 'all)
   :preface
-  (defun gas/get-display-window
-      (source-window &optional create-if-needed)
-    (save-excursion
-      (goto-char (window-start source-window))
-      (or
-       (window-in-direction 'right source-window)
-       (let ((below-window (window-in-direction 'below source-window)))
-         (when (and below-window
-                    (not (window-minibuffer-p below-window)))
-           below-window))
-       (when create-if-needed
-         (split-window source-window nil 'below)))))
-  (defun gas/magit-display-buffer (buffer alist)
-    (when-let ((target-window (gas/get-display-window
-                               (selected-window) t)))
-      (set-window-buffer target-window buffer)
-      target-window))
+  (defun gas/magit-quit-session ()
+    "Quit Magit and kill its buffers."
+    (interactive)
+    (magit-mode-bury-buffer)
+    (magit-kill-buffers))
+  (defun endless/visit-pull-request-url ()
+    "Visit the current branch's PR on Github."
+    (interactive)
+    (browse-url
+     (format "https://github.com/%s/pull/new/%s"
+             (replace-regexp-in-string
+              "\\`.+github\\.com:\\(.+\\)\\.git\\'" "\\1"
+              (magit-get "remote"
+                         (magit-get-push-remote)
+                         "url"))
+             (magit-get-current-branch))))
+  ;; (defun gas/get-display-window
+  ;;     (source-window &optional create-if-needed)
+  ;;   (save-excursion
+  ;;     (goto-char (window-start source-window))
+  ;;     (or
+  ;;      (window-in-direction 'right source-window)
+  ;;      (let ((below-window (window-in-direction 'below source-window)))
+  ;;        (when (and below-window
+  ;;                   (not (window-minibuffer-p below-window)))
+  ;;          below-window))
+  ;;      (when create-if-needed
+  ;;        (split-window source-window nil 'below)))))
+  ;; (defun gas/magit-display-buffer (buffer alist)
+  ;;   (when-let ((target-window (gas/get-display-window
+  ;;                              (selected-window) t)))
+  ;;     (set-window-buffer target-window buffer)
+  ;;     target-window))
   (defun gas/magit-extract-branch-tag (branch-name)
     "Extract a ticket tag like 'abc-123' from BRANCH-NAME and return 'abc-123: '.
 Lowercases the match and replaces underscores with hyphens."
@@ -512,36 +511,40 @@ Skips if this is an --amend commit, or if the tag is already present."
   ;; properly kill leftover magit buffers on quit
   (define-key magit-status-mode-map
               [remap magit-mode-bury-buffer]
-              #'vcs-quit)
-  (setq magit-revision-show-gravatars
-        '("^Author:     " . "^Commit:     ")
-        magit-display-buffer-function
-        #'magit-display-buffer-same-window-except-diff-v1
-        ;; show word-granularity on selected hunk
-        magit-diff-refine-hunk t)
-  (setq git-commit-summary-max-length 100)
-  (setq magit-delete-by-moving-to-trash nil)
-  (setq git-commit-style-convention-checks '(non-empty-second-line))
-  (setq magit-log-margin-show-committer-date t)
-  (setq magit-revert-buffers 'silent)
-  (setq magit-save-repository-buffers 'dontask)
-  ;; (setq magit-log-auto-more t)
-  (setq magit-wip-after-apply-mode t)
-  (setq magit-wip-after-save-mode t)
-  (setq magit-wip-before-change-mode t)
-  (setq transient-values
-        '((magit-log:magit-log-mode "--graph" "--color" "--decorate")))
-  (setq magit-delete-by-moving-to-trash nil)
-  (setq magit-display-buffer-function
-        #'magit-display-buffer-same-window-except-diff-v1)
-  (with-eval-after-load 'project
-    (add-to-list 'project-switch-commands '(magit-project-status "Magit") t))
-  (with-eval-after-load 'transient
-    (setq transient-show-popup 0.2))
-  (add-to-list 'display-buffer-alist
-               '("\\(magit-revision:\\|magit-diff:\\)"
-                 (gas/magit-display-buffer)
-                 (inhibit-same-window . t))))
+              #'gas/magit-quit-session)
+  ;; (setq magit-revision-show-gravatars
+  ;;       '("^Author:     " . "^Commit:     ")
+  ;;       magit-display-buffer-function
+  ;;       #'magit-display-buffer-same-window-except-diff-v1
+  ;;       ;; show word-granularity on selected hunk
+  ;;       magit-diff-refine-hunk t)
+  ;; (setq git-commit-summary-max-length 100)
+  ;; (setq magit-delete-by-moving-to-trash nil)
+  ;; (setq git-commit-style-convention-checks '(non-empty-second-line))
+  ;; (setq magit-log-margin-show-committer-date t)
+  ;; (setq magit-revert-buffers 'silent)
+  ;; (setq magit-save-repository-buffers 'dontask)
+  ;; ;; (setq magit-log-auto-more t)
+  ;; (setq magit-wip-after-apply-mode t)
+  ;; (setq magit-wip-after-save-mode t)
+  ;; (setq magit-wip-before-change-mode t)
+  ;; (setq transient-values
+  ;;       '((magit-log:magit-log-mode "--graph" "--color" "--decorate")))
+  ;; (setq magit-delete-by-moving-to-trash nil)
+  ;; (setq magit-display-buffer-function
+  ;;       #'magit-display-buffer-same-window-except-diff-v1)
+  ;; (with-eval-after-load 'project
+  ;;   (add-to-list 'project-switch-commands '(magit-project-status "Magit") t))
+  ;; (with-eval-after-load 'transient
+  ;;   (setq transient-show-popup 0.2))
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '("\\(magit-revision:\\|magit-diff:\\)"
+  ;;                (gas/magit-display-buffer)
+  ;;                (inhibit-same-window . t)))
+(with-eval-after-load 'project
+    (add-to-list 'project-switch-commands
+                 '(magit-project-status "Magit") t))
+  )
 
 (use-package git-timemachine
   :ensure t)
