@@ -106,18 +106,20 @@
   ([remap downcase-word] . downcase-dwim)
   ([remap upcase-word] . upcase-dwim))
 
-;; avy is a GNU Emacs package for jumping to visible text using a
+;;; avy - Movement layer
+;; is a GNU Emacs package for jumping to visible text using a
 ;; char-based decision tree
 (use-package avy
   :after helpful
-  :commands (avy-goto-char avy-goto-word-0 avy-goto-line avy-goto-char-time)
-  :bind (("M-j"    . avy-goto-char-time)
+  :commands (avy-goto-char avy-goto-word-0 avy-goto-line avy-goto-char-timer)
+  :bind (("M-j"    . avy-goto-char-timer)
+         ("M-l"    . avy-goto-line)
          ("C-M-s"  . #'isearch-forward-other-window)
          ("C-M-r"  . #'isearch-backward-other-window )
          :map isearch-mode-map
          ("C-`" . avy-isearch)
-         ;; :map minibuffer-local-map
-         ;; ("C-s" . avy-move-to-minibuffer-lines)
+         :map minibuffer-local-map
+         ("C-s" . avy-move-to-minibuffer-lines)
          )
   :config
   (setq avy-keys '(?q ?e ?r ?y ?u ?o ?p
@@ -130,7 +132,7 @@
   (setq avy-background nil)
   (setq avy-case-fold-search nil)       ; case is significant
   (setq avy-timeout-seconds 0.5)
-  (setq avy-style 'pre)  ; prefixes candidate; otherwise use `at-full'
+  (setq avy-style 'pre)            ; prefixes candidate; otherwise use `at-full'
 
   ;; avy help
   (defun avy-show-dispatch-help ()
@@ -154,25 +156,25 @@
                (when (= (mod N per-row) 0) (push "\n" display-strings)))
       (message "%s" (apply #'concat (nreverse display-strings)))))
 
-   (defun avy-action-helpful (pt)
-     (save-excursion
-       (goto-char pt)
-       (helpful-at-point))
-     (select-window
-      (cdr (ring-ref avy-ring 0)))
-     t)
-   ;; set H as avy dispatch to Help
-   (setf (alist-get ?H avy-dispatch-alist) 'avy-action-helpful)
+  (defun avy-action-helpful (pt)
+    (save-excursion
+      (goto-char pt)
+      (helpful-at-point))
+    (select-window
+     (cdr (ring-ref avy-ring 0)))
+    t)
+  ;; set H as avy dispatch to Help
+  (setf (alist-get ?H avy-dispatch-alist) 'avy-action-helpful)
 
-    ;; Kill text
-    (defun avy-action-kill-whole-line (pt)
-      (save-excursion
-        (goto-char pt)
-        (kill-whole-line))
-      (select-window
-       (cdr
-        (ring-ref avy-ring 0)))
-      t)
+  ;; Kill text
+  (defun avy-action-kill-whole-line (pt)
+    (save-excursion
+      (goto-char pt)
+      (kill-whole-line))
+    (select-window
+     (cdr
+      (ring-ref avy-ring 0)))
+    t)
 
   (setf (alist-get ?k avy-dispatch-alist) 'avy-action-kill-stay
         (alist-get ?K avy-dispatch-alist) 'avy-action-kill-whole-line)
@@ -253,13 +255,13 @@
           (isearch-backward)
           (other-window (- next))))))
 
-   ;; Enable jumping in minibuffer
+  ;; Enable jumping in minibuffer
   (defun avy-move-to-minibuffer-line ()
     "Jump to a line in minibuffer using avy."
     (interactive)
     (when (minibufferp)
       (avy-with avy-goto-line
-        (avy-jump (window-start) (window-end)))))
+                (avy-jump (window-start) (window-end)))))
 
   ;; avy embark integration
   (defun avy-action-embark (pt)
