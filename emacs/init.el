@@ -17,15 +17,12 @@
 ;;       ;; warning-minimum-level :debug
 ;;       load-prefer-newer t)
 
-;; show every `load` during init in *Messages*
-;;(setq debug-on-error t)			
-
 ;; Disable backups and lockfiles
 (setq make-backup-files nil)
 (setq backup-inhibited nil) ; Not sure if needed, given `make-backup-files'
 (setq create-lockfiles nil)
 
-;; Disable the damn thing by making it disposable.
+;; Throw custom-file into the void
 (setq custom-file (make-temp-file "emacs-custom-"))
 
 ;; * PATHS
@@ -34,6 +31,12 @@
  (lambda (string)
    (add-to-list 'load-path (locate-user-emacs-file string)))
  '("prot-lisp" "lisp"))
+
+
+;; ----------------------------------------------------------
+;; ABSOLUTELY FIRST: package / use-package setup
+;; ----------------------------------------------------------
+(require 'init-elpa)
 
 ;; start with *scratch* buffer
 (setq initial-buffer-choice t)
@@ -47,9 +50,6 @@
 
 ;; * CORE
   
-;;; Package Management
-(require 'init-elpa)
-
 ;; some emacs commands are disabled by default
 ;; Enable these
 (mapc
@@ -63,36 +63,14 @@
    (put command 'disabled t))
  '(eshell project-eshell overwrite-mode iconify-frame diary))
 
-(defmacro prot-emacs-keybind (keymap &rest definitions)
-  "Expand key binding DEFINITIONS for the given KEYMAP.
-DEFINITIONS is a sequence of string and command pairs."
-  (declare (indent 1))
-  (unless (zerop (% (length definitions) 2))
-    (error "Uneven number of key+command pairs"))
-  (let ((keys (seq-filter #'stringp definitions))
-        ;; We do accept nil as a definition: it unsets the given key.
-        (commands (seq-remove #'stringp definitions)))
-    `(when-let* (((keymapp ,keymap))
-                 (map ,keymap))
-       ,@(mapcar
-          (lambda (pair)
-            (let* ((key (car pair))
-                   (command (cdr pair)))
-              (unless (and (null key) (null command))
-                `(define-key map (kbd ,key) ,command))))
-          (cl-mapcar #'cons keys commands)))))
-
-(use-package exec-path-from-shell
-  :ensure t
-  :config
-  (when (memq window-system '(mac ns))
-    (setq exec-path-from-shell-variables '("PATH" "MANPATH" "LIBRARY_PATH" "UV_PYTHON"))
-    (exec-path-from-shell-initialize)))
 
 ;; Optimisations and Defaults to make Emacs more responsive. These are mostly copied from
 ;; Doom Emacs.
 ;; (require 'setup-core)
 (require 'frap-essentials)
+
+;;; Tools - git, project, shell
+(require 'frap-tools)
 
 ;;; Minibuffer & Navigation
 (require  'frap-completion)
@@ -114,11 +92,6 @@ DEFINITIONS is a sequence of string and command pairs."
   (load-library "personal")
   (setq user-full-name my-full-name)
   (setq user-mail-address my-email-address))
-
-
-;;; Tools - git, project, shell
-(require 'frap-tools)
-
 
 ;; (require 'setup-shells)
 
