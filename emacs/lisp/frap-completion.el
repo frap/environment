@@ -140,9 +140,8 @@
 (use-package marginalia
   :ensure t
   :hook (after-init . marginalia-mode)
-  :config
-  (setq marginalia-max-relative-age 0)) ; absolute time
-
+  :custom
+  (marginalia-max-relative-age 0)) ; absolute time
 
 ;;; Recursive Minibuffers
 ;; The need to have multiple (i.e. “recursive”) minibuffers arises when you
@@ -234,7 +233,7 @@ are defining or executing a macro."
 ;;; Minibuffer completion
 ;; Used for: M-x, find-file, consult-*, project-*, etc.
 (use-package vertico
-  :ensure (vertico :files (:defaults "extensions/*"))
+  :ensure t
   :init
   (vertico-mode 1)
   (vertico-multiform-mode 1)
@@ -248,7 +247,7 @@ are defining or executing a macro."
    '((file reverse)
      (buffer unobtrusive)
      (library reverse indexed)
-     (command indexed)
+     (command reverse)
      (consult-grep buffer)
      (imenu buffer)
      (t reverse)))
@@ -268,23 +267,12 @@ are defining or executing a macro."
               ("DEL" . vertico-directory-delete-char)
               ("M-DEL" . vertico-directory-delete-word)
               ;; Quick exit / insert
-              ("C-'" . vertico-quick-exit)
-              ("C-i" . vertico-quick-insert)
+              ;; ("C-'" . vertico-quick-exit)
+              ;; ("C-i" . vertico-quick-insert)
               ("M-RET" . vertico-exit-input)
               ("C-M-n" . vertico-next-group)
               ("C-M-p" . vertico-previous-group))
   :config
-  ;; Highlight current candidate with a » prefix
-  (defun my/vertico-format-candidate (orig cand prefix suffix index _start)
-    (setq cand (funcall orig cand prefix suffix index _start))
-    (concat
-     (if (and (numberp vertico--index)
-              (= vertico--index index))
-         (propertize "» " 'vertico-current)
-       "  ")
-     cand))
-  (advice-add #'vertico--format-candidate :around #'my/vertico-format-candidate)
-
   ;; TRAMP hostname completion fix (remote paths)
   (defun my/basic-remote-try-completion (string table pred point)
     (and (vertico--remote-p string)
@@ -425,6 +413,7 @@ are defining or executing a macro."
 ;;    ("o" . consult-project-extra-find-other-window)))
 
 (use-package consult
+  :ensure t
   :after (corfu avy dired)
   :hook (completion-list-mode . consult-preview-at-point-mode)
   :bind
@@ -451,7 +440,7 @@ are defining or executing a macro."
    ("C-x p b" . consult-buffer-project)
 
    ;; M-g prefix
-   ("M-g f"   . consult-flymake)    ;; Or consult-flycheck if you prefer
+   ("M-g f"   . consult-flycheck)    
    ("M-g g"   . consult-goto-line)
    ("M-g M-g" . consult-goto-line)
    ("M-g o"   . consult-outline)
@@ -510,8 +499,7 @@ are defining or executing a macro."
 
   ;; rg for searching
   (setq consult-ripgrep-args
-        "rg --null --line-buffered --color=never --max-columns=1000 \
---path-separator / --smart-case --hidden --glob '!.git/*' --glob '!.cache/*'")
+        "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / --smart-case --hidden --glob '!.git/*' --glob '!.cache/*'")
 
   ;; Preview on demand / via key
   (setq consult-preview-key nil)
@@ -584,6 +572,14 @@ are defining or executing a macro."
               ("C-c l r" . consult-lsp-references)
               ("C-c l d" . consult-lsp-definition)
               ("C-c l i" . consult-lsp-implementation)))
+
+;;Insert paths into the minibuffer prompt in Emacs
+;; (use-package consult-dir
+;;   :ensure t
+;;   :bind (("C-x C-d" . consult-dir)
+;;          :map minibuffer-local-completion-map ;; vertico-map
+;;          ("C-x C-d" . consult-dir)
+;;          ("C-x C-j" . consult-dir-jump-file)))
 
 ;;;; `savehist' (minibuffer and related histories)
 (use-feature savehist
@@ -749,7 +745,7 @@ are defining or executing a macro."
 ;; minimal cape setup
 (use-package cape
   :ensure t
-  :init
+  :preface
   ;; Generic CAPF enrichment for prog modes using LSP
   (defun my/lsp-cape-setup ()
     "Enhance LSP completion with cape extras."
@@ -762,30 +758,21 @@ are defining or executing a macro."
   (defun my/elisp-cape-setup ()
     (add-to-list 'completion-at-point-functions #'cape-symbol t)
     (add-to-list 'completion-at-point-functions #'cape-dabbrev t))
-
-  ;; Hook into where it matters
-  (dolist (hook '(python-ts-mode-hook
-                  tsx-ts-mode-hook
-                  typescript-ts-mode-hook
-                  clojure-ts-mode-hook
-                  terraform-mode-hook))
-    (add-hook hook #'my/lsp-cape-setup))
-
-  (add-hook 'emacs-lisp-mode-hook #'my/elisp-cape-setup))
+  :hook
+  ((python-ts-mode
+    tsx-ts-mode
+    typescript-ts-mode
+    clojure-ts-mode
+    terraform-mode) . my/lsp-cape-setup)
+  (emacs-lisp-mode . my/elisp-cape-setup))
 
 ;;; Corfu (in-buffer completion popup)
 ;; Used for: LSP / cape / elisp completion inside buffers.
 (use-package corfu
   :ensure t
   :if (display-graphic-p)
-  :init
-  ;; Recommended: Enable Corfu globally.  Recommended since many modes provide
-  ;; Capfs and Dabbrev can be used globally (M-/).  See also the customization
-  ;; variable `global-corfu-modes' to exclude certain modes.
-  (global-corfu-mode)
-  (corfu-history-mode)
-  (corfu-popupinfo-mode)                ; Popup completion info
-  :commands (corfu-quit)
+  :hook
+  (after-init . global-corfu-mode)
   :custom
   (corfu-cycle t)                      ; Allows cycling through candidates
   (corfu-auto t)                       ; Enable auto completion
@@ -795,13 +782,10 @@ are defining or executing a macro."
   (corfu-preview-current 'insert)      ; insert previewed candidate
   (corfu-preselect 'prompt)
   (corfu-on-exact-match nil)            ; Don't auto expand tempel snippets
-  ;; (corfu-preselect-first t)
-  ;; (corfu-scroll-margin 4)
-  ;; (corfu-quit-no-match t)
-  ;; (corfu-quit-at-boundary t)
-  ;; (corfu-max-width 100)
-  ;; (corfu-min-width 42)
-  ;; (corfu-count 9)
+  (corfu-quit-at-boundary t)
+
+  (corfu-history-mode)
+  (corfu-popupinfo-mode)                ; Popup completion info
   ;; Optionally use TAB for cycling, default is `corfu-complete'.
   ;; should be configured in the `indent' package, but `indent.el'
   ;; doesn't provide the `indent' feature.
@@ -820,20 +804,19 @@ are defining or executing a macro."
                             (if (fboundp 'corfu-complete-and-quit)
                                 (corfu-complete-and-quit)
                               (corfu-insert)))))
-  :config
-   (setq corfu-preselect 'first
-         corfu-quit-at-boundary t)
-  (add-hook 'eshell-mode-hook
-            (lambda () (setq-local corfu-quit-at-boundary t
-                              corfu-quit-no-match t
-                              corfu-auto nil)
-              (corfu-mode))
-            nil
-            t)
+ ;; :config 
+  ;; (add-hook 'eshell-mode-hook
+  ;;           (lambda () (setq-local corfu-quit-at-boundary t
+  ;;                             corfu-quit-no-match t
+  ;;                             corfu-auto nil)
+  ;;             (corfu-mode))
+  ;;           nil
+  ;;           t)
   ;; Sort by input history (no need to modify `corfu-sort-function').
-  (with-eval-after-load 'savehist
-    (corfu-history-mode 1)
-    (add-to-list 'savehist-additional-variables 'corfu-history)))
+  ;; (with-eval-after-load 'savehist
+  ;;   (corfu-history-mode 1)
+  ;;   (add-to-list 'savehist-additional-variables 'corfu-history))
+  )
 
 (use-feature corfu-popupinfo
   :after corfu
@@ -846,12 +829,22 @@ are defining or executing a macro."
 ;;; Embark sits across both Corfu and Vertico
 
 (use-package embark
-  :hook (embark-collect-mode . prot-common-truncate-lines-silently)
+  :after (vertico corfu)
+  :ensure t
   :bind
-  ( :map minibuffer-local-map
+  (("C-c C-a" . embark-act)      ;; in general buff acts on thing at pt
+   ("C-c C-m" . embark-dwim)
+   ("C-h B" . embark-bindings)   ;; alternative for `describe-bindings'
+   :map minibuffer-local-map
     ("C-c C-c" . embark-collect)
     ("C-c C-e" . embark-export)
-    ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+    :map corfu-map
+    ("C-c C-a" . embark-act)     ;; in buffer -> open file, jump to def
+    ("C-c C-m" . embark-dwim)
+    :map vertico-map
+    ("C-c C-a" . embark-act)     ;; in minibuff -> do stuff with candidate
+    ("C-c C-m" . embark-dwim)
+    )
   :init
   ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
@@ -862,29 +855,14 @@ are defining or executing a macro."
   (add-to-list 'display-buffer-alist
                '("\\'\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
-                 (window-parameters (mode-line-format . none))))
-  (with-eval-after-load 'embark ;; in general buff acts on thing at pt
-    (define-key global-map (kbd "C-.") #'embark-act)
-    (define-key global-map (kbd "C-;") #'embark-dwim))
-  
-  (with-eval-after-load 'corfu ;; in buffer -> open file, jump to def 
-    (define-key corfu-map (kbd "C-.") #'embark-act)
-    (define-key corfu-map (kbd "C-;") #'embark-dwim))
+                 (window-parameters (mode-line-format . none)))))
 
-  (with-eval-after-load 'vertico ;; in minibuff -> do stuff with candidate
-    (define-key vertico-map (kbd "C-.") #'embark-act)
-    (define-key vertico-map (kbd "C-;") #'embark-dwim)))
-
-  ;; Needed for correct exporting while using Embark with Consult
-  ;; commands.
-  (use-package embark-consult
-    :ensure t
-    :after (embark consult))
-
-
-(use-package ov
+;; Needed for correct exporting while using Embark with Consult
+;; commands.
+(use-package embark-consult
   :ensure t
-  :commands (ov-regexp))
+  :after (embark consult))
+
 
 (provide 'frap-completion)
 ;;; frap-completion.el ends here
