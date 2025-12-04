@@ -2,140 +2,87 @@
 ;;; Commentary:
 ;;; Code:
 
-;; Disable native compilation - new builds LD_LIBARRY path emacs-plus
-;; https://github.com/d12frosted/homebrew-emacs-plus/issues/378
-;; (setq native-comp-jit-compilation nil
-;;      package-native-compile nil
-;;      native-comp-async-report-warnings-errors nil
-;;      native-comp-enable-subr-trampolines nil
-;;      load-prefer-newer t)
+;; show every `load` during init in *Messages*
+(setq debug-on-error t
+     ;; debug-on-signal t
+ )
 
-;; native complilation is silent
-;; Make native compilation silent and prune its cache.
- (when (native-comp-available-p)
-   (setq native-comp-async-report-warnings-errors 'silent) ; Emacs 28 with native compilation
-   (setq native-compile-prune-cache t)
-   (setq load-prefer-newer t))
+;; ----------------------------------------------------------
+;; Native compilation: quiet + prefer newer
+;; ----------------------------------------------------------
+
+(when (featurep 'native-compile)
+  ;;(setq native-comp-async-report-warnings-errors 'silent)
+  ;; Don’t eagerly native-compile everything on startup
+  ;; (setq native-comp-deferred-compilation t)
+  (setq load-prefer-newer t))
+
+;; ----------------------------------------------------------
+;; package.el setup
+;; ----------------------------------------------------------
+
+(require 'package)
+
+(setq package-archives
+      '(("gnu"   . "https://elpa.gnu.org/packages/")
+        ("melpa" . "https://melpa.org/packages/")))
+
+;; We disabled automatic package loading in early-init in the past.
+;; Now we control it manually here.
+(setq package-enable-at-startup t)
+
+(unless package--initialized
+  (package-initialize))
+
+(unless package-archive-contents
+  (package-refresh-contents))
+
+;; ----------------------------------------------------------
+;; use-package: prefer built-in in Emacs 29+
+;; ----------------------------------------------------------
+(require 'use-package)
+
+(when init-file-debug
+  (setq use-package-verbose t
+        use-package-expand-minimally nil
+        use-package-compute-statistics t
+        debug-on-error t))
 
 
-;; * PACKAGE MANAGEMENT
-;; ;; ** ELPACA
-(defvar elpaca-installer-version 0.11)
-(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
-(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
-(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
-(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                              :ref nil :depth 1 :inherit ignore
-                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                              :build (:not elpaca--activate-package)))
-
-(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
-       (build (expand-file-name "elpaca/" elpaca-builds-directory))
-       (order (cdr elpaca-order))
-       (default-directory repo))
-  (add-to-list 'load-path (if (file-exists-p build) build repo))
-  (unless (file-exists-p repo)
-    (make-directory repo t)
-    (when (<= emacs-major-version 28) (require 'subr-x))
-    (condition-case-unless-debug err
-        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
-                                                  ,@(when-let* ((depth (plist-get order :depth)))
-                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
-                                                  ,(plist-get order :repo) ,repo))))
-                  ((zerop (call-process "git" nil buffer t "checkout"
-                                        (or (plist-get order :ref) "--"))))
-                  (emacs (concat invocation-directory invocation-name))
-                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                  ((require 'elpaca))
-                  ((elpaca-generate-autoloads "elpaca" repo)))
-            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-          (error "%s" (with-current-buffer buffer (buffer-string))))
-      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
-  (unless (require 'elpaca-autoloads nil t)
-    (require 'elpaca)
-    (elpaca-generate-autoloads "elpaca" repo)
-    (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
-(add-hook 'after-init-hook #'elpaca-process-queues)
-(elpaca `(,@elpaca-order))
-
-;; Elpaca use-package support
-(elpaca elpaca-use-package
-  ;; Enable use-package :ensure support for Elpaca.
-  (elpaca-use-package-mode)
-  ;; Assume :elpaca t unless otherwise specified.
-  (setq elpaca-use-package-by-default t))
-
-;; Block until current queue processed.
-(elpaca-wait)
-
-;; Add `:doc' support for use-package so that we can use it like what a doc-strings is for
-(eval-and-compile
-  (add-to-list 'use-package-keywords :doc t)
-  (defun use-package-handler/:doc (name-symbol _keyword _docstring rest state)
-    "An identity handler for :doc.
-     Currently, the value for this keyword is being ignored.
-     This is done just to pass the compilation when :doc is
-     included Argument NAME-SYMBOL is the first argument to
-     `use-package' in a declaration.  Argument KEYWORD here is
-     simply :doc.  Argument DOCSTRING is the value supplied for
-     :doc keyword.  Argument REST is the list of rest of the
-     keywords.  Argument STATE is maintained by `use-package' as
-     it processes symbols."
-
-    ;; just process the next keywords
-    (use-package-process-keywords name-symbol rest state))
-
-  (defmacro use-feature (name &rest args)
+;; ----------------------------------------------------------
+;; Extra :doc keyword + use-feature
+;; ----------------------------------------------------------
+(defmacro use-feature (name &rest args)
     "Like `use-package' but accounting for asynchronous installation.
     NAME and ARGS are in `use-package'."
     (declare (indent defun))
     `(use-package ,name
        :ensure nil
        ,@args))
-  )
 
-(eval-when-compile
-  (eval-after-load 'advice
-    `(setq ad-redefinition-action 'accept))
-  (setq use-package-verbose nil
-        use-package-compute-statistics nil
-        ;;use-package-ignore-unknown-keywords t
-        use-package-minimum-reported-time 0.01
-        ;; use-package-expand-minimally t
-        use-package-enable-imenu-support t)
-  (require 'use-package))
+;; Don't auto-install everything by default
+;; (setq use-package-always-ensure t)
 
-(use-feature elpaca-ui
-  :ensure nil
-  :bind (:map elpaca-ui-mode-map
-              ("p" . previous-line)
-              ("F" . elpaca-ui-mark-pull))
-  :after popper
-  :init
-  (add-to-list 'popper-reference-buffers
-               'elpaca-log-mode)
-  (setf (alist-get (lambda (buf &rest _)
-                     (eq
-                      (buffer-local-value 'major-mode
-                                          (get-buffer buf))
-                      'elpaca-log-mode))
-                   display-buffer-alist)
-        '((display-buffer-at-bottom
-           display-buffer-in-side-window)
-          (side . bottom)
-          (slot . 60)
-          (window-height . 0.4)
-          (body-function . select-window))))
 
-;;; Security
+;; ----------------------------------------------------------
+;; Security: GnuTLS
+;; ----------------------------------------------------------
 ;; For the love of all that is holy, do not continue with untrusted
 ;; connections!
 (use-feature gnutls
-  :defer t
   :custom
   (gnutls-verify-error t))
+
+;;; No littering
+;; Many packages leave crumbs in user-emacs-directory or even
+;; $HOME. Finding and configuring them individually is a hassle, so we
+;; rely on the community configuration of no-littering. Run this
+;; early, because many of the crumb droppers are configured below!
+(use-package no-littering
+  :ensure t
+  :init
+  (setq no-littering-etc-directory "~/.cache/emacs/etc/"
+	    no-littering-var-directory "~/.cache/emacs/var/"))
 
 (provide 'init-elpa)
 ;;; init-elpa.el ends here
