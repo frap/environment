@@ -38,6 +38,19 @@
 (add-hook 'server-after-make-frame-hook 'setup-input)
 (add-hook 'after-init-hook 'setup-input)
 
+;; use-package is built-in as of Emacs 29, but since we use :bind, we
+;; need to load bind-key. If we forget, we get the error: Symbol's
+;; value as variable is void: personal-keybindings.
+(use-feature bind-key
+  :demand t)
+
+(use-package exec-path-from-shell
+  :ensure t
+  :config
+  (when (memq window-system '(mac ns))
+    (setq exec-path-from-shell-variables '("PATH" "MANPATH" "LIBRARY_PATH" "UV_PYTHON"))
+    (exec-path-from-shell-initialize)))
+
 ;; (defun doom-load-envvars-file (file &optional noerror)
 ;;   "Read and set envvars from FILE.
 ;; If NOERROR is non-nil, don't throw an error if the file doesn't exist or is
@@ -63,15 +76,28 @@
 ;;               (set-time-zone-rule newtz))))
 ;;         env))))
 
-;; use-package is built-in as of Emacs 29, but since we use :bind, we
-;; need to load bind-key. If we forget, we get the error: Symbol's
-;; value as variable is void: personal-keybindings.
-(use-package bind-key
-  :ensure nil
-  :demand t)
 
 ;; C-a is defined as common-lisp-modes-command in puni
 (autoload 'common-lisp-modes-mode "common-lisp-modes" nil t)
+
+(defmacro prot-emacs-keybind (keymap &rest definitions)
+  "Expand key binding DEFINITIONS for the given KEYMAP.
+DEFINITIONS is a sequence of string and command pairs."
+  (declare (indent 1))
+  (unless (zerop (% (length definitions) 2))
+    (error "Uneven number of key+command pairs"))
+  (let ((keys (seq-filter #'stringp definitions))
+        ;; We do accept nil as a definition: it unsets the given key.
+        (commands (seq-remove #'stringp definitions)))
+    `(when-let* (((keymapp ,keymap))
+                 (map ,keymap))
+       ,@(mapcar
+          (lambda (pair)
+            (let* ((key (car pair))
+                   (command (cdr pair)))
+              (unless (and (null key) (null command))
+                `(define-key map (kbd ,key) ,command))))
+          (cl-mapcar #'cons keys commands)))))
 
 ;;; Essential configurations
 (use-package emacs
@@ -109,7 +135,7 @@
     ("<menu>" . nil)
     ("C-x C-d" . nil)		    ; never use it
     ("C-x C-v" . nil)		    ; never use it
-    ("C-z" . nil)		        ; I have a window manager, thanks!
+    ("C-z" . nil)		    ; I have a window manager, thanks!
     ("C-x C-z" . nil)		    ; same idea as above
     ("C-x C-c" . nil)		    ; avoid accidentally exiting Emacs
     ("C-x C-c C-c" . save-buffers-kill-emacs) ; more cumbersome, less error-prone
@@ -163,48 +189,48 @@
 (use-package crux
   :ensure t
   :demand t
-  ;; :bind
-  ;; (("C-a" . crux-move-beginning-of-line)
-  ;;  ("C-S-p" . crux-move-line-up)
-  ;;  ("C-S-n" . crux-move-line-down)
-  ;; 
-  ;;  ;; Crux kill and rename
-  ;;  ("C-x k" . crux-kill-buffer)
-  ;;  ("C-x K" . kill-buffer) ; leaving this here to contrast with the above
-  ;;  ("M-s b" . prot-simple-buffers-major-mode)
-  ;;  ("M-s v" . prot-simple-buffers-vc-root)
-  ;;  ("C-x C-r" . crux-rename-buffer-file)
-  ;;  ("C-x f"   . crux-recentf-find-file)
-  ;; 
-  ;;  ;; New lines
-  ;;  ("C-<return>" . crux-smart-open-line)
-  ;;  ("C-S-<return>" . crux-smart-open-line-above)
-  ;; 
-  ;;  ;; Duplicate line/region
-  ;;  ("C-c d" . crux-duplicate-current-line-or-region)
-  ;; 
-  ;;  ;; Still bind your own helpful or prot-simple commands
-  ;;  ("C-M-SPC" . prot-simple-mark-sexp)
-  ;;  ("C-S-d" . prot-simple-delete-line-backward)
-  ;;  ("M-k" . prot-simple-kill-line-backward)
-  ;;  ("M-j" . delete-indentation)
-  ;;  ("C-w" . prot-simple-kill-region)
-  ;;  ("M-w" . prot-simple-kill-ring-save)
-  ;;  ("C-S-w" . prot-simple-copy-line)
-  ;;  ("C-S-y" . prot-simple-yank-replace-line-or-region)
-  ;; 
-  ;;  ;; Dates and text
-  ;;  ("C-=" . prot-simple-insert-date)
-  ;;  ("C-<" . prot-simple-escape-url-dwim)
-  ;; 
-  ;;  ;; Other windows
-  ;;  ("C-x o" . prot-simple-other-window)
-  ;;  ("M-r" . rotate-windows)
-  ;;  ("M-S-r" . rotate-windows-back))
+  :bind
+  (("C-a" . crux-move-beginning-of-line)
+   ("C-S-p" . crux-move-line-up)
+   ("C-S-n" . crux-move-line-down)
+   ;; 
+   ;;  ;; Crux kill and rename
+    ("C-x k" . crux-kill-buffer)
+    ("C-x K" . kill-buffer) ; leaving this here to contrast with the above
+    ("M-s b" . prot-simple-buffers-major-mode)
+    ("M-s v" . prot-simple-buffers-vc-root)
+    ("C-x C-r" . crux-rename-buffer-file)
+    ("C-x f"   . crux-recentf-find-file)
+   ;; 
+   ;;  ;; New lines
+    ("C-<return>" . crux-smart-open-line)
+    ("C-S-<return>" . crux-smart-open-line-above)
+   
+    ;; Duplicate line/region
+    ("C-c d" . crux-duplicate-current-line-or-region)
+   
+    ;; Still bind your own helpful or prot-simple commands
+    ("C-M-SPC" . prot-simple-mark-sexp)
+    ("C-S-d" . prot-simple-delete-line-backward)
+    ("M-k" . prot-simple-kill-line-backward)
+    ("M-j" . delete-indentation)
+    ("C-w" . prot-simple-kill-region)
+    ("M-w" . prot-simple-kill-ring-save)
+    ("C-S-w" . prot-simple-copy-line)
+    ("C-S-y" . prot-simple-yank-replace-line-or-region)
+   
+    ;; Dates and text
+    ("C-=" . prot-simple-insert-date)
+    ("C-<" . prot-simple-escape-url-dwim)
+   
+    ;; Other windows
+    ("C-x o" . prot-simple-other-window)
+    ("M-r" . rotate-windows)
+    ("M-S-r" . rotate-windows-back))
 
-  :config
-  ;; Extra useful config for crux
-  (crux-reopen-as-root-mode +1))
+   :config
+   ;; Extra useful config for crux
+   (crux-reopen-as-root-mode +1))
 
 (use-package prot-simple
   :ensure nil
