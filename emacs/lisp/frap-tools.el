@@ -31,23 +31,24 @@
   :bind-keymap ("s-p" . project-prefix-map)
   :bind (("C-x p q" . project-query-replace-regexp) ; C-x p is `project-prefix-map'
          ("C-x p <delete>" . my/project-remove-project)
-         ("C-x p DEL" . my/project-remove-project)
+         ("C-x p DEL"      . my/project-remove-project)
          ("M-s p" . my/project-switch-project)
          ;; ("M-s f" . my/project-find-file-vc-or-dir)
          ("M-s L" . find-library)
          :map project-prefix-map
-          ("s" . project-save-some-buffers)
-          ("f" . project-find-file)
-          ("F" . project-switch-project)
-          ("m" . project-compile)
-          ("K" . project-kill-buffers)
-          ("t" . eshell)
-          ("v" . magit)
-          ("p" . project-switch-project))
+         ("f" . project-find-file)
+         ("F" . project-switch-project)
+         ("K" . project-kill-buffers)
+         ("L" . find-library)
+         ("m" . project-compile)
+         ("p" . project-switch-project)
+         ("s" . project-save-some-buffers)
+         ("t" . eshell)
+         ("v" . magit))
   :custom
   ;; This is one of my favorite things: you can customize
   ;; the options shown upon switching projects.
-  (setq project-switch-commands
+  (project-switch-commands
         '((?f "Find file" project-find-file)
           (?g "Find regexp" project-find-regexp)
           (?d "Dired" project-dired)
@@ -224,155 +225,122 @@ mode.")
 ;;   (setq diff-font-lock-syntax 'hunk-also))
 
   ;;; Version control framework (vc.el, vc-git.el, and more)
-;; (use-feature vc
-;;   :bind
-;;   (;; NOTE: I override lots of the defaults
-;;    :map global-map
-;;    ("C-x v B" . vc-annotate) ; Blame mnemonic
-;;    ("C-x v e" . vc-ediff)
-;;    ("C-x v k" . vc-delete-file) ; 'k' for kill==>delete is more common
-;;    ("C-x v G" . vc-log-search)  ; git log --grep
-;;    ("C-x v t" . vc-create-tag)
-;;    ("C-x v c" . vc-clone) ; Emacs 31
-;;    ("C-x v d" . vc-diff)
-;;    ("C-x v ." . vc-dir-root) ; `vc-dir-root' is from Emacs 28
-;;    ("C-x v <return>" . vc-dir-root)
-;;    :map vc-dir-mode-map
-;;    ("t" . vc-create-tag)
-;;    ("O" . vc-log-outgoing)
-;;    ("o" . vc-dir-find-file-other-window)
-;;    ("d" . vc-diff)         ; parallel to D: `vc-root-diff'
-;;    ("k" . vc-dir-delete-file)
-;;    ("G" . vc-revert)
-;;    :map vc-git-stash-shared-map
-;;    ("a" . vc-git-stash-apply-at-point)
-;;    ("c" . vc-git-stash) ; "create" named stash
-;;    ("k" . vc-git-stash-delete-at-point) ; symmetry with `vc-dir-delete-file'
-;;    ("p" . vc-git-stash-pop-at-point)
-;;    ("s" . vc-git-stash-snapshot)
-;;    :map vc-annotate-mode-map
-;;    ("M-q" . vc-annotate-toggle-annotation-visibility)
-;;    ("C-c C-c" . vc-annotate-goto-line)
-;;    ("<return>" . vc-annotate-find-revision-at-line)
-;;    :map log-edit-mode-map
-;;    ("M-s" . nil) ; I use M-s for my search commands
-;;    ("M-r" . nil) ; I use `consult-history'
-;;    :map log-view-mode-map
-;;    ("<tab>" . log-view-toggle-entry-display)
-;;    ("<return>" . log-view-find-revision)
-;;    ("s" . vc-log-search)
-;;    ("o" . vc-log-outgoing)
-;;    ("f" . vc-log-incoming)
-;;    ("F" . vc-update)
-;;    ("P" . vc-push))
-;;   :init
-;;   (setq vc-follow-symlinks t)
-;;   :config
-;;   ;; Those offer various types of functionality, such as blaming,
-;;   ;; viewing logs, showing a dedicated buffer with changes to affected
-;;   ;; files.
-;;   (require 'vc-annotate)
-;;   (require 'vc-dir)
-;;   (require 'vc-git)
-;;   (require 'add-log)
-;;   (require 'log-view)
-;; 
-;;   ;; I only use Git.  If I ever need another, I will include it here.
-;;   ;; This may have an effect on performance, as Emacs will not try to
-;;   ;; check for a bunch of backends.
-;;   (setq vc-handled-backends '(Git))
-;; 
-;;   ;; This one is for editing commit messages.
-;;   (require 'log-edit)
-;;   (setq log-edit-confirm 'changed)
-;;   (setq log-edit-keep-buffer nil)
-;;   (setq log-edit-require-final-newline t)
-;;   (setq log-edit-setup-add-author nil)
-;;   ;; I can see the files from the Diff with C-c C-d
-;;   (remove-hook 'log-edit-hook #'log-edit-show-files)
-;; 
-;;   (setq vc-find-revision-no-save t)
-;;   (setq vc-annotate-display-mode 'scale) ; scale to oldest
-;;   ;; I use a different account for git commits
-;;   (setq add-log-mailing-address "info@tuatara.red")
-;;   (setq add-log-keep-changes-together t)
-;;   (setq vc-git-diff-switches '("--patch-with-stat" "--histogram"))
-;;   (setq vc-git-log-switches '("--stat"))
-;;   (setq vc-git-print-log-follow t)
-;;   (setq vc-git-revision-complete-only-branches nil) ; Emacs 28
-;;   (setq vc-git-root-log-format
-;;         `("%d %h %ai %an: %s"
-;;           ;; The first shy group matches the characters drawn by --graph.
-;;           ;; We use numbered groups because `log-view-message-re' wants the
-;;           ;; revision number to be group 1.
-;;           ,(concat "^\\(?:[*/\\|]+\\)\\(?:[*/\\| ]+\\)?"
-;;                    "\\(?2: ([^)]+) \\)?\\(?1:[0-9a-z]+\\) "
-;;                    "\\(?4:[0-9]\\{4\\}-[0-9-]\\{4\\}[0-9\s+:-]\\{16\\}\\) "
-;;                    "\\(?3:.*?\\):")
-;;           ((1 'log-view-message)
-;;            (2 'change-log-list nil lax)
-;;            (3 'change-log-name)
-;;            (4 'change-log-date))))
-;; 
-;;   ;; These two are from Emacs 29
-;;   (setq vc-git-log-edit-summary-target-len 50)
-;;   (setq vc-git-log-edit-summary-max-len 70))
-
 (use-feature vc
-  :init
-  (setq vc-follow-symlinks t
-        vc-handled-backends '(Git)
-        vc-find-revision-no-save t
-        vc-annotate-display-mode 'scale
-        add-log-mailing-address "info@tuatara.red"
-        add-log-keep-changes-together t
-        vc-git-diff-switches '("--patch-with-stat" "--histogram")
-        vc-git-log-switches '("--stat")
-        vc-git-print-log-follow t)
   :bind
-  (("C-x v B" . vc-annotate)
+  (;; NOTE: I override lots of the defaults
+   :map global-map
+   ("C-x v B" . vc-annotate) ; Blame mnemonic
+   ("C-x v e" . vc-ediff)
+   ("C-x v k" . vc-delete-file) ; 'k' for kill==>delete is more common
+   ("C-x v G" . vc-log-search)  ; git log --grep
+   ("C-x v t" . vc-create-tag)
+   ("C-x v c" . vc-clone) ; Emacs 31
    ("C-x v d" . vc-diff)
-   ("C-x v D" . vc-root-diff)
-   ("C-x v L" . vc-print-root-log))
+   ("C-x v ." . vc-dir-root) ; `vc-dir-root' is from Emacs 28
+   ("C-x v <return>" . vc-dir-root)
+   :map vc-dir-mode-map
+   ("t" . vc-create-tag)
+   ("O" . vc-log-outgoing)
+   ("o" . vc-dir-find-file-other-window)
+   ("d" . vc-diff)         ; parallel to D: `vc-root-diff'
+   ("k" . vc-dir-delete-file)
+   ("G" . vc-revert)
+   :map vc-git-stash-shared-map
+   ("a" . vc-git-stash-apply-at-point)
+   ("c" . vc-git-stash) ; "create" named stash
+   ("k" . vc-git-stash-delete-at-point) ; symmetry with `vc-dir-delete-file'
+   ("p" . vc-git-stash-pop-at-point)
+   ("s" . vc-git-stash-snapshot)
+   :map vc-annotate-mode-map
+   ("M-q" . vc-annotate-toggle-annotation-visibility)
+   ("C-c C-c" . vc-annotate-goto-line)
+   ("<return>" . vc-annotate-find-revision-at-line)
+   :map log-edit-mode-map
+   ("M-s" . nil) ; I use M-s for my search commands
+   ("M-r" . nil) ; I use `consult-history'
+   :map log-view-mode-map
+   ("<tab>" . log-view-toggle-entry-display)
+   ("<return>" . log-view-find-revision)
+   ("s" . vc-log-search)
+   ("o" . vc-log-outgoing)
+   ("f" . vc-log-incoming)
+   ("F" . vc-update)
+   ("P" . vc-push))
+  :init
+  (setq vc-follow-symlinks t)
   :config
+  ;; Those offer various types of functionality, such as blaming,
+  ;; viewing logs, showing a dedicated buffer with changes to affected
+  ;; files.
   (require 'vc-annotate)
   (require 'vc-dir)
   (require 'vc-git)
   (require 'add-log)
-  (require 'log-view))
+  (require 'log-view)
 
-;; (defgroup gas/vcs nil
-;;   "VCS utilities."
-;;   :group 'tools)
-;; 
-;; (defcustom gas/vcs-protected-buffers-regexp
-;;   (rx string-start
-;;       (or "*Messages*" "*scratch*" "*Warnings*" "*Backtrace*" "*Help*")
-;;       string-end)
-;;   "Regexp of buffers that must never be killed by VCS cleanup."
-;;   :type 'regexp)
-;; 
-;; (defun vcs--magit-buffer-p (buffer)
-;;   "Return non-nil if BUFFER is a Magit-related buffer."
-;;   (when (buffer-live-p buffer)
-;;     (with-current-buffer buffer
-;;       (or
-;;        ;; Most Magit modes derive from `magit-mode'
-;;        (derived-mode-p 'magit-mode)
-;;        ;; Fallbacks for safety
-;;        (memq major-mode
-;;              '(magit-status-mode magit-diff-mode magit-process-mode
-;;                magit-revision-mode magit-log-mode magit-stash-mode
-;;                magit-refs-mode magit-blame-mode))
-;;        ;; Name heuristics (covers e.g. *magit-process* etc.)
-;;        (string-match-p (rx string-start "*" (? " ") "magit") (buffer-name))))))
-;; 
-;; (defun vcs--killable-buffer-p (buffer)
-;;   "Return non-nil if BUFFER is safe for Magit cleanup to kill."
-;;   (and (buffer-live-p buffer)
-;;        (not (minibufferp buffer))
-;;        (not (string-match-p gas/vcs-protected-buffers-regexp (buffer-name buffer)))
-;;        (vcs--magit-buffer-p buffer)))
+  ;; I only use Git.  If I ever need another, I will include it here.
+  ;; This may have an effect on performance, as Emacs will not try to
+  ;; check for a bunch of backends.
+  (setq vc-handled-backends '(Git))
+
+  ;; This one is for editing commit messages.
+  (require 'log-edit)
+  (setq log-edit-confirm 'changed)
+  (setq log-edit-keep-buffer nil)
+  (setq log-edit-require-final-newline t)
+  (setq log-edit-setup-add-author nil)
+  ;; I can see the files from the Diff with C-c C-d
+  (remove-hook 'log-edit-hook #'log-edit-show-files)
+
+  (setq vc-find-revision-no-save t)
+  (setq vc-annotate-display-mode 'scale) ; scale to oldest
+  ;; I use a different account for git commits
+  (setq add-log-mailing-address "info@tuatara.red")
+  (setq add-log-keep-changes-together t)
+  (setq vc-git-diff-switches '("--patch-with-stat" "--histogram"))
+  (setq vc-git-log-switches '("--stat"))
+  (setq vc-git-print-log-follow t)
+  (setq vc-git-revision-complete-only-branches nil) ; Emacs 28
+  (setq vc-git-root-log-format
+        `("%d %h %ai %an: %s"
+          ;; The first shy group matches the characters drawn by --graph.
+          ;; We use numbered groups because `log-view-message-re' wants the
+          ;; revision number to be group 1.
+          ,(concat "^\\(?:[*/\\|]+\\)\\(?:[*/\\| ]+\\)?"
+                   "\\(?2: ([^)]+) \\)?\\(?1:[0-9a-z]+\\) "
+                   "\\(?4:[0-9]\\{4\\}-[0-9-]\\{4\\}[0-9\s+:-]\\{16\\}\\) "
+                   "\\(?3:.*?\\):")
+          ((1 'log-view-message)
+           (2 'change-log-list nil lax)
+           (3 'change-log-name)
+           (4 'change-log-date))))
+
+  ;; These two are from Emacs 29
+  (setq vc-git-log-edit-summary-target-len 50)
+  (setq vc-git-log-edit-summary-max-len 70))
+
+;; (use-feature vc
+;;   :init
+;;   (setq vc-follow-symlinks t
+;;         vc-handled-backends '(Git)
+;;         vc-find-revision-no-save t
+;;         vc-annotate-display-mode 'scale
+;;         add-log-mailing-address "info@tuatara.red"
+;;         add-log-keep-changes-together t
+;;         vc-git-diff-switches '("--patch-with-stat" "--histogram")
+;;         vc-git-log-switches '("--stat")
+;;         vc-git-print-log-follow t)
+;;   :bind
+;;   (("C-x v B" . vc-annotate)
+;;    ("C-x v d" . vc-diff)
+;;    ("C-x v D" . vc-root-diff)
+;;    ("C-x v L" . vc-print-root-log))
+;;   :config
+;;   (require 'vc-annotate)
+;;   (require 'vc-dir)
+;;   (require 'vc-git)
+;;   (require 'add-log)
+;;   (require 'log-view))
 ;; 
 ;; (defun vcs--kill-buffer (buffer)
 ;;   "Gracefully kill Magit BUFFER and any finished process it owns.
@@ -408,7 +376,7 @@ mode.")
 ;;         (vcs--kill-buffer buf)))))
 
 (use-package magit
-  :ensure (:host github :repo "magit/magit")
+;;   :load-path "~/.config/emacs/site-lisp/magit"
   :after project
   :custom
   (magit-git-executable "/opt/homebrew/bin/git")
@@ -541,7 +509,7 @@ Skips if this is an --amend commit, or if the tag is already present."
   ;;              '("\\(magit-revision:\\|magit-diff:\\)"
   ;;                (gas/magit-display-buffer)
   ;;                (inhibit-same-window . t)))
-(with-eval-after-load 'project
+  (with-eval-after-load 'project
     (add-to-list 'project-switch-commands
                  '(magit-project-status "Magit") t))
   )
@@ -579,7 +547,7 @@ Skips if this is an --amend commit, or if the tag is already present."
       "Modifiez, puis quittez avec `\\[separedit-commit]' ou annulez avec \\<edit-indirect-mode-map>`\\[edit-indirect-abort]'"))))
 
 (use-package hl-todo
-  :ensure (:host github :repo "tarsius/hl-todo")
+  :load-path "~/.config/emacs/site-lisp/hl-todo"
   :hook (prog-mode . hl-todo-mode)
   :config
   (setq hl-todo-keyword-faces
