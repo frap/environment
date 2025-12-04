@@ -24,11 +24,11 @@
   (setq show-paren-context-when-offscreen 'overlay)) ; Emacs 29
 
 (use-package puni
-  :ensure (:host github :repo "AmaiKinono/puni")
-  :defer t
-  ;; :delight " ♾️"
-  :hook (((common-lisp-modes-mode nxml-mode json-ts-mode) . puni-mode)
-         (puni-mode . electric-pair-local-mode))
+   :load-path "~/.config/emacs/site-lisp/puni"
+   :defer t
+   :delight " ♾️"
+   :hook (((common-lisp-modes-mode nxml-mode json-ts-mode) . puni-mode)
+          (puni-mode . electric-pair-local-mode))
   :init
   ;; The autoloads of Puni are set up so you can enable `puni-mode` or
   ;; `puni-global-mode` before `puni` is actually loaded. Only after you press
@@ -38,14 +38,8 @@
   (add-hook 'eshell-mode-hook #'puni-disable-puni-mode)
   ;; paredit-like keys
   :bind
-  (("C-a" . frap/puni-smart-bol)
+  (;;("C-a" . frap/puni-smart-bol)
    ("C-e" . frap/puni-smart-eol)
-   
-   :map region-bindings-mode-map
-   ("(" . puni-wrap-round)
-   ("[" . puni-wrap-square)
-   ("{" . puni-wrap-curly)
-   ("<" . puni-wrap-angle)
    
    :map puni-mode-map
    ;; Movement / transpose
@@ -70,7 +64,11 @@
    ;; Wrap round/curly (handy without region)
    ("M-(" . puni-wrap-round)
    ("M-{" . puni-wrap-curly))
-  :preface
+
+  :config
+  (when IS-GUI?
+    (define-key puni-mode-map (kbd "M-[") #'puni-wrap-square))
+
   (define-advice puni-kill-line (:before (&rest _) back-to-indentation)
     "Go back to indentation before killing the line if it makes sense to."
     (when (looking-back "^[[:space:]]*" nil)
@@ -107,12 +105,6 @@ Uses puni if present and active."
       (if b (goto-char (cdr b))
         (move-end-of-line 1)))))
 
-(use-package puni
-  :when IS-GUI?
-  :ensure nil
-  :bind (:map puni-mode-map
-              ;; doesn't work in terminal
-              ("M-[" . puni-wrap-square)))
 
 (use-package rainbow-delimiters
   :ensure t
@@ -248,6 +240,8 @@ Uses puni if present and active."
 
 ;;;; direnv
 (use-package envrc
+  :load-path "~/.config/emacs/site-lisp/envrc"
+  :commands envrc-global-mode"
   :hook (after-init . envrc-global-mode))
 
 ;;; Flymake
@@ -331,7 +325,7 @@ Uses puni if present and active."
 
 ;;; Indent S-Exp As I Type
 (use-package isayt
-  :ensure (:host gitlab :repo "andreyorst/isayt.el")
+  :load-path "~/.config/emacs/site-lisp/isayt.el"
   :delight
   :hook (common-lisp-modes-mode . isayt-mode))
 
@@ -445,38 +439,143 @@ Uses puni if present and active."
 ;;; lang major modes
 
 ;;;; Common Lisp Modes Mode
-(use-package common-lisp-modes
-  :ensure (:host gitlab :repo "andreyorst/common-lisp-modes.el")
-  :commands common-lisp-modes-mode ;; minor mode
-  :delight " δ"
-  ;; Enable the minor mode in these major modes
-  :hook (((lisp-mode
-           emacs-lisp-mode
-           clojure-ts-mode
-           fennel-mode
-           racket-mode
-           cider-repl-mode
-           ;; shell-mode
-           eval-expression-minibuffer-setup) . common-lisp-modes-mode))
+(defun indent-sexp-or-fill ()
+  "Indent the current sexp, or fill the current string/comment."
+  (interactive)
+  (let ((ppss (syntax-ppss)))
+    (if (or (nth 3 ppss)      ; inside string
+            (nth 4 ppss))     ; inside comment
+        (fill-paragraph)
+      (save-excursion
+        (mark-sexp)
+        (indent-region (point) (mark))))))
 
-  :bind ( :map common-lisp-modes-mode-map
-	      ("M-q" . indent-sexp-or-fill))
-  
+(use-package common-lisp-modes
+  :load-path "~/.config/emacs/site-lisp/common-lisp-modes"
+  :commands common-lisp-modes-mode        ; autoloadable minor mode
+  :delight " δ"
+
+  ;; Where the minor mode should turn on
+  :hook ((lisp-mode
+          emacs-lisp-mode
+          clojure-ts-mode
+          fennel-mode
+          racket-mode
+          cider-repl-mode
+          eval-expression-minibuffer-setup) . common-lisp-modes-mode)
+  ;; Extra behaviour when the minor mode itself is active
+  :hook ((common-lisp-modes-mode . puni-mode)
+         (common-lisp-modes-mode . rainbow-delimiters-mode))
+
+  :bind (:map common-lisp-modes-mode-map
+              ("M-q" . indent-sexp-or-fill)))
+
+;;;; Subword mode helps us move around camel-case languages - no cluttering the mode line.
+(use-feature subword
+  :defer t
+  :delight)
+
+;; (eval-and-compile
+;;   ;; Define it so “void-variable” can’t happen if treesit isn't loaded yet.
+;;   (defvar treesit-language-source-alist nil))
+;; 
+;; (with-eval-after-load 'treesit
+;;       (add-to-list 'treesit-language-source-alist
+;;              '(clojure "https://github.com/sogaiu/tree-sitter-clojure")))
+;; ;;; Mark syntactic constructs efficiently if tree-sitter is available (expreg)
+;; (when (treesit-available-p)
+;;   (use-package treesit-auto
+;;   :ensure t
+;;   :custom
+;;   (treesit-auto-install 'prompt) ;; auto install missing grammars with prompt
+;;   :config
+;;   (setq major-mode-remap-alist
+;;       '((clojure-mode . clojure-ts-mode)
+;;         (clojurescript-mode . clojure-ts-mode)
+;;         (clojurec-mode . clojure-ts-mode)))
+;;   (setq treesit-font-lock-level 4)
+;;   (treesit-auto-add-to-auto-mode-alist 'all) ;; all known remappings
+;;   (global-treesit-auto-mode 1)))
+
+
+(use-package treesit
+  :ensure nil
+  :mode (("\\.clj\\'"  . clojure-ts-mode)
+         ("\\.edn\\'"  . clojure-ts-mode)
+         ("\\.cljs\\'"  . clojure-ts-mode)
+         ("\\.tsx\\'" . tsx-ts-mode)
+         ("\\.js\\'"  . typescript-ts-mode)
+         ("\\.mjs\\'" . typescript-ts-mode)
+         ("\\.mts\\'" . typescript-ts-mode)
+         ("\\.cjs\\'" . typescript-ts-mode)
+         ("\\.ts\\'"  . typescript-ts-mode)
+         ("\\.jsx\\'" . tsx-ts-mode)
+         ("\\.json\\'" .  json-ts-mode)
+         ("\\.Dockerfile\\'" . dockerfile-ts-mode)
+         ("\\.prisma\\'" . prisma-ts-mode)
+         ;; More modes defined here...
+         )
   :preface
-  (defun indent-sexp-or-fill ()
-    "Indent an s-expression or fill string/comment."
+  (defun os/setup-install-grammars ()
+    "Install Tree-sitter grammars if they are absent."
     (interactive)
-    (let ((ppss (syntax-ppss)))
-      (if (or (nth 3 ppss)
-	          (nth 4 ppss))
-	      (fill-paragraph)
-	    (save-excursion
-	      (mark-sexp)
-	      (indent-region (point) (mark))))))
-  
+    (dolist (grammar
+             '((clojure "https://github.com/sogaiu/tree-sitter-clojure")
+               (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+               (bash "https://github.com/tree-sitter/tree-sitter-bash")
+               (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+               (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.21.2" "src"))
+               (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+               (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
+               (go "https://github.com/tree-sitter/tree-sitter-go" "v0.20.0")
+               (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+               (make "https://github.com/alemuller/tree-sitter-make")
+               (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+               (cmake "https://github.com/uyha/tree-sitter-cmake")
+               (c "https://github.com/tree-sitter/tree-sitter-c")
+               (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+               (toml "https://github.com/tree-sitter/tree-sitter-toml")
+               (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
+               (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
+               (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
+               (prisma "https://github.com/victorhqc/tree-sitter-prisma")
+               (terraform "https://github.com/tree-sitter-grammars/tree-sitter-hcl")
+               ))
+      (add-to-list 'treesit-language-source-alist grammar)
+      ;; Only install `grammar' if we don't already have it
+      ;; installed. However, if you want to *update* a grammar then
+      ;; this obviously prevents that from happening.
+      (unless (treesit-language-available-p (car grammar))
+        (treesit-install-language-grammar (car grammar)))))
+
+  ;; Optional, but recommended. Tree-sitter enabled major modes are
+  ;; distinct from their ordinary counterparts.
+  ;;
+  ;; You can remap major modes with `major-mode-remap-alist'. Note
+  ;; that this does *not* extend to hooks! Make sure you migrate them
+  ;; also
+  (dolist (mapping
+           '((clojure-mode . clojure-ts-mode)
+             (clojurescript-mode . clojure-ts-mode)
+             (clojurec-mode . clojure-ts-mode)
+             (python-mode . python-ts-mode)
+             (css-mode . css-ts-mode)
+             (typescript-mode . typescript-ts-mode)
+             (js-mode . typescript-ts-mode)
+             (js2-mode . typescript-ts-mode)
+             (c-mode . c-ts-mode)
+             (c++-mode . c++-ts-mode)
+             (c-or-c++-mode . c-or-c++-ts-mode)
+             (bash-mode . bash-ts-mode)
+             (css-mode . css-ts-mode)
+             (json-mode . json-ts-mode)
+             (js-json-mode . json-ts-mode)
+             (sh-mode . bash-ts-mode)
+             (sh-base-mode . bash-ts-mode)
+             ))
+    (add-to-list 'major-mode-remap-alist mapping))
   :config
-  (add-hook 'common-lisp-modes-mode-hook #'puni-mode)
-  (add-hook 'common-lisp-modes-mode-hook #'rainbow-delimiters-mode))
+  (os/setup-install-grammars))
 
 ;;;; CSS Web
 (use-feature css-mode
@@ -623,7 +722,8 @@ See `cider-find-and-clear-repl-output' for more info."
                                       (rename-buffer "*babashka-repl*")))))))))
 
 (use-package clay
-  :ensure (:host github :repo "scicloj/clay.el"))
+ :load-path "~/.config/emacs/site-lisp/clay.el"
+  )
 
 
 ;; (use-package niel

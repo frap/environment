@@ -1,9 +1,13 @@
-;;; lisp/frap-editor.el --- Emacs Editor -*- lexical-binding: t -*-
-(use-feature editor-defaults
-  :preface
+;;; frap-editor.el --- Editor defaults -*- lexical-binding: t; -*-
+
+;; Basic editing defaults
+
+(use-package emacs
+  :ensure nil
+  :demand t
+  :init
+  ;; global editing behaviour
   (setq
-   ;; my source directory
-   default-directory "~/dev/"
    ;; search should be case-sensitive by default
    case-fold-search nil
    ;; Double-spaces after periods is morally wrong.
@@ -16,80 +20,59 @@
    mark-even-if-inactive nil
    ;; Let C-k delete the whole line.
    kill-whole-line t
-   ;; prefer newer elisp files
+   ;; Prefer newer elisp files
    load-prefer-newer t
-   ;; when I say to quit, I mean quit
+   ;; When I say to quit, I mean quit
    confirm-kill-processes nil
-   ;; unicode ellipses are better
+   ;; Unicode ellipsis
    truncate-string-ellipsis "…"
-   ;; I want to close these fast, so switch to it so I can just hit 'q'
+   ;; Select help window when opened
    help-window-select t
-   ;; this certainly can't hurt anything
+   ;; Move deletes to trash
    delete-by-moving-to-trash t
-   ;; more info in completions
+   ;; More info in completions
    completions-detailed t
-   ;; don't keep duplicate entries in kill ring
+   ;; Don't keep duplicate entries in kill ring
    kill-do-not-save-duplicates t
-   ;; select help window when opened
-   help-window-select t
+   ;; Skip expensive redisplay on input
    redisplay-skip-fontification-on-input t
-   ;;  tab-always-indent 'complete        ; smart tab behaviour - indent or complete.
-   ;; Flash the screen on error, don't beep.
+   ;; Flash instead of beep
    visible-bell t
-   ;; Toggle ON or OFF with M-x view-mode (or use e to exit view-mode).)
-   ;;  view-read-only t
-   ;; don't automatically add new line, when scroll down at the bottom of a buffer.
+   ;; Don't add newlines when scrolling past end of buffer
    next-line-add-newlines nil
-   ;; require final new line.
+   ;; Require final newline
    require-final-newline t
-   ;; highlight the stuff you are marking.
+   ;; Highlight region when active
    transient-mark-mode t
-   ;; Show Keystrokes in Progress Instantly
+   ;; Show keystrokes quickly
    echo-keystrokes 0.1
-
+   ;; Don't forget unreadable save-place files
    save-place-forget-unreadable-files nil
-
-   blink-matching-paren t               ; Blinking parenthesis.
+   ;; Blink matching paren
+   blink-matching-paren t
    )
-  ;; Never mix tabs and spaces. Never use tabs, period.
-  ;; We need the setq-default here because this becomes
-  ;; a buffer-local variable when set.
+  ;; Never mix tabs and spaces. NEVER use tabs, period.
   (setq-default indent-tabs-mode nil
+                tab-width 4
                 tab-always-indent 'complete
+                tab-first-completion 'word-or-paren-or-punct ; emacs 27+
                 completion-cycle-threshold nil)
-
-  ;; use UTF-8 period!
+  :config
+  ;; Use UTF-8
   (set-charset-priority 'unicode)
   (prefer-coding-system 'utf-8-unix)
-  ;;We also need to turn on a few modes to have behaviour that's even remotely modern.
-  ;; Typing over an active section should delete the section.
-  (delete-selection-mode t)
-  (column-number-mode)
-  ;; Emacs 27 comes with fast current-line highlight functionality, but it can produce some visual feedback in ~vterm~ buffers
-  ;; (require 'hl-line)
-  ;; (add-hook 'prog-mode-hook #'hl-line-mode)
-  ;; (add-hook 'text-mode-hook #'hl-line-mode)
-  ;; excellent way to cause aggravation when the variable you keep trying to modify is being set in some ~custom-set-variables~ invocation
-  (setq custom-file (make-temp-name "/tmp/"))
-  ;;  Emacs stores theme-safety information in that file, we have to disable the warnings entirely
+  (delete-selection-mode 1)
+  (column-number-mode 1)
+
+  ;; Throw custom.el into a temp file; don't pollute init.el
+  (setq custom-file (make-temp-name "/tmp/emacs-custom-"))
   (setq custom-safe-themes t)
 
-  ;; set-mark-command-repeat-pop means we only need to hit C-u or C-x
-  ;; once before subsequent C-SPC, which makes it much nicer to
-  ;; navigate.
   (setopt set-mark-command-repeat-pop t)
 
-  ;; Tabs are the devil’s whitespace.
-  ;; Killing
-  ;; Put the clipboard on the kill ring before killing something
-  ;; else. Emacs isn’t as violent as it sometimes sounds, I swear.
-  ;;
-  ;; We also don’t want to clutter the ring with consecutively duplicate
-  ;; values.
-  (setf save-interprogram-paste-before-kill t)
-  (setf kill-do-not-save-duplicates t)
-  (setq-default indent-tabs-mode nil)
-(provide 'editor-defaults))
+  (setf save-interprogram-paste-before-kill t
+        kill-do-not-save-duplicates t))
+
 
 ;;;; Auto revert mode
 ;; Update the contents of a saved buffer when its underlying file is changed externally. aka git pull
@@ -127,7 +110,7 @@
                       ?k ?l ?' ?x ?c ?v ?b
                       ?n ?, ?/))
   (setq avy-all-windows t)              ; all window
-  (setq avy-all-windows-alt t)          ; all windows with C-u
+  ;; (setq avy-all-windows-alt t)          ; all windows with C-u
   (setq avy-single-candidate-jump t)
   (setq avy-background nil)
   (setq avy-case-fold-search nil)       ; case is significant
@@ -340,12 +323,14 @@
               ("X" . dired-do-flagged-delete)
               ("y" . dired-do-copy))
   :init
-  (setq dired-omit-files "^\\.[^.]\\|$Rhistory\\|$RData\\|__pycache__|node_modules")
+  (setq dired-omit-files "^\\.[^.]\\|$Rhistory\\|$RData\\|__pycache__\\|node_modules")
 
   (setq ls-lisp-dirs-first t)
   (setq ls-lisp-use-insert-directory-program nil)
+  
   (autoload 'dired-omit-mode "dired-x")
   (put 'dired-find-alternate-file 'disabled nil)
+  
   :config
   (setq dired-listing-switches "-AGFhlv --group-directories-first --time-style=long-iso")
   (setq dired-recursive-copies 'always)
@@ -377,10 +362,10 @@
   :after dired
   :bind
   ( :map dired-mode-map
-    ("C-+" . dired-create-empty-file)
-    ("M-s f" . nil)
-    ("C-<return>" . dired-do-open) ; Emacs 30
-    ("C-x v v" . dired-vc-next-action)) ; Emacs 28
+         ("C-+" . dired-create-empty-file)
+         ("M-s f" . nil)
+         ("C-<return>" . dired-do-open) ; Emacs 30
+         ("C-x v v" . dired-vc-next-action)) ; Emacs 28
   :config
   (setq dired-isearch-filenames 'dwim)
   (setq dired-create-destination-dirs 'ask) ; Emacs 27
@@ -392,7 +377,7 @@
   :after dired
   :bind
   ( :map dired-mode-map
-    ("I" . dired-info))
+         ("I" . dired-info))
   :config
   (setq dired-clean-up-buffers-too t)
   (setq dired-clean-confirm-killing-deleted-buffers t)
@@ -440,7 +425,7 @@
   :custom
   (doc-view-resolution 192))
 
-  (use-feature files
+(use-feature files
     :preface
     (setq
      ;; more info in completions
@@ -491,93 +476,84 @@
           ;; Don't ask when reverting
           auto-revert-verbose nil))
 
-;;;; Tabs, indentation, and the TAB key
-(use-package emacs
-  :ensure nil
-  :demand t
-  :config
-  (setq tab-always-indent 'complete)
-  (setq tab-first-completion 'word-or-paren-or-punct) ; Emacs 27
-  (setq-default tab-width 4
-                indent-tabs-mode nil))
-
 ;;;; editorconfig for emacs
 (use-package editorconfig
   :ensure t
   :delight
-  :hook prog-mode text-mode
-  :config
-  (editorconfig-mode 1))
+  :hook ((prog-mode . editorconfig-mode)
+         (text-mode . editorconfig-mode)))
 
 ;;;; Disable "electric" behaviour
-(use-package electric
-  :ensure nil
+(use-feature electric
+  :init
+  (electric-indent-mode -1)
   :hook
+  ;; enable local indent in programming modes only
   (prog-mode . electric-indent-local-mode)
   :config
   ;; I don't like auto indents in Org and related.  They are okay for
   ;; programming.
   (electric-pair-mode -1)
-  (electric-quote-mode -1)
-  (electric-indent-mode -1))
+  (electric-quote-mode -1))
 
 (use-package expand-region
   :ensure t
   :bind (("M-2" . er/expand-region)
          ("C-=" . er/expand-region)))
 
-;;; Flyspell and prot-spell.el (spell check)
-;; (use-package flyspell
-;;   :ensure nil
-;;   :bind
-;;   ( :map flyspell-mode-map
-;;     ("C-;" . nil)
-;;     :map flyspell-mouse-map
-;;     ("<mouse-3>" . flyspell-correct-word)
-;;     :map ctl-x-x-map
-;;     ("s" . flyspell-mode)) ; C-x x s
-;;   :config
-;;   (setq flyspell-issue-message-flag nil)
-;;   (setq flyspell-issue-welcome-flag nil)
-;;   (setq ispell-program-name "hunspell")
-;;   (setq ispell-dictionary "en_GB"))
-
+;; Built-in spell checking on texty modes, only if we actually have a backend.
 (use-feature flyspell
-  :when (or (executable-find "aspell")
-            (executable-find "hunspell"))
-  :hook ((org-mode git-commit-mode markdown-mode) . flyspell-mode)
-  :config
-  (setq ispell-dictionary "en_GB"))
+  :if (or (executable-find "hunspell")
+          (executable-find "aspell"))
+  :hook ((org-mode
+          git-commit-mode
+          markdown-mode) . flyspell-mode)
+  :init
+  ;; Prefer hunspell if present, otherwise aspell.
+  (setq ispell-program-name
+        (or (executable-find "hunspell")
+            (executable-find "aspell")))
+  :custom
+  (ispell-dictionary "en_GB")
+  (flyspell-issue-message-flag nil)
+  (flyspell-issue-welcome-flag nil)
+  :bind
+  (:map flyspell-mode-map
+        ;; free C-; for something useful
+        ("C-;" . nil)
+   :map flyspell-mouse-map
+        ("<mouse-3>" . flyspell-correct-word)
+   :map ctl-x-x-map
+        ;; C-x x s toggles flyspell-mode
+        ("s" . flyspell-mode)))
 
 ; Jinx is a just-in-time spell checker.
 (use-package jinx
   :disabled t
   :delight
   ;; I don't want it anywhere except I really want.
-  ;; :hook (on-first-buffer . global-jinx-mode)
+  :hook (text-mode . jinx-correct)  ;; on-first-buffer?
   :bind
   ([remap ispell-word] . jinx-correct)
   :bind
   (:map ltl/toggles-map
-   ("$" . jinx-mode)))
+       ("$" . jinx-mode)))
 
 (use-package prot-spell
   :ensure nil
-  :bind
-  (("M-$" . prot-spell-spell-dwim)
-   ("C-M-$" . prot-spell-change-dictionary)
-   ("M-i" . prot-spell-spell-dwim)      ; override `tab-to-tab-stop'
-   ("C-M-i" . prot-spell-change-dictionary)) ; override `complete-symbol'
-  :config
-  (setq prot-spell-dictionaries
-        '(("EN English" . "en")
-          ("FR Français" . "fr")
-          ("ES Espanõl" . "es")))
-
+  :bind (("M-$" . prot-spell-spell-dwim)
+         ("C-M-$" . prot-spell-change-dictionary)
+         ("M-i" . prot-spell-spell-dwim)           ; override `tab-to-tab-stop'
+         ("C-M-i" . prot-spell-change-dictionary)) ; override `complete-symbol'
+   :custom
+  (prot-spell-dictionaries
+   '(("EN English" . "en")
+     ("FR Français" . "fr")
+     ("ES Espanõl" . "es")))
   ;; Also check prot-spell.el for what I am doing with
   ;; `prot-spell-ispell-display-buffer'.  Then refer to the
   ;; `display-buffer-alist' for the relevant entry.
-  (setq ispell-choices-buffer "*ispell-top-choices*"))
+  (ispell-choices-buffer "*ispell-top-choices*"))
 
 (use-package grep
   :ensure nil
@@ -657,20 +633,20 @@
 (use-package prot-search
   :ensure nil
   :bind
-  ( :map global-map
+   (
+    ("M-s g"   . prot-search-grep)
+    ("M-s s"   . prot-search-outline)
+    ("M-s u"   . prot-search-occur-urls)
     ("M-s M-%" . prot-search-replace-markup) ; see `prot-search-markup-replacements'
     ("M-s M-<" . prot-search-isearch-beginning-of-buffer)
     ("M-s M->" . prot-search-isearch-end-of-buffer)
-    ("M-s g" . prot-search-grep)
-    ("M-s u" . prot-search-occur-urls)
-    ("M-s t" . prot-search-occur-todo-keywords)
+    ("M-s t"   . prot-search-occur-todo-keywords)
     ("M-s M-t" . prot-search-grep-todo-keywords) ; With C-u it runs `prot-search-git-grep-todo-keywords'
     ("M-s M-T" . prot-search-git-grep-todo-keywords)
-    ("M-s s" . prot-search-outline)
     ("M-s M-o" . prot-search-occur-outline)
     ("M-s M-u" . prot-search-occur-browse-url)
     :map isearch-mode-map
-    ("<up>" . prot-search-isearch-repeat-backward)
+    ("<up>"   . prot-search-isearch-repeat-backward)
     ("<down>" . prot-search-isearch-repeat-forward)
     ("<backspace>" . prot-search-isearch-abort-dwim)
     ("<C-return>" . prot-search-isearch-other-end))
@@ -718,7 +694,7 @@
    ;; ("M-4" . mc/mark-previous-like-this)
    ;; ("M-$" . mc/unmark-previous-like-this)
 
-   ("C-*" . mc/mark-all-like-this)
+   ("C-*"   . mc/mark-all-like-this)
    ("C-c m" . mc/mark-all-dwim)
 
    ("C-M->" . mc/mark-next-symbol-like-this)
@@ -811,17 +787,6 @@
   (markdown-hr-display-char nil)
   (markdown-list-item-bullets '("-")))
 
-;;; No littering
-;; Many packages leave crumbs in user-emacs-directory or even
-;; $HOME. Finding and configuring them individually is a hassle, so we
-;; rely on the community configuration of no-littering. Run this
-;; early, because many of the crumb droppers are configured below!
-(use-package no-littering
-  :ensure (:wait t)
-  :preface
-  (setq no-littering-etc-directory "~/.cache/emacs/etc/"
-	    no-littering-var-directory "~/.cache/emacs/var/"))
-
 
 ;;; General configurations for prose/writing
 
@@ -863,13 +828,24 @@
 
 ;;;; Region settings
 (use-package region-bindings
-  :ensure (:host gitlab :repo "andreyorst/region-bindings.el")
-  :preface
-  (defun region-bindings-off ()
-    (region-bindings-mode -1))
+  :load-path "~/.config/emacs/site-lisp/region-bindings"
+  :commands (region-bindings-mode
+             global-region-bindings-mode)
   :hook
-  (after-init . global-region-bindings-mode)
-  (magit-mode . region-bindings-off))
+  ((after-init . global-region-bindings-mode)
+   (magit-mode . region-bindings-off))
+  :init
+  (defun region-bindings-off ()
+    "Disable `region-bindings-mode'."
+    (interactive)
+    (region-bindings-mode -1))
+  :config
+  ;; Integrate with puni *after* puni is loaded.
+  (with-eval-after-load 'puni
+    (define-key region-bindings-mode-map (kbd "(") #'puni-wrap-round)
+    (define-key region-bindings-mode-map (kbd "[") #'puni-wrap-square)
+    (define-key region-bindings-mode-map (kbd "{") #'puni-wrap-curly)
+    (define-key region-bindings-mode-map (kbd "<") #'puni-wrap-angle)))
 
 (use-feature rect
   :bind (("C-x r C-y" . rectangle-yank-add-lines))
@@ -915,48 +891,26 @@
   (setq use-hard-newlines nil)
   (setq adaptive-fill-mode t))
 
-(use-feature undo-tree
-  ;; :delight '(:eval (propertize " ψ" 'face 'font-lock-keyword-face))
-  :config
-  (global-undo-tree-mode 1)
-  :custom
-  ;; Save undo history to disk automatically
-  (undo-tree-auto-save-history t)
-  (undo-tree-history-directory-alist
-   `((".*" . ,(expand-file-name "undo-tree-history/" user-cache-directory))))
-  :bind
-  ( ("C-S-z" . undo-tree-redo)        ;; redo
-    ("C-x u" . undo-tree-visualize))) ;; visualize tree manually if needed
-
 ;; Undo highlighting
 (use-package undo-hl
+;;  :vc (:url "https://github.com/casouri/undo-hl")
   :delight
-  :ensure (:host github :repo "casouri/undo-hl")
+  :load-path "~/.config/emacs/site-lisp/undo-hl"
   :hook ((prog-mode text-mode org-mode) . undo-hl-mode))
 
 (use-package undo-fu
-  :bind (("C-/" . undo-fu-only-undo)
-         ("C-?" . undo-fu-only-redo)
+  :bind (("C-x u" . undo-fu-only-undo)
+         ("C-S-x" . undo-fu-only-redo)
          ("C-c u" . undo-fu-only-undo)
          ("C-c U" . undo-fu-only-redo)))
 
 ;; Save undo across sessions
 (use-package undo-fu-session
   :ensure t
+  :load-path "~/.config/emacs/site-lisp/undo-fu-session"
   :hook ((prog-mode text-mode conf-mode tex-mode) . undo-fu-session-mode)
   :custom
   (undo-fu-session-directory (expand-file-name "undo-fu-session/" user-cache-directory)))
-
-;; (use-package vundo
-;;   :bind (("C-x u" . vundo))
-;;   :custom
-;;   (vundo-compact-display t)
-;;   (vundo--window-max-height 10)
-;;   :config
-;;   ;; Optional: Use Unicode characters for a prettier tree
-;;   (setq vundo-glyph-alist vundo-unicode-symbols)
-;;   ;; Optional: Set a font that supports the Unicode characters
-;;   (set-face-attribute 'vundo-default nil :family "Symbola"))
 
 ;;; wgrep (writable grep)
 ;; See the `grep-edit-mode' for the new built-in feature.
@@ -990,3 +944,4 @@
 
 
 (provide 'frap-editor)
+;;; frap-editor.el ends here
