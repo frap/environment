@@ -144,8 +144,6 @@
         pulsar-face 'pulsar-green
         pulsar-region-face 'pulsar-cyan
         pulsar-highlight-face 'pulsar-magenta)
-  ;; Pulse after `pulsar-pulse-region-functions'.
-  (setq pulsar-pulse-region-functions pulsar-pulse-region-common-functions)
   :hook
   ;; There are convenience functions/commands which pulse the line using
   ;; a specific colour: `pulsar-pulse-line-red' is one of them.
@@ -671,7 +669,7 @@ x×X .,·°;:¡!¿?`'‘’   ÄAÃÀ TODO
           tooltip-short-delay 0.5))
 
 (use-package alabaster-theme
-  :ensure (:host github :repo "uzhne/alabaster-emacs"))
+  :load-path "~/.config/emacs/site-lisp/alabaster-emacs")
 
 (use-package modus-themes
   :ensure t
