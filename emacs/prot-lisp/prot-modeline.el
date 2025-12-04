@@ -490,7 +490,8 @@ than `split-width-threshold'."
     '(:eval
       (when-let* (((mode-line-window-selected-p))
                   (file (or buffer-file-name default-directory))
-                  (backend (or (vc-backend file) 'Git))
+                  (backend (vc-backend file))  ;; <— no fallback to 'Git
+                  ;;(backend (or (vc-backend file) 'Git))
                   ;; ((vc-git-registered file))
                   (branch (prot-modeline--vc-branch-name file backend))
                   (face (prot-modeline--vc-face file backend)))
