@@ -514,7 +514,7 @@
         (or (executable-find "hunspell")
             (executable-find "aspell")))
   :custom
-  (ispell-dictionary "en_GB")
+  (ispell-dictionary "en_AU")
   (flyspell-issue-message-flag nil)
   (flyspell-issue-welcome-flag nil)
   :bind
@@ -734,45 +734,45 @@
     ;; changed as empty in my git repo
     (mc/load-lists)))
 
-;; (use-package logos
-;;   :ensure t
-;;   :bind
-;;   (("C-x n n" . logos-narrow-dwim)
-;;    ("C-x ]" . logos-forward-page-dwim)
-;;    ("C-x [" . logos-backward-page-dwim)
-;;    ;; I don't think I ever saw a package bind M-] or M-[...
-;;    ("M-]" . logos-forward-page-dwim)
-;;    ("M-[" . logos-backward-page-dwim)
-;;    ("<f9>" . logos-focus-mode))
-;;   :config
-;;   (setq logos-outlines-are-pages t)
-;;   (setq logos-outline-regexp-alist
-;;         `((emacs-lisp-mode . ,(format "\\(^;;;+ \\|%s\\)" logos-page-delimiter))
-;;           (org-mode . ,(format "\\(^\\*+ +\\|^-\\{5\\}$\\|%s\\)" logos-page-delimiter))
-;;           (markdown-mode . ,(format "\\(^\\#+ +\\|^[*-]\\{5\\}$\\|^\\* \\* \\*$\\|%s\\)" logos-page-delimiter))
-;;           (conf-toml-mode . "^\\[")))
-;; 
-;;   ;; These apply when `logos-focus-mode' is enabled.  Their value is
-;;   ;; buffer-local.
-;;   (setq-default logos-hide-mode-line t)
-;;   (setq-default logos-hide-header-line t)
-;;   (setq-default logos-hide-buffer-boundaries t)
-;;   (setq-default logos-hide-fringe t)
-;;   (setq-default logos-variable-pitch t) ; see my `fontaine' configurations
-;;   (setq-default logos-buffer-read-only nil)
-;;   (setq-default logos-scroll-lock nil)
-;;   (setq-default logos-olivetti t)
-;; 
-;;   (add-hook 'enable-theme-functions #'logos-update-fringe-in-buffers)
-;; 
-;; ;;;; Extra tweaks
-;;   ;; place point at the top when changing pages, but not in `prog-mode'
-;;   (defun prot/logos--recenter-top ()
-;;     "Use `recenter' to reposition the view at the top."
-;;     (unless (derived-mode-p 'prog-mode)
-;;       (recenter 1))) ; Use 0 for the absolute top
-;; 
-;;   (add-hook 'logos-page-motion-hook #'prot/logos--recenter-top))
+(use-package logos
+  :ensure t
+  :bind
+   (("C-x n n" . logos-narrow-dwim)
+   ("C-x ]" . logos-forward-page-dwim)
+   ("C-x [" . logos-backward-page-dwim)
+   ;; I don't think I ever saw a package bind M-] or M-[...
+   ("M-]" . logos-forward-page-dwim)
+   ("M-[" . logos-backward-page-dwim)
+   ("<f9>" . logos-focus-mode))
+  :config
+  (setq logos-outlines-are-pages t)
+  (setq logos-outline-regexp-alist
+        `((emacs-lisp-mode . ,(format "\\(^;;;+ \\|%s\\)" logos-page-delimiter))
+          (org-mode . ,(format "\\(^\\*+ +\\|^-\\{5\\}$\\|%s\\)" logos-page-delimiter))
+          (markdown-mode . ,(format "\\(^\\#+ +\\|^[*-]\\{5\\}$\\|^\\* \\* \\*$\\|%s\\)" logos-page-delimiter))
+          (conf-toml-mode . "^\\[")))
+
+  ;; These apply when `logos-focus-mode' is enabled.  Their value is
+  ;; buffer-local.
+  (setq-default logos-hide-mode-line t)
+  (setq-default logos-hide-header-line t)
+  (setq-default logos-hide-buffer-boundaries t)
+  (setq-default logos-hide-fringe t)
+  (setq-default logos-variable-pitch t) ; see my `fontaine' configurations
+  (setq-default logos-buffer-read-only nil)
+  (setq-default logos-scroll-lock nil)
+  (setq-default logos-olivetti t)
+
+  (add-hook 'enable-theme-functions #'logos-update-fringe-in-buffers)
+
+;;;; Extra tweaks
+  ;; place point at the top when changing pages, but not in `prog-mode'
+  (defun prot/logos--recenter-top ()
+    "Use `recenter' to reposition the view at the top."
+    (unless (derived-mode-p 'prog-mode)
+      (recenter 1))) ; Use 0 for the absolute top
+
+  (add-hook 'logos-page-motion-hook #'prot/logos--recenter-top))
 
 (use-package markdown-mode
   :ensure t
@@ -910,7 +910,9 @@
   :load-path "~/.config/emacs/site-lisp/undo-fu-session"
   :hook ((prog-mode text-mode conf-mode tex-mode) . undo-fu-session-mode)
   :custom
-  (undo-fu-session-directory (expand-file-name "undo-fu-session/" user-cache-directory)))
+  (undo-fu-session-directory (expand-file-name "undo-fu-session/" user-cache-directory))
+  (setq undo-fu-session-ignore-file-name-regexp
+        "\\`/tmp\\|COMMIT_EDITMSG\\'"))
 
 ;;; wgrep (writable grep)
 ;; See the `grep-edit-mode' for the new built-in feature.
