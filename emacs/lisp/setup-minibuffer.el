@@ -341,16 +341,16 @@ Additionally, add `cape-file' as early as possible to the list."
   (setq vertico-cycle t)
   ;; Prefix the current candidate with “» ”. From
   ;; https://github.com/minad/vertico/wiki#prefix-current-candidate-with-arrow
-  ;; (defun my/vertico-format-candidate (orig cand prefix suffix index _start)
-  ;;   (setq cand (funcall orig cand prefix suffix index _start))
-  ;;   (concat
-  ;;    (if (and (numberp vertico--index)
-  ;;             (= vertico--index index))
-  ;;        (propertize "» " 'face 'vertico-current)
-  ;;      "  ")
-  ;;    cand))
+  (defun my/vertico-format-candidate (orig cand prefix suffix index _start)
+    (setq cand (funcall orig cand prefix suffix index _start))
+    (concat
+     (if (and (numberp vertico--index)
+              (= vertico--index index))
+         (propertize "» " 'face 'vertico-current)
+       "  ")
+     cand))
 
-  ;; (advice-add #'vertico--format-candidate :around #'my/vertico-format-candidate)
+  (advice-add #'vertico--format-candidate :around #'my/vertico-format-candidate)
   ;; ;; Prompt indicator for `completing-read-multiple'.
   (when (< emacs-major-version 31)
     (advice-add #'completing-read-multiple :filter-args
@@ -380,41 +380,41 @@ Additionally, add `cape-file' as early as possible to the list."
     (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy))
   )
 
-;; (use-package vertico-directory
-;;   :after vertico
-;;   :ensure nil
-;;   ;; More convenient directory navigation commands
-;;   :bind (:map vertico-map
-;;               ("RET" . vertico-directory-enter)
-;;               ("DEL" . vertico-directory-delete-char)
-;;               ("M-DEL" . vertico-directory-delete-word))
-;;   ;; Tidy shadowed file names
-;;   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
+(use-package vertico-directory
+  :after vertico
+  :ensure nil
+  ;; More convenient directory navigation commands
+  :bind (:map vertico-map
+              ("RET" . vertico-directory-enter)
+              ("DEL" . vertico-directory-delete-char)
+              ("M-DEL" . vertico-directory-delete-word))
+  ;; Tidy shadowed file names
+  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
-;; small vertico bugger with 3 vertico options
-;; (use-feature vertico-buffer
-;;   :after vertico
-;;   :config
-;;   (setq vertico-buffer-display-action '(display-buffer-below-selected
-;;                                         (window-height . ,(+ 3 vertico-count))))
-;;   (vertico-buffer-mode))
+small vertico bugger with 3 vertico options
+(use-feature vertico-buffer
+  :after vertico
+  :config
+  (setq vertico-buffer-display-action '(display-buffer-below-selected
+                                        (window-height . ,(+ 3 vertico-count))))
+  (vertico-buffer-mode))
 
-;; (use-package vertico-multiform
-;;   :after vertico
-;;   :ensure nil
-;;   :config
-;;   (setq vertico-multiform-commands
-;;         '((consult-line buffer)
-;;           (consult-buffer buffer)
-;;           (consult-org-heading buffer)
-;;           (consult-imenu buffer)
-;;           (consult-project-buffer buffer)
-;;           (consult-project-extra-find buffer)))
+(use-package vertico-multiform
+  :after vertico
+  :ensure nil
+  :config
+  (setq vertico-multiform-commands
+        '((consult-line buffer)
+          (consult-buffer buffer)
+          (consult-org-heading buffer)
+          (consult-imenu buffer)
+          (consult-project-buffer buffer)
+          (consult-project-extra-find buffer)))
 
-;;   ;; (add-to-list 'vertico-multiform-categories
-;;   ;;              '(jinx grid (vertico-grid-annotate . 35)))
+  ;; (add-to-list 'vertico-multiform-categories
+  ;;              '(jinx grid (vertico-grid-annotate . 35)))
 
-;;   (vertico-multiform-mode))
+  (vertico-multiform-mode))
 
 (use-feature vertico-repeat
   :after vertico

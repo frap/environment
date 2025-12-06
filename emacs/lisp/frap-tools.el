@@ -397,7 +397,7 @@ mode.")
    ;;     ("M-w" . nil)
    )
   :functions (magit-get-current-branch)
-  :preface
+  :init
   (defun gas/magit-quit-session ()
     "Quit Magit and kill its buffers."
     (interactive)
@@ -456,40 +456,18 @@ Skips if this is an --amend commit, or if the tag is already present."
         (save-excursion
           (goto-char (point-min))
           (insert tag)))))
-  :init      
-  (setq magit-section-visibility-indicator '(magit-fringe-bitmap> . magit-fringe-bitmapv))
-  ;; Have magit-status go full screen and quit to previous
-  ;; configuration.  Taken from
-  ;; http://whattheemacsd.com/setup-magit.el-01.html#comment-748135498
-  ;; and http://irreal.org/blog/?p=2253
-  ;; (defadvice magit-status (around magit-fullscreen activate)
-  ;;   (window-configuration-to-register :magit-fullscreen)
-  ;;   ad-do-it
-  ;;   (delete-other-windows))
-  ;; (defadvice magit-quit-window (after magit-restore-screen activate)
-  ;;   (jump-to-register :magit-fullscreen))
   :config
-  ;; (setq magit-refresh-verbose t)
-  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-tags-header)
-  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-status-headers)
-  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-pushremote)
-  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-pushremote)
-  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-upstream)
-  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream-or-recent)
   ;; properly kill leftover magit buffers on quit
   (define-key magit-status-mode-map
               [remap magit-mode-bury-buffer]
               #'gas/magit-quit-session)
-  ;; (setq magit-revision-show-gravatars
-  ;;       '("^Author:     " . "^Commit:     ")
-  ;;       magit-display-buffer-function
-  ;;       #'magit-display-buffer-same-window-except-diff-v1
+  (setq magit-revision-show-gravatars '("^Author:     " . "^Commit:     "))
+
   ;;       ;; show word-granularity on selected hunk
-  ;;       magit-diff-refine-hunk t)
+  (setq    magit-diff-refine-hunk t)
   ;; (setq git-commit-summary-max-length 100)
-  ;; (setq magit-delete-by-moving-to-trash nil)
   ;; (setq git-commit-style-convention-checks '(non-empty-second-line))
-  ;; (setq magit-log-margin-show-committer-date t)
+  (setq magit-log-margin-show-committer-date t)
   ;; (setq magit-revert-buffers 'silent)
   ;; (setq magit-save-repository-buffers 'dontask)
   ;; ;; (setq magit-log-auto-more t)
@@ -498,11 +476,9 @@ Skips if this is an --amend commit, or if the tag is already present."
   ;; (setq magit-wip-before-change-mode t)
   ;; (setq transient-values
   ;;       '((magit-log:magit-log-mode "--graph" "--color" "--decorate")))
-  ;; (setq magit-delete-by-moving-to-trash nil)
-  ;; (setq magit-display-buffer-function
-  ;;       #'magit-display-buffer-same-window-except-diff-v1)
-  ;; (with-eval-after-load 'project
-  ;;   (add-to-list 'project-switch-commands '(magit-project-status "Magit") t))
+  (setq magit-delete-by-moving-to-trash nil)
+  (setq magit-display-buffer-function
+        #'magit-display-buffer-same-window-except-diff-v1)
   ;; (with-eval-after-load 'transient
   ;;   (setq transient-show-popup 0.2))
   ;; (add-to-list 'display-buffer-alist
@@ -511,8 +487,7 @@ Skips if this is an --amend commit, or if the tag is already present."
   ;;                (inhibit-same-window . t)))
   (with-eval-after-load 'project
     (add-to-list 'project-switch-commands
-                 '(magit-project-status "Magit") t))
-  )
+                 '(magit-project-status "Magit") t)))
 
 (use-package git-timemachine
   :ensure t)
