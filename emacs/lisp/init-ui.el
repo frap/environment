@@ -838,7 +838,10 @@ x×X .,·°;:¡!¿?`'‘’   ÄAÃÀ TODO
 ;; (global-dash-fontify-mode)
 (when window-system (global-prettify-symbols-mode t))
 
-(use-package ef-themes :ensure t)
+(use-package ef-themes
+  :ensure t
+  :after modus-themes)
+
 ;;;; Theme buffet
 (use-package theme-buffet
   :ensure t

@@ -2,11 +2,6 @@
 ;;; Commentary:
 ;;; Code:
 
-;; show every `load` during init in *Messages*
-(setq debug-on-error t
-     ;; debug-on-signal t
- )
-
 ;; ----------------------------------------------------------
 ;; Native compilation: quiet + prefer newer
 ;; ----------------------------------------------------------
@@ -24,10 +19,6 @@
 (setq package-vc-register-as-project nil) ; Emacs 30
 
 (add-hook 'package-menu-mode-hook #'hl-line-mode)
-
-(setq package-archives
-      '(("gnu"   . "https://elpa.gnu.org/packages/")
-        ("melpa" . "https://melpa.org/packages/")))
 
 ;; Also read: <https://protesilaos.com/codelog/2022-05-13-emacs-elpa-devel/>
 (setq package-archives

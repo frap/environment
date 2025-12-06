@@ -234,14 +234,17 @@ are defining or executing a macro."
 ;; Used for: M-x, find-file, consult-*, project-*, etc.
 (use-package vertico
   :ensure t
-  :init
-  (vertico-mode 1)
-  (vertico-multiform-mode 1)
+  :hook (after-init . vertico-mode)
   :custom
   ;; A reasonable default count
   (vertico-count 10)
   (vertico-resize t)
-  (vertico-cycle t)
+  (vertico-cycle t))
+
+(use-package vertico-multiform
+  :after vertico
+  :hook (after-init . vertico-multiform-mode)
+  :custom
   ;; Multiform: different UIs per category/command
   (vertico-multiform-categories
    '((file reverse)
