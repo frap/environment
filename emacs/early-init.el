@@ -143,14 +143,12 @@
 ;; Package.el behaviour
 ;; ------------------------------------------------------------------
 
-;; IMPORTANT:
-;; Do NOT disable package.el here unless you fully replace it.
-;; You previously had:
-;;   (setq package-enable-at-startup nil)
-;; which broke package initialization and caused weird custom errors.
-;;
-;; Leave `package-enable-at-startup` at its default, or set explicitly:
-;; (setq package-enable-at-startup t)
+;; Initialise installed packages at this early stage, by using the
+;; available cache.  I had tried a setup with this set to nil in the
+;; early-init.el, but (i) it ended up being slower and (ii) various
+;; package commands, like `describe-package', did not have an index of
+;; packages to work with, requiring a `package-refresh-contents'.
+(setq package-enable-at-startup t)
 
 ;; ------------------------------------------------------------------
 ;; Startup time logging & misc
