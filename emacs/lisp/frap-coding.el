@@ -69,7 +69,7 @@ Uses puni if present and active."
   :bind
   (("C-a" . frap/smart-bol)
    ("C-e" .  frap/smart-eol) ;; puni-end-of-sexp
-   
+
    :map puni-mode-map
    ;; Movement / transpose
    ("C-M-f" . puni-forward-sexp-or-up-list)
@@ -78,7 +78,7 @@ Uses puni if present and active."
 
    ;; Slurp/Barf: arrow keys are reliable in terminals
    ;; slurp pulls a neighbour inside your current pair; barf kicks one child out.
-   ;; Forward means toward the right, backward toward the left. 
+   ;; Forward means toward the right, backward toward the left.
    ("C-<right>"   . puni-slurp-forward)
    ("C-<left>"    . puni-barf-forward)
    ("C-M-<right>" . puni-barf-backward)
@@ -104,6 +104,7 @@ Uses puni if present and active."
       (if (bound-and-true-p indent-line-function)
           (funcall indent-line-function)
         (back-to-indentation)))))
+
 
 
 (use-package rainbow-delimiters
@@ -140,7 +141,7 @@ Uses puni if present and active."
   :custom
   (lsp-keymap-prefix "C-c l")           ; Prefix for LSP actions
   (lsp-completion-provider :none)       ; Using Corfu as the provider
-  (lsp-diagnostics-provider :flycheck)  ; flycheck not flymake 
+  (lsp-diagnostics-provider :flycheck)  ; flycheck not flymake
   (lsp-session-file (locate-user-emacs-file ".lsp-session"))
   (lsp-log-io nil) ; IMPORTANT! Use only for debugging! Drastically affects performance
   (lsp-keep-workspace-alive nil) ; Close LSP server if all project buffers are closed
@@ -210,7 +211,7 @@ Uses puni if present and active."
       "Tweak lsp-mode completion styles for Corfu+Orderless."
       (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
             '(orderless)))
-    
+
     (add-hook 'lsp-completion-mode-hook #'lsp:setup-completion-for-corfu)
     )
 
@@ -241,7 +242,7 @@ Uses puni if present and active."
 ;;;; direnv
 (use-package envrc
   :load-path "~/.config/emacs/site-lisp/envrc"
-  :commands envrc-global-mode"
+  :commands envrc-global-mode
   :hook (after-init . envrc-global-mode))
 
 ;;; Flymake
@@ -252,18 +253,18 @@ Uses puni if present and active."
 ;;   (defvar prot/flymake-mode-projects-path
 ;;     (file-name-as-directory (expand-file-name "frap" "~/work/"))
 ;;     "Path to my Git projects.")
-;; 
+;;
 ;;   (defun prot/flymake-mode-lexical-binding ()
 ;;     (when lexical-binding
 ;;       (flymake-mode 1)))
-;; 
+;;
 ;;   (defun prot/flymake-mode-in-my-projects ()
 ;;     (when-let* ((file (buffer-file-name))
 ;;                 ((string-prefix-p prot/flymake-mode-projects-path (expand-file-name file)))
 ;;                 ((not (file-directory-p file)))
 ;;                 ((file-regular-p file)))
 ;;       (add-hook 'find-file-hook #'prot/flymake-mode-lexical-binding nil t)))
-;; 
+;;
 ;;   (add-hook 'emacs-lisp-mode-hook #'prot/flymake-mode-in-my-projects)
 ;;   :bind
 ;;   ( :map ctl-x-map
@@ -291,7 +292,7 @@ Uses puni if present and active."
 ;;           flymake-mode-line-warning-counter
 ;;           flymake-mode-line-note-counter ""))
 ;;   (setq flymake-show-diagnostics-at-end-of-line nil)) ; Emacs 30
-;; 
+;;
 ;; ;;; Elisp packaging requirements
 ;; (use-package package-lint-flymake
 ;;   :ensure t
@@ -299,7 +300,7 @@ Uses puni if present and active."
 ;;   :config
 ;; (add-hook 'flymake-diagnostic-functions #'package-lint-flymake))
 
-;;  Flycheck 
+;;  Flycheck
 (use-package flycheck
   :ensure t
   ;; :hook (python-ts-mode . flycheck-mode)
@@ -337,7 +338,7 @@ Uses puni if present and active."
 ;; (eval-and-compile
 ;;   ;; Define it so “void-variable” can’t happen if treesit isn't loaded yet.
 ;;   (defvar treesit-language-source-alist nil))
-;; 
+;;
 ;; (with-eval-after-load 'treesit
 ;;       (add-to-list 'treesit-language-source-alist
 ;;              '(clojure "https://github.com/sogaiu/tree-sitter-clojure")))
@@ -478,7 +479,7 @@ Uses puni if present and active."
 ;; (eval-and-compile
 ;;   ;; Define it so “void-variable” can’t happen if treesit isn't loaded yet.
 ;;   (defvar treesit-language-source-alist nil))
-;; 
+;;
 ;; (with-eval-after-load 'treesit
 ;;       (add-to-list 'treesit-language-source-alist
 ;;              '(clojure "https://github.com/sogaiu/tree-sitter-clojure")))
@@ -823,7 +824,7 @@ See `cider-find-and-clear-repl-output' for more info."
   ;;           (lambda ()
   ;;             (eglot-ensure)
   ;;             (add-hook 'before-save-hook #'eglot-format-buffer nil t))) ;; format on save
-  ) 
+  )
 
 
 (use-package web-mode

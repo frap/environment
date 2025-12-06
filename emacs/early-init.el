@@ -37,7 +37,7 @@
 ;;    initial-scratch-message nil ; empty the initial *scratch* buffer.
 ;;    initial-major-mode 'fundamental-mode
       inhibit-splash-screen t
-      ;;    inhibit-startup-message t            ; reduce noise at startup
+ ;;   inhibit-startup-message t            ; reduce noise at startup
       inhibit-startup-screen t
       inhibit-x-resources t
       inhibit-startup-buffer-menu t ; stop `list-buffers' from showing when opening multiple files
