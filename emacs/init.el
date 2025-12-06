@@ -8,16 +8,8 @@
 ;; Emacs 30+ configuration.
 
 ;;; Code:
-;; Produce backtraces when errors occur: can be helpful to diagnose
-;; startup issues
-;; make errors loud
-;; (setq init-file-debug t
-;;       debug-on-signal t
-;;       message-log-max 100000
-;;       ;; warning-minimum-level :debug
-;;       load-prefer-newer t)
 
-;; Disable backups and lockfiles
+;; Disable backups and lockfiles - WHY - is this here?
 (setq make-backup-files nil)
 (setq backup-inhibited nil) ; Not sure if needed, given `make-backup-files'
 (setq create-lockfiles nil)
@@ -26,7 +18,7 @@
 (setq custom-file (make-temp-file "emacs-custom-"))
 
 ;; * PATHS
-;; Adds ~/.config/emacs/lisp and protesilaos modules to the load-path
+;;NEED paths early in init.el to find modules
 (mapc
  (lambda (string)
    (add-to-list 'load-path (locate-user-emacs-file string)))
@@ -64,12 +56,11 @@
  '(eshell project-eshell overwrite-mode iconify-frame diary))
 
 
-;; Optimisations and Defaults to make Emacs more responsive. These are mostly copied from
-;; Doom Emacs.
+;; TODO aggreatget binding and emacs startup into one file frap-setup
 ;; (require 'setup-core)
 (require 'frap-essentials)
 
-;;; Tools - git, project, shell
+;;; HERE because Git gets call by prot-modeline early
 (require 'frap-tools)
 
 ;;; Minibuffer & Navigation
