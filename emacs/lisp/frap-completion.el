@@ -241,6 +241,46 @@ are defining or executing a macro."
   (vertico-resize t)
   (vertico-cycle t))
 
+(with-eval-after-load 'vertico-buffer
+  ;; Hard override if you have this function defined in your config
+  (defun vertico-buffer--redisplay (&rest _)
+    (let* ((mbwin (and t (active-minibuffer-window)))
+           (s (and mbwin (eq (window-buffer mbwin) (current-buffer))))
+           (s (and s (overlayp vertico--candidates-ov)))
+           (win (and s (overlay-get vertico--candidates-ov 'window))))
+      (when (and win (window-live-p win))
+        (set (make-local-variable 'truncate-lines)
+             (< (window-point win) (* 0.8 (window-width win))))
+        (set (make-local-variable 'vertico-count)
+             (- (/ (window-pixel-height win) (default-line-height))
+                (if mode-line-format 2 1)))
+        (set-window-point win (point))
+        (set-window-hscroll win 0)
+        (when vertico-buffer-hide-prompt
+          (window-resize mbwin (- (window-pixel-height mbwin)) nil nil 'pixelwise)
+          (set-window-vscroll mbwin 3))
+        (when transient-mark-mode
+          (let* ((modified (buffer-modified-p))
+                 (buffer-undo-list t)
+                 (inhibit-read-only t)
+                 (inhibit-modification-hooks t))
+            (unwind-protect
+                (progn
+                  (vertico--remove-face (point-min) (point-max) 'region)
+                  (when (use-region-p)
+                    (vertico--add-face (region-beginning) (region-end) 'region)))
+              (when (memq modified '(nil t))
+                (restore-buffer-modified-p modified)))))
+        (let* ((old cursor-in-non-selected-windows)
+               (new (and (eq (selected-window) mbwin)
+                         (if (memq cursor-type '(bar hbar box))
+                             'box
+                           cursor-type))))
+          (unless (eq new old)
+            (set (make-local-variable 'cursor-in-non-selected-windows) new)
+            (force-mode-line-update t))))))
+)
+
 (use-package vertico-multiform
   :after vertico
   :hook (after-init . vertico-multiform-mode)
@@ -318,7 +358,6 @@ are defining or executing a macro."
   :after vertico
   :hook (minibuffer-setup . vertico-repeat-save)
   :bind ("M-r" . vertico-repeat))
-
 
 ;; (use-package consult
 ;;   :ensure t
