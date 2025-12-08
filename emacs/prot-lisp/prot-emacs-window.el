@@ -75,12 +75,11 @@
              (slot . 0)
              (window-parameters . ((mode-line-format . none))))
             ;; bottom buffer (NOT side window)
-            ((or . ((derived-mode . flymake-diagnostics-buffer-mode)
-                    (derived-mode . flymake-project-diagnostics-mode)
+            ((or . ((derived-mode . flycheck-error-list-mode)
                     (derived-mode . messages-buffer-mode)
                     (derived-mode . backtrace-mode)))
              (display-buffer-reuse-mode-window display-buffer-at-bottom)
-             (mode . ( flymake-diagnostics-buffer-mode flymake-project-diagnostics-mode
+             (mode . ( flycheck-error-list-mode
                        messages-buffer-mode backtrace-mode))
              (window-height . 0.3)
              (dedicated . t)
@@ -110,6 +109,17 @@
                     "\\*\\vc-\\(incoming\\|outgoing\\|git : \\).*"))
              (prot-window-display-buffer-below-or-pop)
              (body-function . prot-window-select-fit-size))
+
+            ;; Clojure & CIDER REPLs at bottom, grouped
+            ((or . ((mode . cider-repl-mode)
+                    (mode . cider-clojure-interaction-mode)
+                    "\\*cider-repl .*\\*"))
+             (display-buffer-reuse-mode-window display-buffer-at-bottom)
+             (window-height . 0.3)
+             (dedicated . t)
+             (preserve-size . (t . t))
+             (body-function . prot-window-select-fit-size))
+            
             (prot-window-shell-or-term-p
              (display-buffer-reuse-mode-window display-buffer-at-bottom)
              (mode . (shell-mode eshell-mode comint-mode))

@@ -365,12 +365,21 @@ face.  Let other buffers have no face.")
 
 (defun prot-modeline-major-mode-indicator ()
   "Return appropriate propertized mode line indicator for the major mode."
-  (let ((indicator (cond
-                    ((derived-mode-p 'text-mode) "§")
-                    ((derived-mode-p 'prog-mode) "λ")
-		            ((derived-mode-p 'emacs-lisp-mode) "Ɛ")
-                    ((derived-mode-p 'comint-mode) ">_")
-                    (t "◦"))))
+  (let* ((clojure-modes '(clojure-mode
+                          clojurec-mode
+                          clojurescript-mode
+                          cider-repl-mode
+                          cider-clojure-interaction-mode))
+         (indicator
+          (cond
+           ;; Clojure first
+           ((memq major-mode clojure-modes) "ƛ") ;; othe options ⚙ ⋔ ∴
+           ;; Then Emacs Lisp
+           ((derived-mode-p 'emacs-lisp-mode) "Ɛ")
+           ((derived-mode-p 'text-mode) "§")
+           ((derived-mode-p 'prog-mode) "λ")
+           ((derived-mode-p 'comint-mode) ">_")
+           (t "◦"))))
     (propertize indicator 'face 'shadow)))
 
 (defun prot-modeline-major-mode-name ()
@@ -418,21 +427,21 @@ face.  Let other buffers have no face.")
 ;; I want a generic VC method.  Granted, I only use Git but I still
 ;; want it to work as a VC extension.
 
-;; (defun prot-modeline-diffstat (file)
-;;   "Return shortened Git diff numstat for FILE."
-;;   (when-let* ((output (shell-command-to-string (format "git diff --numstat %s" file)))
-;;               (stats (split-string output "[\s\t]" :omit-nulls "[\s\f\t\n\r\v]+"))
-;;               (added (nth 0 stats))
-;;               (deleted (nth 1 stats)))
-;;     (cond
-;;      ((and (equal added "0") (equal deleted "0"))
-;;       "")
-;;      ((and (not (equal added "0")) (equal deleted "0"))
-;;       (propertize (format "+%s" added) 'face 'shadow))
-;;      ((and (equal added "0") (not (equal deleted "0")))
-;;       (propertize (format "-%s" deleted) 'face 'shadow))
-;;      (t
-;;       (propertize (format "+%s -%s" added deleted) 'face 'shadow)))))
+(defun prot-modeline-diffstat (file)
+  "Return shortened Git diff numstat for FILE."
+  (when-let* ((output (shell-command-to-string (format "git diff --numstat %s" file)))
+              (stats (split-string output "[\s\t]" :omit-nulls "[\s\f\t\n\r\v]+"))
+              (added (nth 0 stats))
+              (deleted (nth 1 stats)))
+    (cond
+     ((and (equal added "0") (equal deleted "0"))
+      "")
+     ((and (not (equal added "0")) (equal deleted "0"))
+      (propertize (format "+%s" added) 'face 'shadow))
+     ((and (equal added "0") (not (equal deleted "0")))
+      (propertize (format "-%s" deleted) 'face 'shadow))
+     (t
+      (propertize (format "+%s -%s" added deleted) 'face 'shadow)))))
 
 (declare-function vc-git-working-revision "vc-git" (file))
 
@@ -459,8 +468,8 @@ With optional FACE, use it to propertize the BRANCH."
                'mouse-face 'mode-line-highlight
                'help-echo (prot-modeline--vc-help-echo file)
                'local-map prot-modeline-vc-map)
-   ;; " "
-   ;; (prot-modeline-diffstat file)
+   " "
+   (prot-modeline-diffstat file)
    ))
 
 (defun prot-modeline--vc-details (file branch &optional face)
@@ -557,18 +566,82 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
   "Mode line construct displaying `flymake-mode-line-format'.
 Specific to the current window's mode line.")
 
+;; ;; Flycheck
+;;;; Flycheck errors, warnings, info
+
+(declare-function flycheck-count-errors "flycheck" (errors))
+(declare-function flycheck-list-errors "flycheck" ())
+(declare-function flycheck-buffer "flycheck" ())
+
+(defun prot-modeline-flycheck-counter (type)
+  "Return count of Flycheck errors of TYPE as a string.
+TYPE is one of 'error, 'warning, or 'info."
+  (when (bound-and-true-p flycheck-mode)
+    (let* ((counts (flycheck-count-errors flycheck-current-errors))
+           (entry (assq type counts)))
+      (when entry
+        (number-to-string (cdr entry))))))
+
+(defvar prot-modeline-flycheck-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line down-mouse-1] #'flycheck-list-errors)
+    (define-key map [mode-line down-mouse-3] #'flycheck-buffer)
+    map)
+  "Keymap to display on Flycheck indicator in the mode line.")
+
+(defmacro prot-modeline-flycheck-type (type indicator &optional face)
+  "Return function that handles Flycheck TYPE with INDICATOR and FACE."
+  `(defun ,(intern (format "prot-modeline-flycheck-%s" type)) ()
+     (when-let* ((count (prot-modeline-flycheck-counter ',type)))
+       (concat
+        (propertize ,indicator 'face 'shadow)
+        (propertize count
+                    'face ',(or face type)
+                    'mouse-face 'mode-line-highlight
+                    'local-map prot-modeline-flycheck-map
+                    'help-echo "mouse-1: list errors\nmouse-3: run Flycheck")))))
+
+(prot-modeline-flycheck-type error   "☣")
+(prot-modeline-flycheck-type warning "!")
+(prot-modeline-flycheck-type info    "·" success)
+
+(defvar-local prot-modeline-flycheck
+  `(:eval
+    (when (and (bound-and-true-p flycheck-mode)
+               (mode-line-window-selected-p))
+      (list
+       '(:eval (prot-modeline-flycheck-error))
+       '(:eval (prot-modeline-flycheck-warning))
+       '(:eval (prot-modeline-flycheck-info)))))
+  "Mode line construct displaying Flycheck diagnostics for this buffer.")
+
 ;;;; Eglot
 
-(with-eval-after-load 'eglot
-  (setq mode-line-misc-info
-        (delete '(eglot--managed-mode (" [" eglot--mode-line-format "] ")) mode-line-misc-info)))
+(with-eval-after-load 'lsp-mode
+  ;; If lsp-mode injects anything into mode-line-misc-info you dislike,
+  ;; you could strip it here. Usually it doesn't add junk by default
+  ;; if you don't enable the modeline components.
+  )
 
-(defvar-local prot-modeline-eglot
-    `(:eval
-      (when (and (featurep 'eglot) (mode-line-window-selected-p))
-        '(eglot--managed-mode eglot--mode-line-format)))
-  "Mode line construct displaying Eglot information.
-Specific to the current window's mode line.")
+(defun prot-modeline-lsp--workspaces ()
+  "Return a short description of active LSP workspaces for this buffer."
+  (when (bound-and-true-p lsp-mode)
+    (let ((ws (lsp-workspaces)))
+      (cond
+       ((null ws) nil)
+       ((= (length ws) 1)
+        (lsp--workspace-print (car ws)))
+       (t
+        (format "%d-ws" (length ws)))))))
+
+(defvar-local prot-modeline-lsp
+  '(:eval
+    (when (and (bound-and-true-p lsp-mode)
+               (mode-line-window-selected-p))
+      (let ((ws (prot-modeline-lsp--workspaces)))
+        (when ws
+          (format " [LSP:%s]" ws)))))
+  "Mode line construct displaying lsp-mode information.")
 
 ;;;; Miscellaneous
 
@@ -600,8 +673,8 @@ Specific to the current window's mode line.")
                      prot-modeline-major-mode
                      prot-modeline-process
                      prot-modeline-vc-branch
-                     prot-modeline-flymake
-                     prot-modeline-eglot
+                     prot-modeline-flycheck
+                     prot-modeline-lsp
                      ;; prot-modeline-align-right
                      prot-modeline-notmuch-indicator
                      prot-modeline-misc-info))
