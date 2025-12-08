@@ -63,8 +63,8 @@
   (setq completion-ignore-case t)
   (setq read-buffer-completion-ignore-case t)
   (setq read-file-name-completion-ignore-case t)
-  (setq-default case-fold-search t)   ; For general regexp
-  
+  (setq-default case-fold-search t)     ; For general regexp
+
   :config
   ;; Completion styles (keep it lean; file prompts get partial-completion)
   (setq completion-styles '(orderless basic))
@@ -348,7 +348,7 @@ are defining or executing a macro."
 ;;           :map consult-prefix-map
 ;;           ("r" . consult-recent-file)
 ;;           ("b"   . my/consult-project-buffer-smart)
-;; 
+;;
 ;; 	      :map consult-narrow-map
 ;; 	      ("?" . consult-narrow-help))
 ;;    :custom
@@ -356,7 +356,7 @@ are defining or executing a macro."
 ;;   :config
 ;;   ;; Use Corfu for in-region completion (good with LSP/cape)
 ;;   (setq completion-in-region-function #'corfu-completion-in-region)
-;;   
+;;
 ;;   (setq consult-line-numbers-widen t)
 ;;   ;; (setq completion-in-region-function #'consult-completion-in-region)
 ;;   (setq consult-async-min-input 2)
@@ -370,7 +370,7 @@ are defining or executing a macro."
 ;;           consult--source-bookmark
 ;;           consult--source-project-buffer
 ;;           consult--source-project-recent-file))
-;;   
+;;
 ;;   ;; (require 'consult-imenu)  ; the `imenu' extension is in its own file
 ;; ;; fd for file finding
 ;; (setq consult-find-args
@@ -379,21 +379,21 @@ are defining or executing a macro."
 ;;   ;;       (concat "find . -not ( "
 ;;   ;;               "-path */.git* -prune "
 ;;   ;;               "-or -path */.cache* -prune )"))
-;; 
+;;
 ;;   ;; rg for searching
 ;;   (setq consult-ripgrep-args
 ;;         "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / --smart-case --hidden --glob '!.git/*' --glob '!.cache/*'")
-;; 
+;;
 ;;   ;; (setq consult-preview-key 'any) ;; live preview always
 ;;   ;; (setq consult-project-function nil) ; always work from the current directory (use `cd' to switch directory)
-;; 
+;;
 ;;   (defun my/consult-project-buffer-smart ()
 ;;     "Run `consult-project-buffer` if in a project, else `consult-buffer`."
 ;;     (interactive)
 ;;     (if (project-current nil)
 ;;         (consult-project-buffer)
 ;;       (consult-buffer)))
-;; 
+;;
 ;;   (defun my/consult-project-buffer-or-pick ()
 ;;   "If not in a project, prompt to pick one, then show its buffers."
 ;;   (interactive)
@@ -405,9 +405,9 @@ are defining or executing a macro."
 ;;                                    proj))
 ;;           (consult-project-buffer))
 ;;       (consult-buffer))))
-;;   
+;;
 ;;   (add-to-list 'consult-mode-histories '(vc-git-log-edit-mode . log-edit-comment-ring)))
-;; 
+;;
 ;; (use-package consult-project-extra
 ;;   :after (project consult)
 ;;   :bind
@@ -470,7 +470,7 @@ With optional argument FRAME, return the list of buffers of FRAME."
    ("C-x p b" . consult-buffer-project)
 
    ;; M-g prefix
-   ("M-g f"   . consult-flycheck)    
+   ("M-g f"   . consult-flycheck)
    ("M-g g"   . consult-goto-line)
    ("M-g M-g" . consult-goto-line)
    ("M-g o"   . consult-outline)
@@ -723,7 +723,7 @@ With optional argument FRAME, return the list of buffers of FRAME."
 ;; completion-at-point-function. Doing it this way will prevent
 ;; disrupting the addition of other capfs (e.g. merely setting the
 ;; variable entirely, or adding to list).
-;; 
+;;
 ;; Additionally, add `cape-file' as early as possible to the list."
 ;;     (setf (elt (cl-member 'elisp-completion-at-point completion-at-point-functions) 0)
 ;;           #'elisp-completion-at-point)
@@ -732,7 +732,7 @@ With optional argument FRAME, return the list of buffers of FRAME."
 ;;     (add-to-list 'completion-at-point-functions #'cape-file)
 ;;     (add-to-list 'completion-at-point-functions #'cape-dabbrev)
 ;;     (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-yasnippet)))
-;; 
+;;
 ;;   ;; LSP
 ;;   ;;          (defun kb/cape-capf-setup-lsp ()
 ;;   ;;            "Replace the default `lsp-completion-at-point' with its
@@ -744,14 +744,14 @@ With optional argument FRAME, return the list of buffers of FRAME."
 ;;   ;;            ;; listed when I want?
 ;;   ;;            (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-yasnippet))
 ;;   ;;            (add-to-list 'completion-at-point-functions #'cape-dabbrev t))
-;; 
+;;
 ;;   ;; Eshell
 ;;   ;; (defun kb/cape-capf-setup-eshell ()
 ;;   ;;   (let ((result))
 ;;   ;;     (dolist (element '(pcomplete-completions-at-point cape-file) result)
 ;;   ;;       (add-to-list 'completion-at-point-functions element))
 ;;   ;;     ))
-;; 
+;;
 ;;   ;; Git-commit
 ;;   (defun kb/cape-capf-setup-git-commit ()
 ;;     (let ((result))
@@ -761,11 +761,11 @@ With optional argument FRAME, return the list of buffers of FRAME."
 ;;          ;; (defun kb/cape-capf-setup-sh ()
 ;;          ;;   (require 'company-shell)
 ;;          ;;   (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-shell)))
-;; 
+;;
 ;;          ;; For pcomplete. For now these two advices are strongly recommended to
 ;;          ;; achieve a sane Eshell experience. See
 ;;          ;; https://github.com/minad/corfu#completing-with-corfu-in-the-shell-or-eshell
-;; 
+;;
 ;;          ;; Silence the pcomplete capf, no errors or messages!
 ;;          (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
 ;;          ;; Ensure that pcomplete does not write to the buffer and behaves as a pure
@@ -834,7 +834,7 @@ With optional argument FRAME, return the list of buffers of FRAME."
                             (if (fboundp 'corfu-complete-and-quit)
                                 (corfu-complete-and-quit)
                               (corfu-insert)))))
- ;; :config 
+ ;; :config
   ;; (add-hook 'eshell-mode-hook
   ;;           (lambda () (setq-local corfu-quit-at-boundary t
   ;;                             corfu-quit-no-match t
