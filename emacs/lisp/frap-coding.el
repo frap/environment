@@ -23,6 +23,35 @@
   (setq show-paren-when-point-inside-paren nil)
   (setq show-paren-context-when-offscreen 'overlay)) ; Emacs 29
 
+(defun frap/back-to-indentation-or-bol ()
+  "Go to indentation, or beginning if already there."
+  (interactive)
+  (let ((pt (point)))
+    (back-to-indentation)
+    (when (= pt (point))
+      (move-beginning-of-line 1))))
+
+(defun frap/in-sexp-bounds ()
+  "Return cons of (beg . end) of sexp around point if available, else nil.
+Uses puni if present and active."
+  (when (and (bound-and-true-p puni-mode)
+             (fboundp 'puni-bounds-of-sexp-around-point))
+    (puni-bounds-of-sexp-around-point)))
+
+(defun frap/smart-bol ()
+  "BOL that hops to outer sexp start if inside one."
+  (interactive)
+  (let ((b (frap/in-sexp-bounds)))
+    (if b (goto-char (car b))
+      (frap/back-to-indentation-or-bol))))
+
+(defun frap/smart-eol ()
+  "EOL that hops to outer sexp end if inside one."
+  (interactive)
+  (let ((b (frap/in-sexp-bounds)))
+    (if b (goto-char (cdr b))
+      (move-end-of-line 1))))
+
 (use-package puni
    :load-path "~/.config/emacs/site-lisp/puni"
    :defer t
@@ -38,8 +67,8 @@
   (add-hook 'eshell-mode-hook #'puni-disable-puni-mode)
   ;; paredit-like keys
   :bind
-  (;;("C-a" . frap/puni-smart-bol)
-   ("C-e" . frap/puni-smart-eol)
+  (("C-a" . frap/smart-bol)
+   ("C-e" .  frap/smart-eol) ;; puni-end-of-sexp
    
    :map puni-mode-map
    ;; Movement / transpose
@@ -74,36 +103,7 @@
     (when (looking-back "^[[:space:]]*" nil)
       (if (bound-and-true-p indent-line-function)
           (funcall indent-line-function)
-        (back-to-indentation))))
-  
-  (defun frap/back-to-indentation-or-bol ()
-    "Go to indentation, or beginning if already there."
-    (interactive)
-    (let ((pt (point)))
-      (back-to-indentation)
-      (when (= pt (point))
-        (move-beginning-of-line 1))))
-
-  (defun frap/in-sexp-bounds ()
-    "Return cons of (beg . end) of sexp around point if available, else nil.
-Uses puni if present and active."
-    (when (and (bound-and-true-p puni-mode)
-               (fboundp 'puni-bounds-of-sexp-around-point))
-      (puni-bounds-of-sexp-around-point)))
-
-  (defun frap/smart-bol ()
-    "BOL that hops to outer sexp start if inside one."
-    (interactive)
-    (let ((b (frap/in-sexp-bounds)))
-      (if b (goto-char (car b))
-        (frap/back-to-indentation-or-bol))))
-
-  (defun frap/smart-eol ()
-    "EOL that hops to outer sexp end if inside one."
-    (interactive)
-    (let ((b (frap/in-sexp-bounds)))
-      (if b (goto-char (cdr b))
-        (move-end-of-line 1)))))
+        (back-to-indentation)))))
 
 
 (use-package rainbow-delimiters

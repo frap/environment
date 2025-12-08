@@ -254,10 +254,10 @@ DEFINITIONS is a sequence of string and command pairs."
   ;; (add-hook 'prot-simple-file-to-register-jump-hook #'pulsar-reveal-entry))
   :bind
   ( :map prot-simple-override-mode-map
-    ("C-a"    . frap/puni-smart-bol) ; overrides  move-beginning-of-line
-    ("C-M-a"  . frap/smart-top-level-begin)
-    ("C-e"    . frap/puni-smart-eol)
-    ("C-M-e"  . frap/smart-top-level-end)
+    ("C-a"    . frap/smart-bol) ; overrides  move-beginning-of-line
+    ;; ("C-M-a"  . frap/smart-top-level-begin)
+    ("C-e"    . frap/smart-eol)
+    ;; ("C-M-e"  . frap/smart-top-level-end)
 
     ("C-d" . prot-simple-delete-line)   ; overrides `delete-char'
 
