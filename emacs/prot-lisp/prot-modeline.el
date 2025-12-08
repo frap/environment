@@ -235,8 +235,11 @@ and end."
       str)))
 
 (defun prot-modeline--first-char (str)
-  "Return first character from STR."
-  (substring str 0 1))
+  "Return first character from STR or empty string if STR is empty."
+  (if (and (stringp str)
+           (not (string-empty-p str)))
+      (substring str 0 1)
+    ""))
 
 (defun prot-modeline-string-abbreviate (str)
   "Abbreviate STR individual hyphen or underscore separated words.

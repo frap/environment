@@ -281,7 +281,7 @@
   :ensure t
   :hook (after-init . beframe-mode)
   :config
-  (setq beframe-functions-in-frames '(project-prompt-project-dir))
+  (setq beframe-functions-in-frames '(my/beframe-project-switch))  ;; project-prompt-project-dir
 
   ;; I use this instead of :bind because I am binding a keymap and the
   ;; way `use-package' does it is by wrapping a lambda around it that
@@ -291,7 +291,7 @@
     	      "C-x f" #'other-frame-prefix
     	      ;; Bind Beframe commands to a prefix key. Notice the -map as I am
     	      ;; binding keymap here, not a command.
-    	      "C-c b" #'beframe-prefix-map
+    	      "C-c b" #'beframe-transient    ;;; beframe-prefix-map
     	      ;; Replace the generic `buffer-menu'.  With a prefix argument, this
     	      ;; commands prompts for a frame.  Call the `buffer-menu' via M-x if
     	      ;; you absolutely need the global list of buffers.

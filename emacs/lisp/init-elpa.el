@@ -34,7 +34,7 @@
         ("nongnu" . 1)))
 
 
-defvar prot-emacs-my-packages
+(defvar prot-emacs-my-packages
 '(beframe
   doric-themes
   ef-themes
@@ -98,7 +98,6 @@ At all times, do nothing if PACKAGE is already installled."
         use-package-compute-statistics t
         debug-on-error t))
 
-
 ;; ----------------------------------------------------------
 ;; Extra :doc keyword + use-feature
 ;; ----------------------------------------------------------
@@ -109,10 +108,6 @@ At all times, do nothing if PACKAGE is already installled."
     `(use-package ,name
        :ensure nil
        ,@args))
-
-;; Don't auto-install everything by default
-;; (setq use-package-always-ensure t)
-
 
 ;; ----------------------------------------------------------
 ;; Security: GnuTLS

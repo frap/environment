@@ -26,22 +26,96 @@
 ;;;; `project'
 ;; (when (executable-find "gls")
 ;;   (setq insert-directory-program (executable-find "gls")))
+(cl-defgeneric project-root (project)
+      "Return root directory of the current project.
+
+It usually contains the main build file, dependencies
+configuration file, etc. Though neither is mandatory.
+
+The directory name must be absolute."
+      (car project))
+
+(defun project-save-some-buffers (&optional arg)
+    "Save some modified file-visiting buffers in the current project.
+
+Optional argument ARG (interactively, prefix argument) non-nil
+means save all with no questions."
+    (interactive "P")
+    (let* ((project-buffers (project-buffers (project-current)))
+           (pred (lambda () (memq (current-buffer) project-buffers))))
+      (funcall-interactively #'save-some-buffers arg pred)))
+
+(defvar project-compilation-modes nil
+    "List of functions to check for specific compilation mode.
+
+The function must return a symbol of an applicable compilation
+mode.")
+
+(define-advice project-root (:filter-return (project) abbreviate-project-root)
+    (abbreviate-file-name project))
+
+(defun project-make-predicate-buffer-in-project-p ()
+    (let ((project-buffers (project-buffers (project-current))))
+      (lambda () (memq (current-buffer) project-buffers))))
+
+(defun my/beframe--project-name (root)
+  "Return a short name for project ROOT."
+  (file-name-nondirectory (directory-file-name root)))
+
+(defun my/beframe--project-frame (root)
+  "Return an existing frame for project ROOT, or nil."
+  (let ((name (my/beframe--project-name root)))
+    (seq-find
+     (lambda (fr)
+       (string= (frame-parameter fr 'project-root)
+                (expand-file-name root)))
+     (frame-list))))
+
+(defun my/beframe--make-project-frame (root)
+  "Create and return a new frame for project ROOT."
+  (let* ((proj-root (expand-file-name root))
+         (name (my/beframe--project-name proj-root))
+         (frame (make-frame `((project-root . ,proj-root)
+                              (name . ,name)
+                              (explicit-name . t)))))
+    frame))
+
+(defun my/beframe-project-switch (dir)
+  "Switch to project at DIR in a dedicated Beframe frame.
+
+If a frame already exists for that project (via its `project-root'
+parameter), reuse it.  Otherwise create a new frame.  Then run
+`project-switch-project' inside that frame so your
+`project-switch-commands' menu still works."
+  (interactive
+   (list (project-prompt-project-dir)))
+  (let* ((proj (project-current nil dir))
+         (root (or (and proj (project-root proj))
+                   (user-error "Not a project: %s" dir)))
+         (existing (my/beframe--project-frame root))
+         (frame (or existing (my/beframe--make-project-frame root))))
+    ;; Select the project frame and run the usual project menu from there.
+    (select-frame-set-input-focus frame)
+    ;; Make sure the frame has the correct root parameter even if reused
+    (set-frame-parameter frame 'project-root (expand-file-name root))
+    ;; This is what `beframe-functions-in-frames` watches:
+    (project-switch-project root)))
 
 (use-package project
   :bind-keymap ("s-p" . project-prefix-map)
   :bind (("C-x p q" . project-query-replace-regexp) ; C-x p is `project-prefix-map'
          ("C-x p <delete>" . my/project-remove-project)
          ("C-x p DEL"      . my/project-remove-project)
-         ("M-s p" . my/project-switch-project)
+         ("M-s p" . my/beframe-project-switch)
          ;; ("M-s f" . my/project-find-file-vc-or-dir)
          ("M-s L" . find-library)
          :map project-prefix-map
          ("f" . project-find-file)
-         ("F" . project-switch-project)
+         ;; ("F" . project-switch-project)
          ("K" . project-kill-buffers)
          ("L" . find-library)
          ("m" . project-compile)
-         ("p" . project-switch-project)
+         ("p" . my/beframe-project-switch)
          ("s" . project-save-some-buffers)
          ("t" . eshell)
          ("v" . magit))
@@ -62,35 +136,6 @@
   (project-vc-merge-submodules nil)
   (project-compilation-buffer-name-function 'project-prefixed-buffer-name)
   (project-vc-extra-root-markers '("bb.edn" "package.json" "pyproject.toml" "trove-ci.yml" "deps.edn"))
-  :preface
-   (cl-defgeneric project-root (project)
-      "Return root directory of the current project.
-
-It usually contains the main build file, dependencies
-configuration file, etc. Though neither is mandatory.
-
-The directory name must be absolute."
-      (car project))
-  (defun project-save-some-buffers (&optional arg)
-    "Save some modified file-visiting buffers in the current project.
-
-Optional argument ARG (interactively, prefix argument) non-nil
-means save all with no questions."
-    (interactive "P")
-    (let* ((project-buffers (project-buffers (project-current)))
-           (pred (lambda () (memq (current-buffer) project-buffers))))
-      (funcall-interactively #'save-some-buffers arg pred)))
-  (defvar project-compilation-modes nil
-    "List of functions to check for specific compilation mode.
-
-The function must return a symbol of an applicable compilation
-mode.")
-  (define-advice project-root (:filter-return (project) abbreviate-project-root)
-    (abbreviate-file-name project))
-  (defun project-make-predicate-buffer-in-project-p ()
-    (let ((project-buffers (project-buffers (project-current))))
-      (lambda () (memq (current-buffer) project-buffers))))
-
   :config
   (setq project-list-file (file-name-concat user-cache-directory "projects"))
 
