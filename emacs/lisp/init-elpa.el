@@ -35,20 +35,21 @@
 
 
 (defvar prot-emacs-my-packages
-'(beframe
-  doric-themes
-  ef-themes
-  fontaine
-  ;; lin
-  logos
-  modus-themes
-  pulsar
-  show-font
-  ;; spacious-padding
-  standard-themes
-  ;; substitute
-  theme-buffet)
-"List of symbols representing prots packges that I want latest.")
+  '(beframe
+    cursory
+    doric-themes
+    ef-themes
+    fontaine
+    lin
+    logos
+    modus-themes
+    pulsar
+    show-font
+    spacious-padding
+    standard-themes
+    substitute
+    theme-buffet)
+  "List of symbols representing prots packges that I want latest.")
 
 (setq package-pinned-packages
       `(,@(mapcar
