@@ -380,7 +380,7 @@ Uses puni if present and active."
     "Install Tree-sitter grammars if they are absent."
     (interactive)
     (dolist (grammar
-             '((clojure "https://github.com/sogaiu/tree-sitter-clojure")
+             '((clojure "https://github.com/sogaiu/tree-sitter-clojure" "unstable-20250526")
                (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
                (bash "https://github.com/tree-sitter/tree-sitter-bash")
                (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
@@ -590,6 +590,7 @@ Uses puni if present and active."
   :commands (csv-align-mode))
 
 (use-package clojure-ts-mode
+  :ensure t
   :after flycheck-clj-kondo
   :hook ((clojure-mode
           clojurec-mode
@@ -723,7 +724,8 @@ See `cider-find-and-clear-repl-output' for more info."
                                       (rename-buffer "*babashka-repl*")))))))))
 
 (use-package clay
- :load-path "~/.config/emacs/site-lisp/clay.el"
+  :ensure t
+  :load-path "~/.config/emacs/site-lisp/clay.el"
   )
 
 
