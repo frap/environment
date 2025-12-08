@@ -17,5 +17,9 @@
                "~/dev")
               (t "~/"))))
 
+(setq auth-sources (list
+                    (concat (getenv "XDG_CONFIG_HOME") "/authinfo.gpg")
+                    "~/.authinfo.gpg"))
+
 
 (provide 'personal)
