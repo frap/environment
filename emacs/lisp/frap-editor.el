@@ -880,7 +880,7 @@
 
 ;;;; Plain text (text-mode)
 (use-feature text-mode
-  :mode "\\`\\(README\\|CHANGELOG\\|COPYING\\|LICENSE\\)\\'"
+  :mode "\\`\\(COPYING\\|LICENSE\\)\\'"
   :hook
   ((text-mode . turn-on-auto-fill)
    (prog-mode . (lambda () (setq-local sentence-end-double-space t))))
