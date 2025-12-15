@@ -425,6 +425,7 @@ Uses puni if present and active."
   :config
   (os/setup-install-grammars))
 
+
 ;;; lang major modes
 
 ;;;; Common Lisp Modes Mode
@@ -440,6 +441,7 @@ Uses puni if present and active."
         (indent-region (point) (mark))))))
 
 (use-package common-lisp-modes
+  :ensure t
   :load-path "~/.config/emacs/site-lisp/common-lisp-modes"
   :commands common-lisp-modes-mode        ; autoloadable minor mode
   :delight " δ"
@@ -475,17 +477,32 @@ Uses puni if present and active."
   :ensure t
   :commands (csv-align-mode))
 
+(defun frap/clojure-common-setup ()
+  "Common setup for Clojure and Clojure-ts buffers."
+  (common-lisp-modes-mode)
+  (frap/clojure-pretty-symbols)
+  (flycheck-mode 1))
+
+(defun frap/clojure-pretty-symbols ()
+  "Prettify common Clojure symbols."
+  (setq prettify-symbols-alist
+        '(("fn"        . ?λ)
+          ("defmulti"  . ?Ƒ)
+          ("defmethod" . ?ƒ)
+          ("/="        . ?≠)
+          ("!="        . ?≠)
+          ("=="        . ?≡)
+          ("not"       . ?!)
+          ("<="        . ?≤)
+          (">="        . ?≥)
+          ("comp"      . ?υ)
+          ("partial"   . ?ρ)))
+  (prettify-symbols-mode 1))
+
 (use-package clojure-ts-mode
   :ensure t
   :after flycheck-clj-kondo
-  :hook ((clojure-mode
-          clojurec-mode
-          clojurescript-mode)
-         .  (lambda ()
-              (common-lisp-modes-mode)
-              (clojure-lisp-pretty-symbols)
-              (flycheck-mode)
-              ))
+  :hook ((clojure-ts-mode . frap/clojure-common-setup))
   :commands (clojure-project-dir)
   :bind ( :map clojure-ts-mode-map
           ("C-:" . nil)
@@ -498,21 +515,6 @@ Uses puni if present and active."
   :config
   (setq clojure-ts-indent-style 'fixed) ;; tree-sitter Clojure indent style
   (require 'flycheck-clj-kondo)
-  (defun clojure-lisp-pretty-symbols ()
-    "Prettify common Clojure symbols."
-    (setq prettify-symbols-alist
-          '(("fn" . ?λ)
-            ("defmulti" . ?Ƒ)
-            ("defmethod" . ?ƒ)
-            ("/=" . ?≠)
-            ("!=" . ?≠)
-            ("==" . ?≡)
-            ("not" . ?!)
-            ("<=" . ?≤)
-            (">=" . ?≥)
-            ("comp" . ?υ)
-            ("partial" . ?ρ)))
-    (prettify-symbols-mode 1))
   (defun clerk-show ()
     (interactive)
     (when-let
@@ -544,7 +546,7 @@ Uses puni if present and active."
               cider-random-tip)
    :hook (((cider-repl-mode cider-mode) . eldoc-mode)
          (cider-repl-mode . common-lisp-modes-mode)
-         (cider-popup-buffer-mode . cider-disable-linting))
+         (cider-popup-buffer-mode . frap/disable-flycheck-in-cider-popups))
    :bind ( :map cider-repl-mode-map
            ("C-c C-S-o" . cider-repl-clear-buffer)
            :map cider-mode-map
@@ -572,33 +574,36 @@ Uses puni if present and active."
   (cider-enrich-classpath nil) ; causes troubles behind proxy and with add-lib feature
   (cider-download-java-sources t)
   (cider-auto-select-error-buffer t)
+
   :custom-face
   (cider-result-overlay-face ((t (:box (:line-width -1 :color "grey50")))))
-  (cider-error-highlight-face ((t (:inherit flymake-error))))
-  (cider-warning-highlight-face ((t (:inherit flymake-warning))))
+  (cider-error-highlight-face    ((t (:inherit flycheck-error))))
+  (cider-warning-highlight-face  ((t (:inherit flycheck-warning))))
   (cider-reader-conditional-face ((t (:inherit font-lock-comment-face))))
+
   :config
   (put 'cider-clojure-cli-aliases 'safe-local-variable #'listp)
+
   (remove-hook 'eldoc-documentation-functions #'cider-eldoc) ;; clojure-lsp does it
+
   (defun frap/disable-flycheck-in-cider-popups ()
     (flycheck-mode -1))
-  (add-hook 'cider-popup-buffer-mode-hook #'frap/disable-flycheck-in-cider-popups)
-  (defun cider-disable-linting ()
-    "Disable linting integrations for current buffer."
-    (when (bound-and-true-p flymake-mode)
-      (flymake-mode -1)))
+
   (defun cider-repl-prompt-newline (namespace)
     "Return a prompt string that mentions NAMESPACE with a newline."
     (format "%s\n> " namespace))
+
   (defun cider-find-and-clear-repl-buffer ()
     "Find the current REPL buffer and clear it.
 See `cider-find-and-clear-repl-output' for more info."
     (interactive)
     (cider-find-and-clear-repl-output 'clear-repl))
+
   (defun cider-jack-in-babashka ()
     "Start babashka REPL for quick scratch."
     (interactive)
-    (let ((default-directory (or (locate-dominating-file default-directory "bb.edn") default-directory)))
+    (let ((default-directory (or (locate-dominating-file default-directory "bb.edn")
+                                 default-directory)))
       (nrepl-start-server-process
        default-directory
        "bb --nrepl-server 0"
@@ -606,24 +611,23 @@ See `cider-find-and-clear-repl-output' for more info."
 	     (cider-nrepl-connect
           (list :repl-buffer server-buf
 		        :project-dir default-directory
-		        :repl-init-function (lambda ()
-                                      (rename-buffer "*babashka-repl*")))))))))
+		        :repl-init-function
+                 (lambda ()
+                   (rename-buffer "*babashka-repl*")))))))))
 
 (use-package clay
-  :ensure t
   :load-path "~/.config/emacs/site-lisp/clay.el"
   )
 
-
-;; (use-package niel
-;;   :ensure t
-;;   :vc ( "babashka/neil"
-;;         :files ("*.el")
-;;         ;; :rev :newest
-;;         )
-;;   :config
-;;   (setq neil-prompt-for-version-p nil
-;;         neil-inject-dep-to-project-p t))
+(use-package niel
+  :ensure t
+  :vc ( "babashka/neil"
+        :files ("*.el")
+        ;; :rev :newest
+        )
+  :config
+  (setq neil-prompt-for-version-p nil
+        neil-inject-dep-to-project-p t))
 
 ;; This Emacs library provides a global mode which displays ugly form
 ;; feed characters as tidy horizontal rules.
