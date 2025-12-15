@@ -365,20 +365,27 @@ face.  Let other buffers have no face.")
 
 (defun prot-modeline-major-mode-indicator ()
   "Return appropriate propertized mode line indicator for the major mode."
-  (let* ((clojure-modes '(clojure-mode
+  (let* ((clojure-modes '(clojure-ts-mode
+                          clojure-mode
                           clojurec-mode
                           clojurescript-mode
                           cider-repl-mode
                           cider-clojure-interaction-mode))
          (indicator
           (cond
-           ;; Clojure first
-           ((memq major-mode clojure-modes) "ƛ") ;; othe options ⚙ ⋔ ∴
-           ;; Then Emacs Lisp
+           ;; Clojure & CIDER first
+           ((memq major-mode clojure-modes) "ƛ")  ;; or "CLJ" / "⋔" / "⚙" / whatever you liked
+           ;; Emacs Lisp
            ((derived-mode-p 'emacs-lisp-mode) "Ɛ")
+           ;; Terraform
+           ((derived-mode-p 'terraform-mode) "⋔")
+           ;; Text
            ((derived-mode-p 'text-mode) "§")
-           ((derived-mode-p 'prog-mode) "λ")
+           ;; Other prog modes
+           ((derived-mode-p 'prog-mode) "⚙")
+           ;; Interactive shells, REPLs etc
            ((derived-mode-p 'comint-mode) ">_")
+           ;; Fallback
            (t "◦"))))
     (propertize indicator 'face 'shadow)))
 
