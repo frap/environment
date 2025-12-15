@@ -427,17 +427,18 @@ x×X .,·°;:¡!¿?`'‘’   ÄAÃÀ TODO
   ;; The font family is my design: <https://github.com/protesilaos/aporetic>.
   (setq fontaine-presets
         '((small
-           :default-height 80)
+           :default-height 100)
           (regular) ; like this it uses all the fallback values and is named `regular'
           (medium
-           :default-family "Aporetic Serif Mono"
-           :default-height 115
-           :fixed-pitch-family "Aporetic Serif Mono"
-           :variable-pitch-family "Aporetic Sans")
+           :inherit regular
+           :default-family "JetBrainsMono Nerd Font"
+           :default-height 150
+           :fixed-pitch-family "JetBrainsMono Nerd Font"
+           :variable-pitch-family "FiraCode Nerd Font")
           (large
-           :default-height 150)
+           :default-height 170)
           (presentation
-           :default-height 180)
+           :default-height 220)
           (jumbo
            :inherit medium
            :default-height 260)
@@ -522,81 +523,37 @@ x×X .,·°;:¡!¿?`'‘’   ÄAÃÀ TODO
   (with-eval-after-load 'pulsar
     (add-hook 'fontaine-set-preset-hook #'pulsar-pulse-line)))
 
+(with-eval-after-load 'fontaine
+  (defun gas/fontaine-apply-latest-to-frame (frame)
+    (with-selected-frame frame
+      (fontaine-set-preset (or (fontaine-restore-latest-preset) 'regular))))
+
+  (add-hook 'after-make-frame-functions #'gas/fontaine-apply-latest-to-frame))
+
 (use-feature font
   :no-require
   :hook (after-init . setup-fonts)
   :preface
   (global-font-lock-mode 1)		; Use font-lock everywhere.
   (setq font-lock-maximum-decoration t) ; We have CPU to spare; highlight all syntax categories.
+
   (defun font-installed-p (font-name)
     "Check if a font with FONT-NAME is available."
-    (if (find-font (font-spec :name font-name))
-        t
-      nil))
+    (if (find-font (font-spec :name font-name)) t nil))
+
   ;; Set reusable font name variables
   (defvar my/fixed-width-font "JetBrainsMono Nerd Font"
     "The font to use for monospaced (fixed width) text.")
 
   (defvar my/variable-width-font "FiraCode Nerd Font"
     "The font to use for variable-pitch (document) text.")
-  (setq resolution-factor (eval (/ (x-display-pixel-height) 1000.0)))
-  ;; ;; show zero-width characters
-  (set-face-background 'glyphless-char "red")
-  (defun setup-fonts ()
-    (when (font-installed-p my/fixed-width-font)
-      (set-face-attribute 'default nil :font (font-spec :family my/fixed-width-font :height 180 :weight 'light))
-      (set-face-attribute 'fixed-pitch nil :font (font-spec :family my/fixed-width-font :height 190 :weight 'light)))
 
-    ;; For variable pitched fonts Iosevka Aile is used if available.
-    (when (font-installed-p my/variable-width-font)
-      (set-face-attribute 'variable-pitch nil :font  my/variable-width-font :height 1.3 :weight 'regular)
-      ;;  (set-face-attribute 'font-lock-comment-face nil :family "Iosevka Aile Oblique" :height 106) ; :foreground "#5B6268"
-      ;; (set-face-attribute 'font-lock-function-name-face nil :family "Iosevka Aile" :height 102 :slant 'italic :weight 'regular) ; 'medium
-      ;; (set-face-attribute 'font-lock-variable-name-face nil :foreground "#dcaeea" :weight 'bold)
-      ;;(set-face-attribute 'font-lock-keyword-face nil :weight 'bold)
-      ))
-  ;; (when (font-installed-p "Overpass")
-  ;;   (set-face-attribute 'variable-pitch nil :font "Overpass")))
-  ;; When Emacs is ran in GUI mode, configure common Emoji fonts, making it more
-  ;; likely that Emoji will work out of the box
-  ;; Set up emoji rendering
-  (when (display-graphic-p)
+  (defun setup-fonts ()
+   (when (display-graphic-p)
     (set-fontset-font t 'symbol "Apple Color Emoji")
     (set-fontset-font t 'symbol "Noto Color Emoji" nil 'append)
     (set-fontset-font t 'symbol "Segoe UI Emoji" nil 'append)
-    (set-fontset-font t 'symbol "Symbola" nil 'append))
-
-  ;; presentation-mode
-  ;; Load org-faces to make sure we can set appropriate faces
-  ;; (require 'org-faces)
-  ;;
-  ;; ;; Hide emphasis markers on formatted text
-  ;; (setq org-hide-emphasis-markers t)
-  ;;
-  ;;                                     ; Resize Org headings
-  ;; (dolist (face '((org-level-1 . 1.2)
-  ;;                 (org-level-2 . 1.1)
-  ;;                 (org-level-3 . 1.05)
-  ;;                 (org-level-4 . 1.0)
-  ;;                 (org-level-5 . 1.1)
-  ;;                 (org-level-6 . 1.1)
-  ;;                 (org-level-7 . 1.1)
-  ;;                 (org-level-8 . 1.1)))
-  ;;   (set-face-attribute (car face) nil :font my/variable-width-font :weight 'medium :height (cdr face)))
-  ;;
-  ;; ;; Make the document title a bit bigger
-  ;; (set-face-attribute 'org-document-title nil :font my/variable-width-font :weight 'bold :height 1.3)
-  ;;
-  ;; ;; Make sure certain org faces use the fixed-pitch face when variable-pitch-mode is on
-  ;; (set-face-attribute 'org-block nil :foreground
-  ;;                     "unspecified" :inherit 'fixed-pitch)
-  ;; (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
-  ;; (set-face-attribute 'org-formula nil :inherit 'fixed-pitch)
-  ;; (set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
-  ;; (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-  ;; (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-  ;; (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-  ;; (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
+    (set-fontset-font t 'symbol "Symbola" nil 'append)))
   (provide 'font))
 
 ;; (defvar gas/toggles-map (make-sparse-keymap)
@@ -638,16 +595,7 @@ x×X .,·°;:¡!¿?`'‘’   ÄAÃÀ TODO
 ;;                     ((numberp (cadr alpha)) (cadr alpha)))
 ;;               100)
 ;;          '(90 . 60) '(100 . 100)))))
-;; (defun switch-theme (theme)
-;;   "Disable any currently active themes and load THEME."
-;;   ;; This interactive call is taken from `load-theme'
-;;   (interactive
-;;    (list
-;;     (intern (completing-read "Load custom theme: "
-;;                              (mapc 'symbol-name
-;;                                    (custom-available-themes))))))
-;;   (mapc #'disable-theme custom-enabled-themes)
-;;   (load-theme theme t)))
+
 
 (use-feature menu-bar
   :unless (display-graphic-p)
