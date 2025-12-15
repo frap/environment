@@ -827,18 +827,18 @@
 	             (recentf-expand-file-name no-littering-etc-directory))))
 
 ;;;; Region settings
+(defun gas/region-bindings-off ()
+  "Disable `region-bindings-mode'."
+  (interactive)
+  (region-bindings-mode -1))
+
 (use-package region-bindings
   :load-path "~/.config/emacs/site-lisp/region-bindings"
   :commands (region-bindings-mode
              global-region-bindings-mode)
   :hook
   ((after-init . global-region-bindings-mode)
-   (magit-mode . region-bindings-off))
-  :init
-  (defun region-bindings-off ()
-    "Disable `region-bindings-mode'."
-    (interactive)
-    (region-bindings-mode -1))
+   (magit-mode . gas/region-bindings-off))
   :config
   ;; Integrate with puni *after* puni is loaded.
   (with-eval-after-load 'puni
