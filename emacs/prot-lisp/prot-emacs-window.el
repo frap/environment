@@ -113,7 +113,7 @@
             ;; Clojure & CIDER REPLs at bottom, grouped
             ((or . ((mode . cider-repl-mode)
                     (mode . cider-clojure-interaction-mode)
-                    "\\*cider-repl .*\\*"))
+                    "\\*\\(cider-repl\\|cider-error\\).*"))
              (display-buffer-reuse-mode-window display-buffer-at-bottom)
              (window-height . 0.3)
              (dedicated . t)
@@ -292,7 +292,10 @@
   :hook (after-init . beframe-mode)
   :config
   (setq beframe-functions-in-frames '(my/beframe-project-switch))  ;; project-prompt-project-dir
-
+  '
+  ;; Make some buffers available in all frames
+  (setq beframe-global-buffers
+        '("\\*Messages\\*"))
   ;; I use this instead of :bind because I am binding a keymap and the
   ;; way `use-package' does it is by wrapping a lambda around it that
   ;; then breaks `describe-key' for those keys.
@@ -317,7 +320,7 @@
 ;;; Frame history (undelete-frame-mode)
 (use-package frame
   :ensure nil
-  :bind ("C-x U" . undelete-frame) ; I use only C-/ for `undo'
+  :bind ("C-S-x" . undelete-frame) ; I use only C-/ for `undo'
   :hook (after-init . undelete-frame-mode))
 
 ;;; Window history (winner-mode)
