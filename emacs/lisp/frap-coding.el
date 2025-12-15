@@ -705,10 +705,17 @@ See `cider-find-and-clear-repl-output' for more info."
   (defun my-terraform-mode-init ()
     ;; if you want to use outline-minor-mode
     (outline-minor-mode 1))
-  (add-hook 'terraform-mode-hook 'my-terraform-mode-init))
+  (add-hook 'terraform-mode-hook 'my-terraform-mode-init)
+)
 
 (use-feature typescript-ts-mode
-  :mode ("\\.ts\\'" . typescript-ts-mode)
+  :mode (("\\.tsx\\'" . tsx-ts-mode)
+         ("\\.js\\'"  . typescript-ts-mode)
+         ("\\.mjs\\'" . typescript-ts-mode)
+         ("\\.mts\\'" . typescript-ts-mode)
+         ("\\.cjs\\'" . typescript-ts-mode)
+         ("\\.ts\\'"  . typescript-ts-mode)
+         ("\\.jsx\\'" . tsx-ts-mode))
   :custom
   (typescript-ts-mode-indent-offset 2)
   :config
