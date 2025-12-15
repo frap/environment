@@ -899,8 +899,10 @@
   :hook ((prog-mode text-mode org-mode) . undo-hl-mode))
 
 (use-package undo-fu
-  :bind (("C-x u" . undo-fu-only-undo)
-         ("C-S-x" . undo-fu-only-redo)
+  :bind (("C-/" . undo-fu-only-undo)
+         ("C-?" . undo-fu-only-redo)
+         ("C-x u" . undo-fu-only-undo)
+         ("C-x-U" . undo-fu-only-redo)
          ("C-c u" . undo-fu-only-undo)
          ("C-c U" . undo-fu-only-redo)))
 
