@@ -9,7 +9,6 @@
 
 ;;; Code:
 
-
 ;;; General minibuffer settings
 
 ;;;; Completion styles
@@ -47,6 +46,24 @@
 ;; though they can also be regular expressions, and even styles that are the same as
 ;; the aforementioned flex and initials.
 
+;; setup a common lisp modes mode for ALL Lisps
+;;; Common Lisp Modes Mode
+(defun indent-sexp-or-fill ()
+  "Indent the current sexp, or fill the current string/comment."
+  (interactive)
+  (let ((ppss (syntax-ppss)))
+    (if (or (nth 3 ppss)                ; inside string
+            (nth 4 ppss))               ; inside comment
+        (fill-paragraph)
+      (save-excursion
+        (mark-sexp)
+        (indent-region (point) (mark))))))
+
+(use-package common-lisp-modes
+  :vc ( :url "https://gitlab.com/andreyorst/common-lisp-modes.el.git"
+        :branch "main"
+        :rev :newest))
+
 (use-feature minibuffer
   :hook (eval-expression-minibuffer-setup . common-lisp-modes-mode)
   ;; :hook (minibuffer-setup . prot-common-truncate-lines-silently)
@@ -56,6 +73,8 @@
 
               ;; :map minibuffer-inactive-mode-map
               ;; ("<mouse-1>" . ignore)
+              :map common-lisp-modes-mode-map
+              ("M-q" . indent-sexp-or-fill)
               )
 
   :preface

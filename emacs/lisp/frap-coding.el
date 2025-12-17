@@ -2,7 +2,6 @@
 ;;; Commentary:
 ;;; Code:
 
-
 ;;; comment-dwim-2
 ;;; comment/un-comment
 (use-package comment-dwim-2
@@ -56,7 +55,7 @@ Uses puni if present and active."
    :load-path "~/.config/emacs/site-lisp/puni"
    :defer t
    :delight " ♾️"
-   :hook (((common-lisp-modes-mode nxml-mode json-ts-mode) . puni-mode)
+   :hook (((common-lisp-modes-mode nxml-mode) . puni-mode)
           (puni-mode . electric-pair-local-mode))
   :init
   ;; The autoloads of Puni are set up so you can enable `puni-mode` or
@@ -105,11 +104,9 @@ Uses puni if present and active."
           (funcall indent-line-function)
         (back-to-indentation)))))
 
-
-
 (use-package rainbow-delimiters
   :ensure t
-  :delight t)
+  :hook (common-lisp-modes-mode . rainbow-delimiters-mode))
 
 ;;; linting, environment and lSp setup
 ;;;; Eglot (built-in client for the language server protocol)
@@ -124,7 +121,7 @@ Uses puni if present and active."
 ;;   (add-to-list 'completion-category-overrides '(eglot (styles . (orderless basic)))))
 
 (use-package lsp-mode
-  :diminish "LSP"
+  ;; :diminish "LSP"
   :ensure t
   :hook ((lsp-mode . lsp-diagnostics-mode)
          (lsp-mode . lsp-enable-which-key-integration)
@@ -241,8 +238,7 @@ Uses puni if present and active."
 
 ;;;; direnv
 (use-package envrc
-  :load-path "~/.config/emacs/site-lisp/envrc"
-  :commands envrc-global-mode
+  :ensure t
   :hook (after-init . envrc-global-mode))
 
 ;;; Flymake
@@ -303,7 +299,7 @@ Uses puni if present and active."
 ;;  Flycheck
 (use-package flycheck
   :ensure t
-  ;; :hook (python-ts-mode . flycheck-mode)
+  :hook (python-ts-mode . flycheck-mode)
   :init (global-flycheck-mode)
   :bind (:map flycheck-mode-map
               ("M-n" . flycheck-next-error) ; optional but recommended error navigation
@@ -428,39 +424,6 @@ Uses puni if present and active."
 
 ;;; lang major modes
 
-;;;; Common Lisp Modes Mode
-(defun indent-sexp-or-fill ()
-  "Indent the current sexp, or fill the current string/comment."
-  (interactive)
-  (let ((ppss (syntax-ppss)))
-    (if (or (nth 3 ppss)      ; inside string
-            (nth 4 ppss))     ; inside comment
-        (fill-paragraph)
-      (save-excursion
-        (mark-sexp)
-        (indent-region (point) (mark))))))
-
-(use-package common-lisp-modes
-  :ensure t
-  :load-path "~/.config/emacs/site-lisp/common-lisp-modes"
-  :commands common-lisp-modes-mode        ; autoloadable minor mode
-  :delight " δ"
-
-  ;; Where the minor mode should turn on
-  :hook ((lisp-mode
-          emacs-lisp-mode
-          clojure-ts-mode
-          fennel-mode
-          racket-mode
-          cider-repl-mode
-          eval-expression-minibuffer-setup) . common-lisp-modes-mode)
-  ;; Extra behaviour when the minor mode itself is active
-  :hook ((common-lisp-modes-mode . puni-mode)
-         (common-lisp-modes-mode . rainbow-delimiters-mode))
-
-  :bind (:map common-lisp-modes-mode-map
-              ("M-q" . indent-sexp-or-fill)))
-
 ;;;; Subword mode helps us move around camel-case languages - no cluttering the mode line.
 (use-feature subword
   :defer t
@@ -476,6 +439,18 @@ Uses puni if present and active."
 (use-package csv-mode
   :ensure t
   :commands (csv-align-mode))
+
+(use-package elisp-mode
+  :hook (emacs-lisp-mode . common-lisp-modes-mode))
+
+(use-package fennel-mode
+  :hook ((fennel-mode fennel-repl-mode) . common-lisp-modes-mode))
+
+(use-package lisp-mode
+  :hook ((lisp-mode lisp-data-mode) . common-lisp-modes-mode))
+
+(use-package inf-lisp
+  :hook (inferior-lisp-mode . common-lisp-modes-mode))
 
 (defun frap/clojure-common-setup ()
   "Common setup for Clojure and Clojure-ts buffers."
@@ -545,7 +520,7 @@ Uses puni if present and active."
               cider-find-and-clear-repl-output
               cider-random-tip)
    :hook (((cider-repl-mode cider-mode) . eldoc-mode)
-         (cider-repl-mode . common-lisp-modes-mode)
+         (cider-repl-mode . common-repl-modes-mode)
          (cider-popup-buffer-mode . frap/disable-flycheck-in-cider-popups))
    :bind ( :map cider-repl-mode-map
            ("C-c C-S-o" . cider-repl-clear-buffer)
@@ -621,10 +596,8 @@ See `cider-find-and-clear-repl-output' for more info."
 
 (use-package niel
   :ensure t
-  :vc ( "babashka/neil"
-        :files ("*.el")
-        ;; :rev :newest
-        )
+  :vc ( :url "https://github.com/babashka/neil"
+        :branch "main")
   :config
   (setq neil-prompt-for-version-p nil
         neil-inject-dep-to-project-p t))
@@ -645,8 +618,7 @@ See `cider-find-and-clear-repl-output' for more info."
 
 (use-feature json-ts-mode
   :mode ("\\.json\\'" . json-ts-mode)
-  ;; :hook (json-ts-mode . eglot-ensure)
-  )
+  :hook (json-ts-mode . common-lisp-modes-mode))
 
 ;; Setup Python with tree-sitter and LSP
 (use-feature python
