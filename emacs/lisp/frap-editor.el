@@ -483,6 +483,12 @@
   :hook ((prog-mode . editorconfig-mode)
          (text-mode . editorconfig-mode)))
 
+(with-eval-after-load 'editorconfig
+  (add-to-list 'safe-local-eval-forms
+               '(add-hook 'before-save-hook
+                          #'editorconfig--delete-trailing-whitespace
+                          nil t)))
+
 ;;;; Disable "electric" behaviour
 (use-feature electric
   :init
@@ -899,16 +905,16 @@
   :hook ((prog-mode text-mode org-mode) . undo-hl-mode))
 
 (use-package undo-fu
+  :ensure t
   :bind (("C-/" . undo-fu-only-undo)
          ("C-?" . undo-fu-only-redo)
          ("C-x u" . undo-fu-only-undo)
-         ("C-x-U" . undo-fu-only-redo)
+         ("C-x U" . undo-fu-only-redo)
          ("C-c u" . undo-fu-only-undo)
          ("C-c U" . undo-fu-only-redo)))
 
 ;; Save undo across sessions
 (use-package undo-fu-session
-  :ensure t
   :load-path "~/.config/emacs/site-lisp/undo-fu-session"
   :hook ((prog-mode text-mode conf-mode tex-mode) . undo-fu-session-mode)
   :custom
