@@ -1,11 +1,15 @@
 ;;; lisp/init-org.el --- Emacs Org-mode -*- lexical-binding: t -*-
 ;;; Org
 
+;;; Commentary
+
+;;; Code
+
 (use-feature org
   :delight (org-mode "🦄" :major)
-  
-  :hook ((org-babel-after-execute . org-redisplay-inline-images))
-  
+
+  ;; :hook ((org-babel-after-execute . org-redisplay-inline-images))
+
   :bind ( :map org-mode-map
           ("C-c c" . org-capture)
           ("C-c a" . org-agenda)
@@ -14,7 +18,7 @@
           :map org-src-mode-map
           ("C-x w" . org-edit-src-exit)
           ("C-x C-s" . org-edit-src-exit))
-  
+
   :custom-face
   (org-block ((t (:extend t))))
   (org-block-begin-line
@@ -69,9 +73,9 @@
   ;; directories & agenda
   (org-directory "~/org/personal")
   (org-default-notes-file "~/org/personal/inbox.org")
-  
+
   :config
-   ;; -------------------------------------------------------------------
+  ;; -------------------------------------------------------------------
   ;;  Babel
   ;; -------------------------------------------------------------------
   (org-babel-do-load-languages
@@ -476,3 +480,4 @@
 ;;   :after ox)
 
 (provide 'init-org)
+;;; init-org.el ends here
