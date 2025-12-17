@@ -667,6 +667,21 @@ Display the indicator only on the focused window's mode line.")
   "Mode line construct displaying `mode-line-misc-info'.
 Specific to the current window's mode line.")
 
+(defvar-local prot-modeline-puni-indicator
+  '(:eval
+    (when (and (mode-line-window-selected-p)
+               (bound-and-true-p puni-mode))
+      " ♾️"))
+  "Show ♾️ when `puni-mode' is active.")
+
+(defvar-local prot-modeline-common-lisp-indicator
+  '(:eval
+    (when (and (mode-line-window-selected-p)
+               (bound-and-true-p common-lisp-modes-mode))
+      "  ζ"))
+  "Show δ when  `common-lisp-modes-mode' is active.")
+
+;; φ π ζ
 ;;;; Risky local variables
 
 ;; NOTE 2023-04-28: The `risky-local-variable' is critical, as those
@@ -678,12 +693,14 @@ Specific to the current window's mode line.")
                      prot-modeline-window-dedicated-status
                      prot-modeline-buffer-identification
                      prot-modeline-major-mode
+                     prot-modeline-common-lisp-indicator
                      prot-modeline-process
                      prot-modeline-vc-branch
                      prot-modeline-flycheck
                      prot-modeline-lsp
-                     ;; prot-modeline-align-right
-                     prot-modeline-notmuch-indicator
+                     prot-modeline-puni-indicator
+                     prot-modeline-align-right
+                     ;; prot-modeline-notmuch-indicator 
                      prot-modeline-misc-info))
   (put construct 'risky-local-variable t))
 

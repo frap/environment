@@ -14,14 +14,16 @@
                   "  "
                   prot-modeline-buffer-identification
                   "  "
+                  prot-modeline-common-lisp-indicator
                   prot-modeline-major-mode
                   prot-modeline-process
+                  prot-modeline-puni-indicator
                   "  "
                   prot-modeline-vc-branch
                   "  "
-                  prot-modeline-eglot
+                  prot-modeline-lsp
                   "  "
-                  prot-modeline-flymake
+                  prot-modeline-flycheck
                   "  "
                   mode-line-format-right-align ; Emacs 30
                   "  "
