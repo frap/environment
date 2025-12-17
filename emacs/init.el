@@ -9,11 +9,6 @@
 
 ;;; Code:
 
-;; Disable backups and lockfiles - WHY - is this here?
-(setq make-backup-files nil)
-(setq backup-inhibited nil) ; Not sure if needed, given `make-backup-files'
-(setq create-lockfiles nil)
-
 ;; Throw custom-file into the void
 (setq custom-file (make-temp-file "emacs-custom-"))
 
@@ -24,7 +19,20 @@
    (add-to-list 'load-path (locate-user-emacs-file string)))
  '("prot-lisp" "lisp"))
 
+(setq debug-on-error t
+      init-file-debug t)
 
+(defun gas/load-init (file)
+  "Load FILE from `user-emacs-directory' with logging and error surfacing."
+  (let ((full (expand-file-name file user-emacs-directory)))
+    (message "=== Chargement %s ===" full)
+    (condition-case err
+        (progn
+          (load full nil 'nomessage)
+          (message "=== Chargée %s ===" full))
+      (error
+       (message "!!! Erreur dans %s: %S" full err)
+       (signal (car err) (cdr err))))))  ; re-signal so --debug-init gives a backtrace
 ;; ----------------------------------------------------------
 ;; ABSOLUTELY FIRST: package / use-package setup
 ;; ----------------------------------------------------------
@@ -58,21 +66,21 @@
 
 ;; TODO aggreatget binding and emacs startup into one file frap-setup
 ;; (require 'setup-core)
-(require 'frap-essentials)
+(gas/load-init "lisp/frap-essentials.el")
 
 ;;; HERE because Git gets call by prot-modeline early
-(require 'frap-tools)
+(gas/load-init "lisp/frap-tools.el")
 
 ;;; Minibuffer & Navigation
-(require  'frap-completion)
+(gas/load-init  "lisp/frap-completion.el")
 
 ;;; Editor Text
-(require 'frap-editor)
+(gas/load-init "lisp/frap-editor.el")
 
 ;; UI
-(require 'prot-emacs-window)
-(require 'frap-modeline)
-(require 'init-ui)
+(gas/load-init "prot-lisp/prot-emacs-window.el")
+(gas/load-init "lisp/frap-modeline.el")
+(gas/load-init "lisp/init-ui.el")
 
 ;;; Coding Languages
 (require 'frap-coding)

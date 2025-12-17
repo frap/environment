@@ -22,11 +22,11 @@
       gc-cons-percentage 0.5
       
       ad-redefinition-action 'accept ; disable warnings from legacy advice system
-;;    auto-save-list-file-prefix nil ; disable auto-save
-;;    auto-mode-case-fold nil ; use case-sensitive `auto-mode-alist' for performance
-;;    command-line-x-option-alist nil ; remove irreleant command line options for faster startup
-;;    create-lockfiles nil            ; disable lockfiles
-;;    make-backup-files nil           ; disable backup files
+      auto-save-list-file-prefix nil ; disable auto-save
+      auto-mode-case-fold nil ; use case-sensitive `auto-mode-alist' for performance
+      command-line-x-option-alist nil ; remove irreleant command line options for faster startup
+      create-lockfiles nil            ; disable lockfiles
+      make-backup-files nil           ; disable backup files
 ;;    default-input-method nil
 ;;    fast-but-imprecise-scrolling t ; more performant rapid scrolling over unfontified regions
       frame-resize-pixelwise t
@@ -42,24 +42,24 @@
       inhibit-x-resources t
       inhibit-startup-buffer-menu t ; stop `list-buffers' from showing when opening multiple files
       inhibit-startup-echo-area-message user-login-name
-;;    inhibit-compacting-font-caches t
-;;    load-prefer-newer nil
+      inhibit-compacting-font-caches t
+      load-prefer-newer nil
 ;;    message-log-max 16384
-;;    mode-line-format nil    ; don't want a mode line while loading init
-;;    package--init-file-ensured t ; don't add that `custom-set-variables' block to init
-;;    package-quickstart nil ; prevent `package.el' loading packages prior to their init-file
+      mode-line-format nil    ; don't want a mode line while loading init
+      package--init-file-ensured t ; don't add that `custom-set-variables' block to init
+      package-quickstart nil ; prevent `package.el' loading packages prior to their init-file
 ;;    package-archives nil
 ;;    load-prefer-newer noninteractive
 ;;    read-process-output-max (* 1024 1024 4) ; 4mb - Increase how much is read from processes in a single chunk
-;;    redisplay-skip-fontification-on-input t ; Inhibits it for better scrolling performance.
+      redisplay-skip-fontification-on-input t ; Inhibits it for better scrolling performance.
       ring-bell-function #'ignore
-;;    select-active-regions 'only ; Emacs hangs when large selections contain mixed line endings
+      select-active-regions 'only ; Emacs hangs when large selections contain mixed line endings
 ;;    site-run-file nil           ; unset SRF
       utf-translate-cjk-mode nil ; disable CJK coding/encoding (Chinese/Japanese/Korean characters)
       use-dialog-box t             ; only for mouse events
       use-file-dialog nil
       use-short-answers t            ; y/n for yes/no
-;;    vc-follow-symlinks t           ; Do not ask about symlink following
+      vc-follow-symlinks t           ; Do not ask about symlink following
    )
   (add-hook
    'emacs-startup-hook
@@ -100,7 +100,6 @@
     (set-window-scroll-bars (minibuffer-window frame) nil nil nil nil :persistent)))
 
 (add-hook 'after-make-frame-functions #'prot-emacs-no-minibuffer-scroll-bar)
-
 
 ;; --------------------------------------------------------------------
 ;; File-name handlers / VC throttling during startup
