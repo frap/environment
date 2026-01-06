@@ -180,7 +180,7 @@
 (declare-function winner-undo "winner")
 (declare-function winner-redo "winner")
 (declare-function magit-status "magit" (&optional directory cache))
-(declare-function prot-simple-other-windor-or-frame "prot-simple")
+(declare-function prot-simple-other-window-or-frame "prot-simple")
 
 ;; NOTE 2024-02-17: Some cons cells here have a symbol as a `cdr' and
 ;; some do not.  The former are those which define a prefix command
@@ -202,7 +202,7 @@
   "3" #'split-window-right
   "#" #'split-root-window-right
   "o" #'other-window
-  "O" #'prot-simple-other-windor-or-frame
+  "O" #'prot-simple-other-window-or-frame
   "Q" #'save-buffers-kill-emacs
   "b" (cons "Buffer" 'prot-prefix-buffer)
   "c" #'world-clock
