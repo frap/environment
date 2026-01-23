@@ -168,75 +168,6 @@ mode.")
                '(project-save-some-buffers "Save") t))
 
 
-;; (use-package project
-
-;;   :preface
-;;   (defcustom project-compilation-mode nil
-;;     "Mode to run the `compile' command with."
-;;     :type 'symbol
-;;     :group 'project
-;;     :safe #'symbolp
-;;     :local t)
-;;   (defun project-save-some-buffers (&optional arg)
-;;     "Save some modified file-visiting buffers in the current project.
-
-;; Optional argument ARG (interactively, prefix argument) non-nil
-;; means save all with no questions."
-;;     (interactive "P")
-;;     (let* ((project-buffers (project-buffers (project-current)))
-;;            (pred (lambda () (memq (current-buffer) project-buffers))))
-;;       (funcall-interactively #'save-some-buffers arg pred)))
-;;   (define-advice compilation-start
-;;       (:filter-args (args) use-project-compilation-mode)
-;;     (let ((cmd (car args))
-;;           (mode (cadr args))
-;;           (rest (cddr args)))
-;;       (if (and (null mode) project-compilation-mode)
-;;           (append (list cmd project-compilation-mode) rest)
-;;         args)))
-;;   (define-advice project-root (:filter-return (project) abbreviate-project-root)
-;;     (abbreviate-file-name project))
-;;   (defun project-make-predicate-buffer-in-project-p ()
-;;     (let ((project-buffers (project-buffers (project-current))))
-;;       (lambda () (memq (current-buffer) project-buffers))))
-;;   (define-advice project-compile (:around (fn) save-project-buffers-only)
-;;     "Only ask to save project-related buffers."
-;;     (defvar compilation-save-buffers-predicate)
-;;     (let ((compilation-save-buffers-predicate
-;;            (project-make-predicate-buffer-in-project-p)))
-;;       (funcall fn)))
-;;   (define-advice recompile
-;;       (:around (fn &optional edit-command) save-project-buffers-only)
-;;     "Only ask to save project-related buffers if inside of a project."
-;;     (defvar compilation-save-buffers-predicate)
-;;     (let ((compilation-save-buffers-predicate
-;;            (if (project-current)
-;;                (project-make-predicate-buffer-in-project-p)
-;;              compilation-save-buffers-predicate)))
-;;       (funcall fn edit-command)))
-;;   :config
-;;   (defun gas/open-project nil
-;;     "Get a view of the project."
-;;     (interactive)
-;;     (dired (project-root (project-current)))
-;;     ;;(dirvish)
-;;     ;;(vterm-toggle-show)
-;;     (windmove-up)
-;;     (windmove-up))
-;;    ;;(setq project-switch-commands 'gas/open-project)
-;;   (add-to-list 'project-switch-commands
-;;                '(project-dired "Dired"))
-;;   (add-to-list 'project-switch-commands
-;;                '(project-switch-to-buffer "Switch buffer")))
-
-;; (use-package projectile
-;;  ;; :delight
-;;   :config
-;;   (setq projectile-project-search-path '(("~/work" . 2)  ("~/.config" . 1) ("~/dev/frap" . 3)))
-;;   (setq ;; projectile-enable-caching nil
-;;    projectile-sort-order 'recentf )
-;;   (projectile-mode))
-
 (defun pt/recentf-in-project ()
   "As `recentf', but filtering based on the current project root."
   (interactive)
@@ -248,10 +179,53 @@ mode.")
 ;;when I do a git-pull I'd like to see what's new
 (global-auto-revert-mode t)
 
+(defun magit-extract-jira-tag (branch-name)
+  "Extract jira tag from BRANCH-NAME."
+  (let ((ticket-pattern "\\([[:alpha:]]+-[[:digit:]]+\\)"))
+    (when (string-match-p ticket-pattern branch-name)
+      (upcase (replace-regexp-in-string ticket-pattern "\\1: " branch-name)))))
+(defun magit-git-commit-insert-branch ()
+  "Insert the branch tag in the commit buffer if feasible."
+  (when-let ((tag (magit-extract-jira-tag (magit-get-current-branch))))
+    (insert tag)
+    (forward-char -1)))
+
+(defun vcs--kill-buffer (buffer)
+  "Gracefully kill `magit' BUFFER.
+    If any alive process is related to this BUFFER, wait for 5
+    seconds before nuking BUFFER and the process. If it's dead -
+    don't wait at all."
+  (when (and (bufferp buffer) (buffer-live-p buffer))
+    (let ((process (get-buffer-process buffer)))
+      (if (not (processp process))
+          (kill-buffer buffer)
+        (with-current-buffer buffer
+          (if (process-live-p process)
+              (run-with-timer 5 nil #'vcs--kill-buffer buffer)
+            (kill-process process)
+            (kill-buffer buffer)))))))
+
+(defun vcs-quit (&optional _kill-buffer)
+  "Clean up magit buffers after quitting `magit-status'.
+    And don't forget to refresh version control in all buffers of
+    current workspace."
+  (interactive)
+  (quit-window)
+  (unless (cdr
+           (delq nil
+                 (mapcar (lambda (win)
+                           (with-selected-window win
+                             (derived-mode-p 'magit-status-mode)))
+                         (window-list))))
+    (when (fboundp 'magit-mode-get-buffers)
+      (mapc #'vcs--kill-buffer (magit-mode-get-buffers)))))
+
+
 (use-feature transient
   :ensure t)
 
 (use-feature magit
+  :ensure t
   ;; :hook ((git-commit-mode . flyspell-mode)
   ;;        (git-commit-mode . magit-git-commit-insert-branch))
   :bind
@@ -259,69 +233,54 @@ mode.")
    ("C-x g" . magit-status)
    :map project-prefix-map
    ("m" . magit-project-status))
-
-  :defines (magit-status-mode-map
-            magit-revision-show-gravatars
-            magit-display-buffer-function
-            magit-diff-refine-hunk)
-  :commands (magit-display-buffer-same-window-except-diff-v1
-             magit-stage-file
-             magit-unstage-file)
   :mode (("COMMIT_EDITMSG" . git-commit-mode))
   :init
-  (setq-default magit-git-executable (executable-find "git"))
+  (setq-default magit-git-executable (or (executable-find "git") "git"))
+  (setq-default vc-follow-symlinks t)
   :custom
+  ;; Diff / review ergonomics
   (magit-ediff-dwim-show-on-hunks t)
   (magit-diff-refine-ignore-whitespace t)
   (magit-diff-refine-hunk 'all)
-  (magit-no-message (list "Turning on magit-auto-revert-mode..."))
+
+  ;; Behavior
+  (magit-commit-show-diff nil)
+  (magit-delete-by-moving-to-trash nil)
+  (magit-log-auto-more t)
+  (magit-log-margin-show-committer-date t)
+  (magit-revert-buffers 'silent)
+  (magit-save-repository-buffers 'dontask)
+
+  ;; Revert mode noise
+  (magit-no-message '("Turning on magit-auto-revert-mode..."))
+
+  ;; Display
+  (magit-revision-show-gravatars '("^Author:     " . "^Commit:     "))
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+
+  ;; Commit message
+  (git-commit-summary-max-length 120)
+
+  ;; WIP (keep if you actually use it, otherwise remove)
+  (magit-wip-after-apply-mode t)
+  (magit-wip-after-save-mode t)
+  (magit-wip-before-change-mode t)
    :config
-   (setq-default vc-follow-symlinks t)
    ;; properly kill leftover magit buffers on quit
    (define-key magit-status-mode-map
                [remap magit-mode-bury-buffer]
                #'vcs-quit)
-   (setq magit-revision-show-gravatars
-         '("^Author:     " . "^Commit:     ")
-         magit-display-buffer-function
-         #'magit-display-buffer-same-window-except-diff-v1
-         ;; show word-granularity on selected hunk
-         magit-diff-refine-hunk t)
-   (setq git-commit-summary-max-length 120)
-   (setq magit-commit-show-diff nil)
-   (setq magit-delete-by-moving-to-trash nil)
-   (setq magit-display-buffer-function
-         #'magit-display-buffer-same-window-except-diff-v1)
-   (setq magit-log-auto-more t)
-   (setq magit-log-margin-show-committer-date t)
-   (setq magit-revert-buffers 'silent)
-   (setq magit-save-repository-buffers 'dontask)
-   (setq magit-wip-after-apply-mode t)
-   (setq magit-wip-after-save-mode t)
-   (setq magit-wip-before-change-mode t)
-   (setq transient-values
-         '((magit-log:magit-log-mode "--graph" "--color" "--decorate")))
-   :preface
-   (defun magit-extract-jira-tag (branch-name)
-     "Extract jira tag from BRANCH-NAME."
-     (let ((ticket-pattern "\\([[:alpha:]]+-[[:digit:]]+\\)"))
-       (when (string-match-p ticket-pattern branch-name)
-         (upcase (replace-regexp-in-string ticket-pattern "\\1: " branch-name)))))
-   (defun magit-git-commit-insert-branch ()
-     "Insert the branch tag in the commit buffer if feasible."
-     (when-let ((tag (magit-extract-jira-tag (magit-get-current-branch))))
-       (insert tag)
-       (forward-char -1)))
-   )
 
-(use-feature magit
-  :after project
-  :config
+   ;; Prefer setting transient defaults via transient itself, but this keeps your intent:
+  (with-eval-after-load 'transient
+    (setq transient-values
+          '((magit-log:magit-log-mode "--graph" "--color" "--decorate"))))
+  )
+
+;; Make Magit show up in project-switch-commands
+(with-eval-after-load 'project
   (add-to-list 'project-switch-commands
                '(magit-project-status "Magit") t))
-
-;; (use-package transient
-;;   :ensure t)
 
 (use-package ghub
   :ensure t
@@ -334,49 +293,6 @@ mode.")
 ;;   (setq-default forge-database-file
 ;;                 (expand-file-name "forge/forge-database.sqlite"
 ;;                                   user-cache-directory)))
-
-;;;;; gutter
-(use-package git-gutter
-  :ensure t
-  :delight
-  :when IS-GUI?
-  :defer t
-  :bind (("C-x P" . git-gutter:popup-hunk)
-         ("M-P" . git-gutter:previous-hunk)
-         ("M-N" . git-gutter:next-hunk)
-         ("C-c G" . git-gutter:popup-hunk))
-  :hook ((prog-mode org-mode) . git-gutter-mode )
-  :config
-  (setq git-gutter:update-interval 2)
-  (setq git-gutter:modified-sign "†")   ; ✘
-  (setq git-gutter:added-sign "†")
-  (setq git-gutter:deleted-sign "✘")
-  (set-face-foreground 'git-gutter:added "Green")
-  ;; (set-face-foreground 'git-gutter:modified "Gold")
-  (set-face-foreground 'git-gutter:deleted "Red")
-  )
-;;;;; gutter-fringe
-(use-package git-gutter-fringe
-  :ensure t
-  :delight
-  :after git-gutter
-  :when IS-GUI?
-  :defer t
-  :init
-  (require 'git-gutter-fringe)
-  (when (fboundp 'define-fringe-bitmap)
-    (define-fringe-bitmap 'git-gutter-fr:added
-      [224 224 224 224 224 224 224 224 224 224 224 224 224
-           224 224 224 224 224 224 224 224 224 224 224 224]
-      nil nil 'center)
-    (define-fringe-bitmap 'git-gutter-fr:modified
-      [224 224 224 224 224 224 224 224 224 224 224 224 224
-           224 224 224 224 224 224 224 224 224 224 224 224]
-      nil nil 'center)
-    (define-fringe-bitmap 'git-gutter-fr:deleted
-      [0 0 0 0 0 0 0 0 0 0 0 0 0 128 192 224 240 248]
-      nil nil 'center)))
-
 
 ;; Git-Link
 ;; git-link grabs links to lines, regions, commits, or home pages.
@@ -398,36 +314,6 @@ mode.")
          (text-mode . turn-on-diff-hl-mode)
          (vc-dir-mode . turn-on-diff-hl-mode)
          (dired-mode . diff-hl-dired-mode)))
-
-(defun vcs-quit (&optional _kill-buffer)
-  "Clean up magit buffers after quitting `magit-status'.
-    And don't forget to refresh version control in all buffers of
-    current workspace."
-  (interactive)
-  (quit-window)
-  (unless (cdr
-           (delq nil
-                 (mapcar (lambda (win)
-                           (with-selected-window win
-                             (eq major-mode 'magit-status-mode)))
-                         (window-list))))
-    (when (fboundp 'magit-mode-get-buffers)
-      (mapc #'vcs--kill-buffer (magit-mode-get-buffers)))))
-
-(defun vcs--kill-buffer (buffer)
-  "Gracefully kill `magit' BUFFER.
-    If any alive process is related to this BUFFER, wait for 5
-    seconds before nuking BUFFER and the process. If it's dead -
-    don't wait at all."
-  (when (and (bufferp buffer) (buffer-live-p buffer))
-    (let ((process (get-buffer-process buffer)))
-      (if (not (processp process))
-          (kill-buffer buffer)
-        (with-current-buffer buffer
-          (if (process-live-p process)
-              (run-with-timer 5 nil #'vcs--kill-buffer buffer)
-            (kill-process process)
-            (kill-buffer buffer)))))))
 
 (use-feature server
   :commands (server-running-p)
