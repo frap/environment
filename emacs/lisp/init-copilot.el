@@ -158,7 +158,7 @@ cleared, make sure the overlay doesn't come back too soon."
    ;; )
    )
 
-(require 'uuid)
+;; (require 'uuid)
 
 (defvar gptel-proof-gentle-prompt
   (concat "Please fix spelling, punctuation and grammar in the follow text. "
@@ -195,33 +195,33 @@ cleared, make sure the overlay doesn't come back too soon."
         (delete-region start end)
         (insert correction)))))
 
-(defun gptel-proof (start end &optional aggressive)
-  "Proofread either the region using ChatGPT magic."
-  (interactive "r\nP")
-  (when (not (use-region-p))
-    (error "No region selected"))
-  (let* ((marker (format "{proof:%s}" (uuid-string)))
-         (input (buffer-substring start end))
-         (prompt-style (if aggressive "aggressive" "gentle"))
-         (start-conflict "<<<<<<< Original\n")
-         (sep-conflict "=======\n")
-         (end-conflict (format ">>>>>>> Proofread (%s)\n" prompt-style)))
-    (save-excursion
-      (goto-char start)
-      (insert start-conflict)
-      (goto-char (+ end (length start-conflict)))
-      (insert (concat sep-conflict marker "\n" end-conflict)))
-    (gptel-request input
-      :callback (lambda (response info)
-                  (if response
-                      (gptel-proof-apply-fix (plist-get info :buffer)
-                                             (plist-get info :context)
-                                             response)
-                    (error "Proofread error: %s" (plist-get info :status))))
-      :context marker
-      :system (if aggressive
-                  gptel-proof-aggressive-prompt
-                gptel-proof-gentle-prompt))))
+;; (defun gptel-proof (start end &optional aggressive)
+;;   "Proofread either the region using ChatGPT magic."
+;;   (interactive "r\nP")
+;;   (when (not (use-region-p))
+;;     (error "No region selected"))
+;;   (let* ((marker (format "{proof:%s}" (uuid-string)))
+;;          (input (buffer-substring start end))
+;;          (prompt-style (if aggressive "aggressive" "gentle"))
+;;          (start-conflict "<<<<<<< Original\n")
+;;          (sep-conflict "=======\n")
+;;          (end-conflict (format ">>>>>>> Proofread (%s)\n" prompt-style)))
+;;     (save-excursion
+;;       (goto-char start)
+;;       (insert start-conflict)
+;;       (goto-char (+ end (length start-conflict)))
+;;       (insert (concat sep-conflict marker "\n" end-conflict)))
+;;     (gptel-request input
+;;       :callback (lambda (response info)
+;;                   (if response
+;;                       (gptel-proof-apply-fix (plist-get info :buffer)
+;;                                              (plist-get info :context)
+;;                                              response)
+;;                     (error "Proofread error: %s" (plist-get info :status))))
+;;       :context marker
+;;       :system (if aggressive
+;;                   gptel-proof-aggressive-prompt
+;;                 gptel-proof-gentle-prompt))))
 
 (provide 'init-copilot)
 ;; init-copilot.el ends here
