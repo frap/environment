@@ -186,69 +186,69 @@
       (unless (member (fs/org-get-effort-estimate) efforts)
         next-entry)))
 
-  (add-to-list 'org-agenda-custom-commands
-               '("E" "Efforts view"
-                 ((alltodo ""
-                           ((org-agenda-skip-function #'fs/org-search-for-quickpicks)
-                            (org-agenda-overriding-header "tâches rapides")))
-                  (alltodo ""
-                           ((org-agenda-skip-function #'vt/org-search-for-long-tasks)
-                            (org-agenda-prefix-format "[%e] ")
-                            (org-agenda-overriding-header "tâches longues"))))))
-
   ;; Your custom GTD views
-  (setq org-agenda-custom-commands
-        '(("g" "Faire avancer les choses (GTD)"
-           ((agenda ""
-                    ((org-agenda-span 5)
-                     (org-agenda-skip-function
-                      '(org-agenda-skip-entry-if 'deadline))
-                     (org-deadline-warning-days 0)
-                     (org-agenda-overriding-header
-                      "\nBoîte de Réception: clarifier et organiser\n")))
-            (tags-todo "@importante"
-                       ((org-agenda-skip-function
-                         '(org-agenda-skip-entry-if 'deadline))
-                        (org-agenda-prefix-format "  %i %-12:c [%e] ")
-                        (org-agenda-overriding-header
-                         "\nTâches Importantes\n")))
-            (tags-todo "@urgente"
-                       ((org-agenda-skip-function
-                         '(org-agenda-skip-entry-if 'deadline))
-                        (org-agenda-prefix-format "  %i %-12:c [%e] ")
-                        (org-agenda-overriding-header
-                         "\nTâches Urgentes\n")))
-            (agenda nil
-                    ((org-agenda-entry-types '(:deadline))
-                     (org-agenda-format-date "")
-                     (org-deadline-warning-days 7)
-                     (org-agenda-skip-function
-                      '(org-agenda-skip-entry-if 'notregexp "\\* COUR"))
-                     (org-agenda-overriding-header "\nDeadlines")))
-            (tags-todo "-@importante-@urgente-@meeting"
-                       ((org-agenda-skip-function
-                         '(org-agenda-skip-entry-if 'deadline 'scheduled))
-                        (org-agenda-files (list "agenda.org" "inbox.org"))
-                        (org-agenda-prefix-format "  %i %-12:c [%e] ")
-                        (org-agenda-max-entries 5)
-                        (org-agenda-overriding-header
-                         "\nTâches peut être fait\n")))
-            (todo "WAIT"
-                  ((org-agenda-prefix-format "  %i %-12:c [%e] ")
-                   (org-agenda-overriding-header "\nTâches en attente\n")))
-            (tags "CLOSED>=\"<today>\""
-                  ((org-agenda-overriding-header "\nTerminé aujourd'hui\n"))))
-           ((org-agenda-hide-tags-regexp "inbox")))
-          ("G" "Toutes les tâches réalisables"
-           ((todo "TODO|COUR|PROJ"
-                  ((org-agenda-skip-function
-                    '(org-agenda-skip-entry-if 'deadline 'scheduled))
-                   (org-agenda-files (list "inbox.org" "agenda.org"))
-                   (org-agenda-prefix-format "  %i %-12:c [%e] ")
-                   (org-agenda-overriding-header "\nTâches: Réalisables\n")))
-            (agenda nil
-                    ((org-scheduled-past-days 0)
-                     (org-deadline-warning-days 0)))))))
+ (setq org-agenda-custom-commands
+      '(("E" "Efforts view"
+         ((alltodo ""
+                   ((org-agenda-skip-function #'fs/org-search-for-quickpicks)
+                    (org-agenda-overriding-header "tâches rapides")))
+          (alltodo ""
+                   ((org-agenda-skip-function #'vt/org-search-for-long-tasks)
+                    (org-agenda-prefix-format "[%e] ")
+                    (org-agenda-overriding-header "tâches longues")))))
+
+        ("g" "Faire avancer les choses (GTD)"
+         ((agenda ""
+                  ((org-agenda-span 5)
+                   (org-agenda-skip-function
+                    '(org-agenda-skip-entry-if 'deadline))
+                   (org-deadline-warning-days 0)
+                   (org-agenda-overriding-header
+                    "\nBoîte de Réception: clarifier et organiser\n")))
+          (tags-todo "@importante"
+                     ((org-agenda-skip-function
+                       '(org-agenda-skip-entry-if 'deadline))
+                      (org-agenda-prefix-format "  %i %-12:c [%e] ")
+                      (org-agenda-overriding-header
+                       "\nTâches Importantes\n")))
+          (tags-todo "@urgente"
+                     ((org-agenda-skip-function
+                       '(org-agenda-skip-entry-if 'deadline))
+                      (org-agenda-prefix-format "  %i %-12:c [%e] ")
+                      (org-agenda-overriding-header
+                       "\nTâches Urgentes\n")))
+          (agenda nil
+                  ((org-agenda-entry-types '(:deadline))
+                   (org-agenda-format-date "")
+                   (org-deadline-warning-days 7)
+                   (org-agenda-skip-function
+                    '(org-agenda-skip-entry-if 'notregexp "\\* COUR"))
+                   (org-agenda-overriding-header "\nDeadlines")))
+          (tags-todo "-@importante-@urgente-@meeting"
+                     ((org-agenda-skip-function
+                       '(org-agenda-skip-entry-if 'deadline 'scheduled))
+                      (org-agenda-files (list "agenda.org" "inbox.org"))
+                      (org-agenda-prefix-format "  %i %-12:c [%e] ")
+                      (org-agenda-max-entries 5)
+                      (org-agenda-overriding-header
+                       "\nTâches peut être fait\n")))
+          (todo "WAIT"
+                ((org-agenda-prefix-format "  %i %-12:c [%e] ")
+                 (org-agenda-overriding-header "\nTâches en attente\n")))
+          (tags "CLOSED>=\"<today>\""
+                ((org-agenda-overriding-header "\nTerminé aujourd'hui\n"))))
+         ((org-agenda-hide-tags-regexp "inbox")))
+
+        ("G" "Toutes les tâches réalisables"
+         ((todo "TODO|COUR|PROJ"
+                ((org-agenda-skip-function
+                  '(org-agenda-skip-entry-if 'deadline 'scheduled))
+                 (org-agenda-files (list "inbox.org" "agenda.org"))
+                 (org-agenda-prefix-format "  %i %-12:c [%e] ")
+                 (org-agenda-overriding-header "\nTâches: Réalisables\n")))
+          (agenda nil
+                  ((org-scheduled-past-days 0)
+                   (org-deadline-warning-days 0)))))))
 
   ;; -------------------------------------------------------------------
   ;;  Checkbox prettification
