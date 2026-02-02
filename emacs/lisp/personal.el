@@ -3,7 +3,7 @@
 ;; e.g. GPG configuration, email clients, file templates and snippets
 (setq
  my-full-name "Andrés Gasson"
- my-email-address "gas@tuatara.red"
+ my-email-address "gas@troveplatform.co.nz"
  github-account-name "frap")
 
 ;; Set directory
@@ -16,10 +16,6 @@
               ((equal system-type 'darwin)
                "~/dev")
               (t "~/"))))
-
-(setq auth-sources (list
-                    (concat (getenv "XDG_CONFIG_HOME") "/authinfo.gpg")
-                    "~/.authinfo.gpg"))
 
 
 (provide 'personal)

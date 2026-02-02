@@ -33,6 +33,18 @@
       (error
        (message "!!! Erreur dans %s: %S" full err)
        (signal (car err) (cdr err))))))  ; re-signal so --debug-init gives a backtrace
+
+(setenv "GNUPGHOME" (expand-file-name "~/.config/gnupg"))
+(setq epa-pinentry-mode 'loopback)
+(setq epg-gpg-home-directory (expand-file-name "~/.config/gnupg"))
+(setq auth-sources
+      (list (expand-file-name "~/.config/authinfo.gpg")
+            (expand-file-name "~/.authinfo.gpg")
+            (expand-file-name "~/.authinfo")
+            (expand-file-name "~/.netrc")))
+;; (list
+;;  (concat (getenv "XDG_CONFIG_HOME") "/authinfo.gpg")
+;;  "~/.authinfo.gpg"))
 ;; ----------------------------------------------------------
 ;; ABSOLUTELY FIRST: package / use-package setup
 ;; ----------------------------------------------------------
@@ -115,3 +127,4 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+(put 'project-eshell 'disabled nil)

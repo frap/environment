@@ -145,8 +145,9 @@ cleared, make sure the overlay doesn't come back too soon."
 (use-package gptel
   :ensure t
   :config
-  (setq gptel-api-key (auth-source-pick-first-password :host "openai.com"))
-   (setq gptel-default-mode 'org-mode)
+  (setq gptel-api-key #'gptel-api-key-from-auth-source)
+  ;; (setq gptel-api-key (auth-source-pick-first-password :host "api.openai.com" :user "apikey"))
+  (setq gptel-default-mode 'org-mode)
   ;; (setq gptel-backend
   ;;       (gptel-make-openai "Llamafile"
   ;;         :protocol "http"
@@ -155,8 +156,8 @@ cleared, make sure the overlay doesn't come back too soon."
   ;;         :models '(LLaMA_CPP) ;; model name as exposed by the server
   ;;         :stream t
   ;;         :key (lambda () "no-key"))) ;; llamafile doesn’t require a real key
-   ;; )
-   )
+  ;; )
+  )
 
 ;; (require 'uuid)
 
