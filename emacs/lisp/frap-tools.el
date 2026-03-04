@@ -123,15 +123,15 @@ parameter), reuse it.  Otherwise create a new frame.  Then run
   ;; This is one of my favorite things: you can customize
   ;; the options shown upon switching projects.
   (project-switch-commands
-        '((?f "Find file" project-find-file)
-          (?g "Find regexp" project-find-regexp)
-          (?d "Dired" project-dired)
-          (?b "Buffer" project-switch-to-buffer)
-          (?q "Query replace" project-query-replace-regexp)
-          ;; (?v "magit" project-magit-status)
-          (?k "Kill buffers" project-kill-buffers)
-          (?! "Shell command" project-shell-command)
-          (?e "Eshell" project-eshell)))
+   '((?f "Find file" project-find-file)
+     (?g "Find regexp" project-find-regexp)
+     (?d "Dired" project-dired)
+     (?b "Buffer" project-switch-to-buffer)
+     (?q "Query replace" project-query-replace-regexp)
+     ;; (?v "magit" project-magit-status)
+     (?k "Kill buffers" project-kill-buffers)
+     (?! "Shell command" project-shell-command)
+     (?e "Eshell" project-eshell)))
   (compilation-always-kill t)
   (project-vc-merge-submodules nil)
   (project-compilation-buffer-name-function 'project-prefixed-buffer-name)
@@ -153,12 +153,12 @@ parameter), reuse it.  Otherwise create a new frame.  Then run
       (setq project--list (delete (assoc dir projects) projects))))
 
   (defun pt/recentf-in-project ()
-  "As `recentf', but filtering based on the current project root."
-  (interactive)
-  (let* ((proj (project-current))
-         (root (if proj (project-root proj) (user-error "Pas de projet"))))
-    (cl-flet ((ok (fpath) (string-prefix-p root fpath)))
-      (find-file (completing-read "Find recent file:" recentf-list #'ok)))))
+    "As `recentf', but filtering based on the current project root."
+    (interactive)
+    (let* ((proj (project-current))
+           (root (if proj (project-root proj) (user-error "Pas de projet"))))
+      (cl-flet ((ok (fpath) (string-prefix-p root fpath)))
+        (find-file (completing-read "Find recent file:" recentf-list #'ok)))))
   
   (setq project-window-list-file (file-name-concat user-cache-directory "project-window-list")
         project-vc-merge-submodules nil)
@@ -421,10 +421,11 @@ parameter), reuse it.  Otherwise create a new frame.  Then run
 ;;         (vcs--kill-buffer buf)))))
 
 (use-package magit
-;;   :load-path "~/.config/emacs/site-lisp/magit"
   :after project
   :custom
-  (magit-git-executable "/opt/homebrew/bin/git")
+  (setq magit-git-executable
+        (or (executable-find "git")
+            "/opt/homebrew/bin/git"))
   (magit-ediff-dwim-show-on-hunks t)
   (magit-diff-refine-ignore-whitespace t)
   (magit-diff-refine-hunk 'all)
@@ -443,11 +444,61 @@ parameter), reuse it.  Otherwise create a new frame.  Then run
    )
   :functions (magit-get-current-branch)
   :init
-  (defun gas/magit-quit-session ()
-    "Quit Magit and kill its buffers."
+  (defun gas/magit--buffer-killable-p (buf)
+    "Return non-nil if BUF looks like a Magit buffer we should manage."
+    (when (buffer-live-p buf)
+      (with-current-buffer buf
+        (derived-mode-p 'magit-mode))))
+
+  (defun gas/magit--any-status-window-p ()
+    "Return non-nil if any visible window in any frame shows magit-status."
+    (catch 'found
+      (dolist (fr (frame-list))
+        (dolist (win (window-list fr 'nomini))
+          (let ((buf (window-buffer win)))
+            (when (buffer-live-p buf)
+              (with-current-buffer buf
+                (when (eq major-mode 'magit-status-mode)
+                  (throw 'found t)))))))
+      nil))
+
+  (defun gas/magit--kill-buffer-gracefully (buf)
+    "Kill BUF if it's safe. If it has a live process, retry shortly.
+If the process is dead, kill it then kill the buffer."
+    (when (gas/magit--buffer-killable-p buf)
+      (let ((proc (get-buffer-process buf)))
+        (cond
+         ((not (processp proc))
+          (kill-buffer buf))
+         ((process-live-p proc)
+          (run-with-timer 1 nil #'gas/magit--kill-buffer-gracefully buf))
+         (t
+          (ignore-errors (kill-process proc))
+          (kill-buffer buf))))))
+
+  (defun gas/magit-kill-buffers-when-done ()
+    "Kill Magit buffers, but only when no magit-status window remains."
+    (unless (gas/magit--any-status-window-p)
+      (when (fboundp 'magit-mode-get-buffers)
+        (dolist (buf (magit-mode-get-buffers))
+          (unless (get-buffer-window buf t) ; visible anywhere?
+            (gas/magit--kill-buffer-gracefully buf))))))
+
+  (defun gas/magit-quit ()
+    "Quit the current Magit window. If this was the last status window,
+clean up Magit buffers safely."
     (interactive)
-    (magit-mode-bury-buffer)
-    (magit-kill-buffers))
+    (quit-window)
+    (gas/magit-kill-buffers-when-done))
+
+  (defun gas/magit--in-cherry-pick-p ()
+    "Return non-nil if Git says we're mid cherry-pick."
+    (let ((gitdir (ignore-errors (magit-gitdir))))
+      (and gitdir
+           (or (file-exists-p (expand-file-name "CHERRY_PICK_HEAD" gitdir))
+               (file-exists-p (expand-file-name "sequencer/head" gitdir))
+               (file-directory-p (expand-file-name "sequencer" gitdir))))))
+
   (defun endless/visit-pull-request-url ()
     "Visit the current branch's PR on Github."
     (interactive)
@@ -459,23 +510,23 @@ parameter), reuse it.  Otherwise create a new frame.  Then run
                          (magit-get-push-remote)
                          "url"))
              (magit-get-current-branch))))
-  ;; (defun gas/get-display-window
-  ;;     (source-window &optional create-if-needed)
-  ;;   (save-excursion
-  ;;     (goto-char (window-start source-window))
-  ;;     (or
-  ;;      (window-in-direction 'right source-window)
-  ;;      (let ((below-window (window-in-direction 'below source-window)))
-  ;;        (when (and below-window
-  ;;                   (not (window-minibuffer-p below-window)))
-  ;;          below-window))
-  ;;      (when create-if-needed
-  ;;        (split-window source-window nil 'below)))))
-  ;; (defun gas/magit-display-buffer (buffer alist)
-  ;;   (when-let ((target-window (gas/get-display-window
-  ;;                              (selected-window) t)))
-  ;;     (set-window-buffer target-window buffer)
-  ;;     target-window))
+  (defun gas/get-display-window
+      (source-window &optional create-if-needed)
+    (save-excursion
+      (goto-char (window-start source-window))
+      (or
+       (window-in-direction 'right source-window)
+       (let ((below-window (window-in-direction 'below source-window)))
+         (when (and below-window
+                    (not (window-minibuffer-p below-window)))
+           below-window))
+       (when create-if-needed
+         (split-window source-window nil 'below)))))
+  (defun gas/magit-display-buffer (buffer alist)
+    (when-let ((target-window (gas/get-display-window
+                               (selected-window) t)))
+      (set-window-buffer target-window buffer)
+      target-window))
   (defun gas/magit-extract-branch-tag (branch-name)
     "Extract a ticket tag like 'abc-123' from BRANCH-NAME and return 'abc-123: '.
 Lowercases the match and replaces underscores with hyphens."
@@ -502,19 +553,23 @@ Skips if this is an --amend commit, or if the tag is already present."
           (goto-char (point-min))
           (insert tag)))))
   :config
-  ;; properly kill leftover magit buffers on quit
-  (define-key magit-status-mode-map
-              [remap magit-mode-bury-buffer]
-              #'gas/magit-quit-session)
+  ;; using delta as your pager, keep it out of Magit.
+  ;; This avoids weird truncation / formatting surprises.
+  (add-to-list 'magit-git-global-arguments "--no-pager")
+
+  ;; Key behavior: make 'q' actually quit like you want.
+  ;; (define-key magit-mode-map (kbd "Q") #'gas/magit-quit)
+  ;; (define-key magit-status-mode-map [remap magit-mode-bury-buffer] #'gas/magit-quit)
+  
   (setq magit-revision-show-gravatars '("^Author:     " . "^Commit:     "))
 
   ;;       ;; show word-granularity on selected hunk
   (setq    magit-diff-refine-hunk t)
-  ;; (setq git-commit-summary-max-length 100)
-  ;; (setq git-commit-style-convention-checks '(non-empty-second-line))
+  (setq git-commit-summary-max-length 100)
+  (setq git-commit-style-convention-checks '(non-empty-second-line))
   (setq magit-log-margin-show-committer-date t)
-  ;; (setq magit-revert-buffers 'silent)
-  ;; (setq magit-save-repository-buffers 'dontask)
+  (setq magit-revert-buffers 'silent)
+  (setq magit-save-repository-buffers 'dontask)
   ;; ;; (setq magit-log-auto-more t)
   ;; (setq magit-wip-after-apply-mode t)
   ;; (setq magit-wip-after-save-mode t)
@@ -533,6 +588,19 @@ Skips if this is an --amend commit, or if the tag is already present."
   (with-eval-after-load 'project
     (add-to-list 'project-switch-commands
                  '(magit-project-status "Magit") t)))
+
+(with-eval-after-load 'magit-status
+  ;; Reset to Magit's defaults
+  (setq magit-status-sections-hook (default-value 'magit-status-sections-hook))
+  (setq magit-status-headers-hook  (default-value 'magit-status-headers-hook))
+  ;; Then add your extra section
+  (add-hook 'magit-status-sections-hook #'magit-insert-worktrees t))
+
+;; (with-eval-after-load 'beframe
+;;   (add-to-list 'beframe-global-buffers "\\`\\*magit")
+;;   (add-to-list 'beframe-global-buffers "\\`\\*Magit")
+;;   (add-to-list 'beframe-global-buffers "\\`\\*git-commit")
+;;   (add-to-list 'beframe-global-buffers "\\`\\*magit-process"))
 
 (use-package git-timemachine
   :ensure t)
