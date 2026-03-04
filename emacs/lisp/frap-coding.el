@@ -11,19 +11,18 @@
 
 ;;; language parenthese mapping
 ;;;; Parentheses (show-paren-mode)
-(use-package paren
-  :ensure nil
+(use-feature paren
   :hook (prog-mode . show-paren-local-mode)
-  :config
-  (setq show-paren-delay 0.1)
-  (setq show-paren-style 'parenthesis)
-  (setq show-paren-highlight-openparen t)
-  (setq show-paren-when-point-in-periphery nil)
-  (setq show-paren-when-point-inside-paren nil)
-  (setq show-paren-context-when-offscreen 'overlay)) ; Emacs 29
+  :custom
+  (show-paren-delay 0.1)
+  (show-paren-style 'parenthesis)
+  (show-paren-highlight-openparen t)
+  (show-paren-when-point-in-periphery nil)
+  (show-paren-when-point-inside-paren nil)
+  (show-paren-context-when-offscreen 'overlay))
 
 (defun frap/back-to-indentation-or-bol ()
-  "Go to indentation, or beginning if already there."
+  "Go to indentation, or beginning-of-line if already there."
   (interactive)
   (let ((pt (point)))
     (back-to-indentation)
@@ -31,45 +30,60 @@
       (move-beginning-of-line 1))))
 
 (defun frap/in-sexp-bounds ()
-  "Return cons of (beg . end) of sexp around point if available, else nil.
-Uses puni if present and active."
+  "Return (beg . end) of sexp around point if Puni can provide it."
   (when (and (bound-and-true-p puni-mode)
              (fboundp 'puni-bounds-of-sexp-around-point))
     (puni-bounds-of-sexp-around-point)))
 
 (defun frap/smart-bol ()
-  "BOL that hops to outer sexp start if inside one."
+  "Beginning-of-line that hops to outer sexp start if inside one."
   (interactive)
   (let ((b (frap/in-sexp-bounds)))
-    (if b (goto-char (car b))
+    (if (consp b)
+        (goto-char (car b))
       (frap/back-to-indentation-or-bol))))
 
 (defun frap/smart-eol ()
-  "EOL that hops to outer sexp end if inside one."
+  "End-of-line that hops to outer sexp end if inside one."
   (interactive)
   (let ((b (frap/in-sexp-bounds)))
-    (if b (goto-char (cdr b))
+    (if (consp b)
+        (goto-char (cdr b))
       (move-end-of-line 1))))
 
+(defun frap/puni-kill-line-dwim (&optional arg)
+  "Kill line like `kill-line', but if we're in indentation whitespace,
+start killing from first non-whitespace without reindenting."
+  (interactive "P")
+  (when (looking-at-p "[[:space:]]*$")
+    ;; If we're sitting in trailing whitespace, behave normally.
+    nil)
+  (when (looking-back "^[[:space:]]*" (line-beginning-position))
+    (back-to-indentation))
+  (puni-kill-line arg))
+
 (use-package puni
-   :load-path "~/.config/emacs/site-lisp/puni"
+  :vc ( :url "https://github.com/AmaiKinono/puni.git"
+        :branch "master")
+   ;; :load-path "~/.config/emacs/site-lisp/puni"
    :defer t
    :delight " ♾️"
-   :hook (((common-lisp-modes-mode nxml-mode) . puni-mode)
-          (puni-mode . electric-pair-local-mode))
-  :init
-  ;; The autoloads of Puni are set up so you can enable `puni-mode` or
-  ;; `puni-global-mode` before `puni` is actually loaded. Only after you press
-  ;; any key that calls Puni commands, it's loaded.
-  ;;(puni-global-mode)
-  (add-hook 'term-mode-hook #'puni-disable-puni-mode)
-  (add-hook 'eshell-mode-hook #'puni-disable-puni-mode)
+   :hook ((clojure-ts-mode . puni-mode)
+         (emacs-lisp-mode . puni-mode)
+         (lisp-mode . puni-mode)
+         (scheme-mode . puni-mode)
+         (nxml-mode . puni-mode)
+         (term-mode . puni-disable-puni-mode)
+         (eshell-mode . puni-disable-puni-mode))
   ;; paredit-like keys
   :bind
   (("C-a" . frap/smart-bol)
    ("C-e" .  frap/smart-eol) ;; puni-end-of-sexp
 
    :map puni-mode-map
+   ;; Replace puni-kill-line with a safer DWIM wrapper
+   ("C-k" . frap/puni-kill-line-dwim)
+   
    ;; Movement / transpose
    ("C-M-f" . puni-forward-sexp-or-up-list)
    ("C-M-b" . puni-backward-sexp-or-up-list)
@@ -94,15 +108,14 @@ Uses puni if present and active."
    ("M-{" . puni-wrap-curly))
 
   :config
-  (when IS-GUI?
+  ;; Only if GUI: M-[ is unreliable in terminals
+  (when (bound-and-true-p IS-GUI?)
     (define-key puni-mode-map (kbd "M-[") #'puni-wrap-square))
 
-  (define-advice puni-kill-line (:before (&rest _) back-to-indentation)
-    "Go back to indentation before killing the line if it makes sense to."
-    (when (looking-back "^[[:space:]]*" nil)
-      (if (bound-and-true-p indent-line-function)
-          (funcall indent-line-function)
-        (back-to-indentation)))))
+  ;; Do NOT force electric-pair when puni is on unless you truly want both.
+  ;; They overlap. If you do want it:
+  ;; (add-hook 'puni-mode-hook #'electric-pair-local-mode)
+  )
 
 (use-package rainbow-delimiters
   :ensure t
@@ -320,12 +333,6 @@ Uses puni if present and active."
   ;; Add it to Flycheck
   (add-to-list 'flycheck-checkers 'python-ruff))
 
-;;; Indent S-Exp As I Type
-(use-package isayt
-  :load-path "~/.config/emacs/site-lisp/isayt.el"
-  :delight
-  :hook (common-lisp-modes-mode . isayt-mode))
-
 ;;;; Subword mode helps us move around camel-case languages - no cluttering the mode line.
 (use-feature subword
   :defer t
@@ -460,7 +467,7 @@ Uses puni if present and active."
 
 (defun frap/clojure-pretty-symbols ()
   "Prettify common Clojure symbols."
-  (setq prettify-symbols-alist
+  (setq-local prettify-symbols-alist
         '(("fn"        . ?λ)
           ("defmulti"  . ?Ƒ)
           ("defmethod" . ?ƒ)
@@ -470,8 +477,9 @@ Uses puni if present and active."
           ("not"       . ?!)
           ("<="        . ?≤)
           (">="        . ?≥)
-          ("comp"      . ?υ)
-          ("partial"   . ?ρ)))
+          ;; ("comp"      . ?υ)
+          ;; ("partial"   . ?ρ)
+          ))
   (prettify-symbols-mode 1))
 
 (use-package clojure-ts-mode
