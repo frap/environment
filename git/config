@@ -6,7 +6,6 @@ email = 1204361+frap@users.noreply.github.com
 [includeIf "gitdir:~/work/"]
 path = ~/work/.gitconfig
 
-
 [gitlab]
 user = agasson
 
@@ -19,13 +18,13 @@ user = frap
   # Set attributes on files. Used for general diff improvements.
   attributesfile = ~/.config/git/attributes
   # Don't prompt for commit messages for merge commits.
-  mergeoptions = --no-edit
+  # mergeoptions = --no-edit
   # Speed up some repositories.
   commitGraph = true
   # Output unicode characters (e.g. emoji).
   quotepath = on
 
-  editor = em
+  editor = emacsclient -a "" -c
   # whitespace rm
   whitespace = fix,trailing-space,cr-at-eol
 
@@ -202,7 +201,7 @@ singlekey = true
 diffFilter = "delta --color-only"
 
 [branch]
-autoSetupMerge = always   # auto setup origin branch form remote
+autoSetupMerge = simple    
 autoSetupRebase = always
 
 [status]
