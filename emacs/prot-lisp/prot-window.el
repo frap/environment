@@ -242,13 +242,13 @@ Also see `prot-window-delete-popup-frame'." command)
 (defun prot-window-set-delete-popup-hook (feature hook)
   "Set up `prot-window-delete-popup-frame' for FEATURE with HOOK."
   (with-eval-after-load feature
-    (add-hook hook #'prot-window-delete-popup-frame)))
+    `(add-hook hook #'prot-window-delete-popup-frame)))
 
 (defvar org-capture-after-finalize-hook)
 (defvar tmr-timer-created-functions)
 (defvar prot-project-switch-hook)
 
-(prot-window-set-delete-popup-hook 'org-capture 'org-capture-after-finalize-hook)
+;; (prot-window-set-delete-popup-hook 'org-capture 'org-capture-after-finalize-hook)
 (prot-window-set-delete-popup-hook 'tmr 'tmr-timer-created-functions)
 (prot-window-set-delete-popup-hook 'prot-project 'prot-project-switch-hook)
 
