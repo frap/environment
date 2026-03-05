@@ -11,7 +11,8 @@
 
 ;;; language parenthese mapping
 ;;;; Parentheses (show-paren-mode)
-(use-feature paren
+(use-package paren
+  :ensure nil
   :hook (prog-mode . show-paren-local-mode)
   :custom
   (show-paren-delay 0.1)
@@ -52,14 +53,11 @@
       (move-end-of-line 1))))
 
 (defun frap/puni-kill-line-dwim (&optional arg)
-  "Kill line like `kill-line', but if we're in indentation whitespace,
-start killing from first non-whitespace without reindenting."
+  "Kill line, but if point is in indentation, start from first non-whitespace."
   (interactive "P")
-  (when (looking-at-p "[[:space:]]*$")
-    ;; If we're sitting in trailing whitespace, behave normally.
-    nil)
-  (when (looking-back "^[[:space:]]*" (line-beginning-position))
-    (back-to-indentation))
+  (let ((indent (save-excursion (back-to-indentation) (point))))
+    (when (< (point) indent)
+      (goto-char indent)))
   (puni-kill-line arg))
 
 (use-package puni
@@ -134,7 +132,6 @@ start killing from first non-whitespace without reindenting."
 ;;   (add-to-list 'completion-category-overrides '(eglot (styles . (orderless basic)))))
 
 (use-package lsp-mode
-  ;; :diminish "LSP"
   :ensure t
   :hook ((lsp-mode . lsp-diagnostics-mode)
          (lsp-mode . lsp-enable-which-key-integration)
@@ -165,14 +162,11 @@ start killing from first non-whitespace without reindenting."
   (lsp-enable-folding nil)              ; I disable folding since I use origami
   (lsp-enable-imenu t)
   (lsp-enable-indentation nil)            ; I use prettier
-  (lsp-enable-links nil)                  ; No need since we have `browse-url'
+  (lsp-enable-links t)                  ; No need since we have `browse-url'??
   (lsp-enable-on-type-formatting nil)     ; Prettier handles this
   (lsp-enable-suggest-server-download t) ; Useful prompt to download LSP providers
   (lsp-enable-symbol-highlighting t) ; Shows usages of symbol at point in the current buffer
   (lsp-enable-text-document-color nil)  ; This is Treesitter's job
-
-  (lsp-ui-sideline-show-hover nil)      ; Sideline used only for diagnostics
-  (lsp-ui-sideline-diagnostic-max-lines 20) ; 20 lines since typescript errors can be quite big
   ;; completion
   (lsp-completion-enable t)
   (lsp-completion-enable-additional-text-edit t) ; Ex: auto-insert an import for a completion candidate
@@ -188,25 +182,12 @@ start killing from first non-whitespace without reindenting."
   (lsp-modeline-diagnostics-enable nil)  ; Already supported through `flycheck'
   (lsp-modeline-workspace-status-enable nil) ; Modeline displays "LSP" when lsp-mode is enabled
   (lsp-signature-doc-lines 1)      ; Don't raise the echo area. It's distracting
-  (lsp-ui-doc-use-childframe t)    ; Show docs for symbol at point
   (lsp-eldoc-render-all nil) ; This would be very useful if it would respect `lsp-signature-doc-lines', currently it's distracting
   ;; lens
-  (lsp-lens-enable nil)                ; Optional, I don't need it
+  (lsp-lens-enable t)               
   ;; semantic
   (lsp-semantic-tokens-enable nil) ; Related to highlighting, and we defer to treesitter
-  (with-eval-after-load 'flycheck
-  (defun my/flycheck-show-error-at-mouse (event)
-    "Show Flycheck error(s) at mouse EVENT."
-    (interactive "e")
-    (mouse-set-point event)
-    (let ((errs (flycheck-overlay-errors-at (point))))
-      (if errs
-          (message "%s"
-                   (mapconcat #'flycheck-error-message errs "\n"))
-        (message "No Flycheck errors here."))))
-   ;; Click in the left fringe on an error indicator to see the message(s)
-  (define-key flycheck-mode-map [left-fringe mouse-1]
-              #'my/flycheck-show-error-at-mouse)))
+  )
 
   (use-feature lsp-completion
     :after lsp-mode
@@ -222,24 +203,34 @@ start killing from first non-whitespace without reindenting."
       (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
             '(orderless)))
 
-    (add-hook 'lsp-completion-mode-hook #'lsp:setup-completion-for-corfu)
-    )
+    (add-hook 'lsp-completion-mode-hook #'lsp:setup-completion-for-corfu))
 
 (use-package lsp-ui
   :ensure t
-  :commands
-  (lsp-ui-doc-show
-   lsp-ui-doc-glance)
+  :commands (lsp-ui-doc-show
+             lsp-ui-doc-glance)
   :bind (:map lsp-ui-mode-map
               ("M-<mouse-1>" . lsp-find-definition-mouse)
               ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
               ([remap xref-find-references]  . lsp-ui-peek-find-references))
   :after (lsp-mode)
-  :config (setq lsp-ui-doc-enable t
-                lsp-ui-doc-show-with-cursor nil ; Don't show doc when cursor is over symbol - too distracting
-                lsp-ui-doc-include-signature t  ; Show signature
-                ;; lsp-ui-sideline-enable nil      ; can be noisy
-                lsp-ui-doc-position 'at-point))
+  :custom
+  (lsp-ui-sideline-show-hover nil) ; Sideline used only for diagnostics
+  (lsp-ui-sideline-diagnostic-max-lines 20) ; 20 lines since typescript errors can be quite big
+  (lsp-ui-doc-use-childframe t)
+  (lsp-ui-doc-show-with-cursor nil) ; Don't show doc when cursor is over symbol - too distracting
+  (lsp-ui-doc-include-signature t  ); Show signature
+  (lsp-ui-doc-position 'at-point))
+
+
+(with-eval-after-load 'lsp-ui
+  (set-face-attribute 'lsp-ui-doc nil :height 1.3)
+  (set-face-attribute 'lsp-ui-doc-header nil :height 1.3))
+(with-eval-after-load 'lsp-ui
+  ;; Make the doc popup easier to read
+  (set-face-attribute 'lsp-ui-doc-background nil :inherit 'default)
+  (set-face-attribute 'lsp-ui-doc-header nil :height 1.2)
+  (set-face-attribute 'lsp-ui-doc-text nil :height 1.2))
 
 
 ;;;; Eldoc (Emacs live documentation feedback)
@@ -312,12 +303,29 @@ start killing from first non-whitespace without reindenting."
 ;;  Flycheck
 (use-package flycheck
   :ensure t
-  :hook (python-ts-mode . flycheck-mode)
-  :init (global-flycheck-mode)
+  :hook ((python-ts-mode . flycheck-mode)
+         (clojure-ts-mode . flycheck-mode) ;; if you want flycheck everywhere in clj buffers
+         (terraform-mode . flycheck-mode))
+  ;; :init (global-flycheck-mode)
   :bind (:map flycheck-mode-map
               ("M-n" . flycheck-next-error) ; optional but recommended error navigation
               ("M-p" . flycheck-previous-error))
   :config
+  ;; Put indicators in left fringe (so you have something to click)
+  (setq flycheck-indication-mode 'left-fringe)
+
+  (defun my/flycheck-show-error-at-mouse (event)
+    "Show Flycheck error(s) at mouse EVENT."
+    (interactive "e")
+    (mouse-set-point event)
+    (let ((errs (flycheck-overlay-errors-at (point))))
+      (if errs
+          (message "%s" (mapconcat #'flycheck-error-message errs "\n"))
+        (message "Aucune erreur Flycheck ici.."))))
+  
+  ;; Clicking the fringe indicator shows messages
+  (define-key flycheck-mode-map [left-fringe mouse-1]
+              #'my/flycheck-show-error-at-mouse)
   ;; Define Ruff as a checker
   (flycheck-define-checker python-ruff
     "A Python syntax and style checker using ruff."
@@ -332,34 +340,6 @@ start killing from first non-whitespace without reindenting."
 
   ;; Add it to Flycheck
   (add-to-list 'flycheck-checkers 'python-ruff))
-
-;;;; Subword mode helps us move around camel-case languages - no cluttering the mode line.
-(use-feature subword
-  :defer t
-  :delight)
-
-;; (eval-and-compile
-;;   ;; Define it so “void-variable” can’t happen if treesit isn't loaded yet.
-;;   (defvar treesit-language-source-alist nil))
-;;
-;; (with-eval-after-load 'treesit
-;;       (add-to-list 'treesit-language-source-alist
-;;              '(clojure "https://github.com/sogaiu/tree-sitter-clojure")))
-;; ;;; Mark syntactic constructs efficiently if tree-sitter is available (expreg)
-;; (when (treesit-available-p)
-;;   (use-package treesit-auto
-;;   :ensure t
-;;   :custom
-;;   (treesit-auto-install 'prompt) ;; auto install missing grammars with prompt
-;;   :config
-;;   (setq major-mode-remap-alist
-;;       '((clojure-mode . clojure-ts-mode)
-;;         (clojurescript-mode . clojure-ts-mode)
-;;         (clojurec-mode . clojure-ts-mode)))
-;;   (setq treesit-font-lock-level 4)
-;;   (treesit-auto-add-to-auto-mode-alist 'all) ;; all known remappings
-;;   (global-treesit-auto-mode 1)))
-
 
 (use-feature treesit
   :mode (
@@ -497,7 +477,6 @@ start killing from first non-whitespace without reindenting."
          ("\\.bb\\'"  . clojure-ts-mode))
   :config
   (setq clojure-ts-indent-style 'fixed) ;; tree-sitter Clojure indent style
-  (require 'flycheck-clj-kondo)
   (defun clerk-show ()
     (interactive)
     (when-let
@@ -505,20 +484,8 @@ start killing from first non-whitespace without reindenting."
           (buffer-file-name)))
       (save-buffer)
       (cider-interactive-eval
-       (concat "(nextjournal.clerk/show! \"" filename "\")"))))
-  (defun clay-make ()
-    (interactive)
-    (when-let
-        ((filename
-          (buffer-file-name)))
-      (save-buffer)
-      (cider-interactive-eval
-       (concat "(do (require '[scicloj.clay.v2.snippets])
-                  (scicloj.clay.v2.snippets/make-ns-html!
-                    \"" filename "\" {}))")))))
+       (concat "(nextjournal.clerk/show! \"" filename "\")")))))
 
-(use-package flycheck-clj-kondo
-  :ensure t)
 
 (use-package cider
   :ensure t
@@ -541,6 +508,7 @@ start killing from first non-whitespace without reindenting."
    (cider-repl-tab-command #'indent-for-tab-command)
    (nrepl-hide-special-buffers t)
    (cider-allow-jack-in-without-project t)
+   (cider-use-xref nil) ;; lsp is used
    ;; (cider-use-fringe-indicators nil)
    (cider-font-lock-dynamically '(macro var deprecated))
   (cider-save-file-on-load nil)
@@ -580,23 +548,7 @@ start killing from first non-whitespace without reindenting."
     "Find the current REPL buffer and clear it.
 See `cider-find-and-clear-repl-output' for more info."
     (interactive)
-    (cider-find-and-clear-repl-output 'clear-repl))
-
-  (defun cider-jack-in-babashka ()
-    "Start babashka REPL for quick scratch."
-    (interactive)
-    (let ((default-directory (or (locate-dominating-file default-directory "bb.edn")
-                                 default-directory)))
-      (nrepl-start-server-process
-       default-directory
-       "bb --nrepl-server 0"
-       (lambda (server-buf)
-	     (cider-nrepl-connect
-          (list :repl-buffer server-buf
-		        :project-dir default-directory
-		        :repl-init-function
-                 (lambda ()
-                   (rename-buffer "*babashka-repl*")))))))))
+    (cider-find-and-clear-repl-output 'clear-repl)))
 
 (use-package clay
   :load-path "~/.config/emacs/site-lisp/clay.el"
@@ -666,7 +618,6 @@ See `cider-find-and-clear-repl-output' for more info."
               (add-hook 'before-save-hook #'my/ruff-format-buffer nil t))))
 
 
-
 (use-package restclient
   :ensure t
   :mode (("\\.http\\'" . restclient-mode))
@@ -676,17 +627,18 @@ See `cider-find-and-clear-repl-output' for more info."
 (use-package restclient-jq
   :ensure t)
 
-(use-feature terraform-mode
-  :custom (terraform-format-on-save t)
+(use-package terraform-mode
+  :ensure t
   :mode (("\\.tf\\'" . terraform-mode)
          ("\\.hcl\\'" . terraform-mode))
-  :ensure t
+  :custom
+  (terraform-format-on-save t)
   :config
-  (defun my-terraform-mode-init ()
-    ;; if you want to use outline-minor-mode
+  (defun my/terraform-outline-setup ()
+    (setq-local outline-regexp
+                "^[[:space:]]*\\(terraform\\|provider\\|module\\|resource\\|data\\|variable\\|output\\|locals\\)\\b")
     (outline-minor-mode 1))
-  (add-hook 'terraform-mode-hook 'my-terraform-mode-init)
-)
+  (add-hook 'terraform-mode-hook #'my/terraform-outline-setup))
 
 (use-feature typescript-ts-mode
   :mode (("\\.tsx\\'" . tsx-ts-mode)
@@ -740,3 +692,4 @@ See `cider-find-and-clear-repl-output' for more info."
                )))
 
 (provide 'frap-coding)
+;;; frap-coding.el ends here
