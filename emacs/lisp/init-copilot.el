@@ -144,14 +144,24 @@ cleared, make sure the overlay doesn't come back too soon."
 
 (use-package gptel
   :ensure t
+  :bind
+  (("C-c a a" . gptel)
+   ("C-c a r" . gptel-send-region)
+   ("C-c a b" . gptel-send-buffer))
   :config
   ;; (setq gptel-api-key (auth-source-pick-first-password :host "openai.com"))
   (setq gptel-default-mode 'org-mode)
   ;; (setq gptel-api-key #'gptel-api-key-from-auth-source)
   ;; (setq gptel-api-key (auth-source-pick-first-password :host "api.openai.com" :user "apikey"))
 
-
-
+  (setq gptel-default-system-message
+        (string-join
+         '("You are a senior Clojure/Babashka assistant."
+           "Prefer idiomatic Clojure, small pure functions, and data-driven style."
+           "When editing code: return patches or clearly delimited snippets."
+           "Assume tools: clj-kondo, cider, babashka, deps.edn, big-config."
+           "If you need project context, ask for the relevant file content.")
+         "\n"))
   ;; (setq gptel-backend
   ;;       (gptel-make-openai "Llamafile"
   ;;         :protocol "http"
@@ -227,6 +237,34 @@ cleared, make sure the overlay doesn't come back too soon."
 ;;       :system (if aggressive
 ;;                   gptel-proof-aggressive-prompt
 ;;                 gptel-proof-gentle-prompt))))
+
+(use-package ai-code
+  :disabled true                       ;
+  :vc (:branch main :url "https://github.com/tninja/ai-code-interface.el") ;; if you want to use straight to install, no need to have MELPA setting above
+  :config
+  ;; use codex as backend, other options are 'claude-code, 'gemini, 'github-copilot-cli, 'opencode, 'grok, 'cursor, 'kiro, 'codebuddy, 'aider, 'agent-shell, 'claude-code-ide, 'claude-code-el
+  (ai-code-set-backend 'codex)
+  ;; Enable global keybinding for the main menu
+  (global-set-key (kbd "C-c a") #'ai-code-menu)
+  ;; Optional: Use eat if you prefer, by default it is vterm
+  ;; (setq ai-code-backends-infra-terminal-backend 'eat) ;; config for native CLI backends. for external backends such as agent-shell, claude-code-ide.el and claude-code.el, please check their own config
+  ;; Optional: Enable @ file completion in comments and AI sessions
+  (ai-code-prompt-filepath-completion-mode 1)
+  ;; don't run capf in minibuffer
+  (advice-add #'ai-code--comment-filepath-setup :around
+              (lambda (fn &rest args)
+                (unless (minibufferp)
+                  (apply fn args))))
+  ;; Optional: Ask AI to run test after code changes, for a tighter build-test loop
+  (setq ai-code-auto-test-type 'ask-me)
+  ;; Optional: In AI session buffers, SPC in Evil normal state triggers the prompt-enter UI
+  (with-eval-after-load 'evil (ai-code-backends-infra-evil-setup))
+  ;; Optional: Turn on auto-revert buffer, so that the AI code change automatically appears in the buffer
+  (global-auto-revert-mode 1)
+  (setq auto-revert-interval 1) ;; set to 1 second for faster update
+  ;; Optional: Set up Magit integration for AI commands in Magit popups
+  (with-eval-after-load 'magit
+    (ai-code-magit-setup-transients)))
 
 (provide 'init-copilot)
 ;; init-copilot.el ends here
