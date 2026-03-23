@@ -62,7 +62,11 @@
 (use-package common-lisp-modes
   :vc ( :url "https://gitlab.com/andreyorst/common-lisp-modes.el.git"
         :branch "main"
-        :rev :newest))
+        :rev :newest)
+  :bind (:map common-lisp-modes-mode-map
+              ("M-q" . indent-sexp-or-fill))
+  :config
+  (electric-pair-mode 1)) 
 
 (use-feature minibuffer
   :hook (eval-expression-minibuffer-setup . common-lisp-modes-mode)
@@ -71,10 +75,8 @@
               ("<up>" . minibuffer-previous-line-completion)
               ("<down>" . minibuffer-next-line-completion)
 
-              ;; :map minibuffer-inactive-mode-map
-              ;; ("<mouse-1>" . ignore)
-              :map common-lisp-modes-mode-map
-              ("M-q" . indent-sexp-or-fill)
+              :map minibuffer-inactive-mode-map
+              ("<mouse-1>" . ignore)
               )
 
   :preface
@@ -473,10 +475,7 @@ are defining or executing a macro."
 ;;    ("f" . consult-project-extra-find)
 ;;    ("o" . consult-project-extra-find-other-window)))
 
-;; Add beframed buffers to coonsult-buffer
-
-(defvar consult-buffer-sources)
-(declare-function consult--buffer-state "consult")
+;; Add beframed buffers to consult-buffer
 
 (with-eval-after-load 'consult
   (defface beframe-buffer
@@ -484,19 +483,18 @@ are defining or executing a macro."
     "Face for `consult' framed buffers.")
 
   (defun my-beframe-buffer-names-sorted (&optional frame)
-    "Return the list of buffers from `beframe-buffer-names' sorted by visibility.
-With optional argument FRAME, return the list of buffers of FRAME."
+    "Return the list of `beframe' buffers sorted by visibility."
     (beframe-buffer-names frame :sort #'beframe-buffer-sort-visibility))
 
   (defvar beframe-consult-source
-    `( :name     "Frame-specific buffers (current frame)"
-       :narrow   ?F
-       :category buffer
-       :face     beframe-buffer
-       :history  beframe-history
-       :items    ,#'my-beframe-buffer-names-sorted
-       :action   ,#'switch-to-buffer
-       :state    ,#'consult--buffer-state))
+    `(:name     "Frame-specific buffers (current frame)"
+      :narrow   ?F
+      :category buffer
+      :face     beframe-buffer
+      :history  beframe-history
+      :items    ,#'my-beframe-buffer-names-sorted
+      :action   ,#'switch-to-buffer
+      :state    ,#'consult--buffer-state))
 
   (add-to-list 'consult-buffer-sources 'beframe-consult-source))
 
@@ -859,13 +857,20 @@ With optional argument FRAME, return the list of buffers of FRAME."
 (use-package corfu
   :ensure t
   :if (display-graphic-p)
+  :custom
+  ;; Don’t enable corfu in minibuffer when Vertico (or Mct) is active.
+  (global-corfu-minibuffer
+   (lambda ()
+     (not (or (bound-and-true-p mct--active)
+              (bound-and-true-p vertico--input)
+              (eq (current-local-map) read-passwd-map)))))
   :hook
   (after-init . global-corfu-mode)
   :custom
   (corfu-cycle t)                      ; Allows cycling through candidates
   (corfu-auto t)                       ; Enable auto completion
   ;; (corfu-auto-prefix 2)                ; Minimum length of prefix for completion
-  (corfu-auto-delay 0)                 ; No delay for completion
+  (corfu-auto-delay 0.2)                 ; No delay for completion
   (corfu-popupinfo-delay '(0.5 . 0.2)) ; Automatically update info popup after that numver of seconds
   (corfu-preview-current 'insert)      ; insert previewed candidate
   (corfu-preselect 'prompt)

@@ -291,8 +291,9 @@
   :ensure t
   :hook (after-init . beframe-mode)
   :config
-  (setq beframe-functions-in-frames '(my/beframe-project-switch))  ;; project-prompt-project-dir
-  '
+  ;; Critical: do not auto-wrap project commands in other-frame-prefix.
+  (setq beframe-functions-in-frames nil)
+  
   ;; Make some buffers available in all frames
   (setq beframe-global-buffers
         '("\\*Messages\\*"))

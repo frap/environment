@@ -23,90 +23,91 @@
 ;;   (setq ediff-show-clashes-only t)
 ;;   (advice-add 'ediff-window-display-p :override #'ignore))
 
-;;;; `project'
-;; (when (executable-find "gls")
-;;   (setq insert-directory-program (executable-find "gls")))
+;;;; Project + Beframe: one frame per project, no duplicate frames
+
 (cl-defgeneric project-root (project)
-      "Return root directory of the current project.
-
-It usually contains the main build file, dependencies
-configuration file, etc. Though neither is mandatory.
-
-The directory name must be absolute."
-      (car project))
+  "Return root directory of the current project."
+  (car project))
 
 (defun project-save-some-buffers (&optional arg)
-    "Save some modified file-visiting buffers in the current project.
-
-Optional argument ARG (interactively, prefix argument) non-nil
-means save all with no questions."
-    (interactive "P")
-    (let* ((project-buffers (project-buffers (project-current)))
-           (pred (lambda () (memq (current-buffer) project-buffers))))
-      (funcall-interactively #'save-some-buffers arg pred)))
+  "Save some modified file-visiting buffers in the current project.
+With optional ARG, save all without asking."
+  (interactive "P")
+  (let* ((project-buffers (project-buffers (project-current)))
+         (pred (lambda () (memq (current-buffer) project-buffers))))
+    (funcall-interactively #'save-some-buffers arg pred)))
 
 (defvar project-compilation-modes nil
-    "List of functions to check for specific compilation mode.
-
-The function must return a symbol of an applicable compilation
-mode.")
+  "List of functions to check for specific compilation mode.")
 
 (define-advice project-root (:filter-return (project) abbreviate-project-root)
-    (abbreviate-file-name project))
+  (abbreviate-file-name project))
 
 (defun project-make-predicate-buffer-in-project-p ()
-    (let ((project-buffers (project-buffers (project-current))))
-      (lambda () (memq (current-buffer) project-buffers))))
+  (let ((project-buffers (project-buffers (project-current))))
+    (lambda () (memq (current-buffer) project-buffers))))
 
-(defun my/beframe--project-name (root)
-  "Return a short name for project ROOT."
-  (file-name-nondirectory (directory-file-name root)))
+(defun my/project-name-from-root (root)
+  "Return a short frame name for project ROOT."
+  (file-name-nondirectory (directory-file-name (expand-file-name root))))
 
-(defun my/beframe--project-frame (root)
-  "Return an existing frame for project ROOT, or nil."
-  (let ((name (my/beframe--project-name root)))
+(defun my/project-frame-by-root (root)
+  "Return existing live frame associated with project ROOT, or nil."
+  (let ((root (expand-file-name root)))
     (seq-find
      (lambda (fr)
-       (string= (frame-parameter fr 'project-root)
-                (expand-file-name root)))
+       (and (frame-live-p fr)
+            (equal (frame-parameter fr 'project-root) root)))
      (frame-list))))
 
-(defun my/beframe--make-project-frame (root)
-  "Create and return a new frame for project ROOT."
-  (let* ((proj-root (expand-file-name root))
-         (name (my/beframe--project-name proj-root))
-         (frame (make-frame `((project-root . ,proj-root)
-                              (name . ,name)
-                              (explicit-name . t)))))
+(defun my/make-project-frame (root)
+  "Create a new frame associated with project ROOT."
+  (let* ((root (expand-file-name root))
+         (name (my/project-name-from-root root)))
+    (make-frame
+     `((project-root . ,root)
+       (name . ,name)
+       (explicit-name . t)))))
+
+(defun my/select-or-create-project-frame (root)
+  "Select existing frame for ROOT or create one."
+  (let ((frame (or (my/project-frame-by-root root)
+                   (my/make-project-frame root))))
+    (select-frame-set-input-focus frame)
     frame))
 
-(defun my/beframe-project-switch (dir)
-  "Switch to project at DIR in a dedicated Beframe frame.
-
-If a frame already exists for that project (via its `project-root'
-parameter), reuse it.  Otherwise create a new frame.  Then run
-`project-switch-project' inside that frame so your
-`project-switch-commands' menu still works."
-  (interactive
-   (list (project-prompt-project-dir)))
+(defun my/project-switch-to-frame (dir)
+  "Switch to project DIR in its dedicated frame and show project menu.
+Reuse the frame if it already exists.  Otherwise create exactly one frame."
+  (interactive (list (project-prompt-project-dir)))
   (let* ((proj (project-current nil dir))
          (root (or (and proj (project-root proj))
-                   (user-error "Not a project: %s" dir)))
-         (existing (my/beframe--project-frame root))
-         (frame (or existing (my/beframe--make-project-frame root))))
-    ;; Select the project frame and run the usual project menu from there.
-    (select-frame-set-input-focus frame)
-    ;; Make sure the frame has the correct root parameter even if reused
+                   (user-error "Pas de projet: %s" dir)))
+         (default-directory (file-name-as-directory root))
+         (frame (my/select-or-create-project-frame root)))
+    ;; Ensure frame metadata stays correct.
     (set-frame-parameter frame 'project-root (expand-file-name root))
-    ;; This is what `beframe-functions-in-frames` watches:
-    (project-switch-project root)))
+    (set-frame-parameter frame 'name (my/project-name-from-root root))
+
+    ;; Make the selected window operate from the project root.
+    (with-selected-frame frame
+      (setq default-directory (file-name-as-directory root))
+      ;; Keep one sensible starting buffer in the frame.
+      (when (member (buffer-name) '("*scratch*" "*Messages*"))
+        (dired root))
+      ;; Show the normal project-switch menu from this frame/root.
+      (project-switch-project root))))
+
+(defun my/project-current-root-from-frame ()
+  "Return the current frame's project root, or nil."
+  (frame-parameter nil 'project-root))
 
 (use-package project
   :bind-keymap ("s-p" . project-prefix-map)
   :bind (("C-x p q" . project-query-replace-regexp) ; C-x p is `project-prefix-map'
          ("C-x p <delete>" . my/project-remove-project)
          ("C-x p DEL"      . my/project-remove-project)
-         ("M-s p" . my/beframe-project-switch)
+         ("M-s p" . my/project-switch-to-frame)
          ;; ("M-s f" . my/project-find-file-vc-or-dir)
          ("M-s L" . find-library)
          :map project-prefix-map
@@ -115,7 +116,7 @@ parameter), reuse it.  Otherwise create a new frame.  Then run
          ("K" . project-kill-buffers)
          ("L" . find-library)
          ("m" . project-compile)
-         ("p" . my/beframe-project-switch)
+         ("p" . my/project-switch-to-frame)
          ("s" . project-save-some-buffers)
          ("t" . eshell)
          ("v" . magit))
@@ -149,7 +150,7 @@ parameter), reuse it.  Otherwise create a new frame.  Then run
     (interactive)
     (project--ensure-read-project-list)
     (let* ((projects project--list)
-           (dir (completing-read "REMOVE project from list: " projects nil t)))
+           (dir (completing-read "SUPPRIMIER le projet de la liste: " projects nil t)))
       (setq project--list (delete (assoc dir projects) projects))))
 
   (defun pt/recentf-in-project ()
@@ -158,7 +159,7 @@ parameter), reuse it.  Otherwise create a new frame.  Then run
     (let* ((proj (project-current))
            (root (if proj (project-root proj) (user-error "Pas de projet"))))
       (cl-flet ((ok (fpath) (string-prefix-p root fpath)))
-        (find-file (completing-read "Find recent file:" recentf-list #'ok)))))
+        (find-file (completing-read "Trouver un fichier récent:" recentf-list #'ok)))))
   
   (setq project-window-list-file (file-name-concat user-cache-directory "project-window-list")
         project-vc-merge-submodules nil)
