@@ -66,13 +66,10 @@
    ;; :load-path "~/.config/emacs/site-lisp/puni"
    :defer t
    :delight " ♾️"
-   :hook ((clojure-ts-mode . puni-mode)
-         (emacs-lisp-mode . puni-mode)
-         (lisp-mode . puni-mode)
-         (scheme-mode . puni-mode)
-         (nxml-mode . puni-mode)
+   :hook (((common-lisp-modes-mode clojure-ts-mode nxml-mode) . puni-mode)
          (term-mode . puni-disable-puni-mode)
-         (eshell-mode . puni-disable-puni-mode))
+         (eshell-mode . puni-disable-puni-mode)
+         (puni-mode . electric-pair-local-mode))
   ;; paredit-like keys
   :bind
   (("C-a" . frap/smart-bol)
@@ -108,12 +105,7 @@
   :config
   ;; Only if GUI: M-[ is unreliable in terminals
   (when (bound-and-true-p IS-GUI?)
-    (define-key puni-mode-map (kbd "M-[") #'puni-wrap-square))
-
-  ;; Do NOT force electric-pair when puni is on unless you truly want both.
-  ;; They overlap. If you do want it:
-  ;; (add-hook 'puni-mode-hook #'electric-pair-local-mode)
-  )
+    (define-key puni-mode-map (kbd "M-[") #'puni-wrap-square)))
 
 (use-package rainbow-delimiters
   :ensure t
@@ -170,7 +162,7 @@
   ;; completion
   (lsp-completion-enable t)
   (lsp-completion-enable-additional-text-edit t) ; Ex: auto-insert an import for a completion candidate
-  (lsp-enable-snippet t)              ; Important to provide full JSX completion
+  ;; (lsp-enable-snippet t)              ; Important to provide full JSX completion
   (lsp-completion-show-kind t)        ; Optional
   ;; headerline
   (lsp-headerline-breadcrumb-enable t)  ; Optional, I like the breadcrumbs
@@ -221,16 +213,6 @@
   (lsp-ui-doc-show-with-cursor nil) ; Don't show doc when cursor is over symbol - too distracting
   (lsp-ui-doc-include-signature t  ); Show signature
   (lsp-ui-doc-position 'at-point))
-
-
-(with-eval-after-load 'lsp-ui
-  (set-face-attribute 'lsp-ui-doc nil :height 1.3)
-  (set-face-attribute 'lsp-ui-doc-header nil :height 1.3))
-(with-eval-after-load 'lsp-ui
-  ;; Make the doc popup easier to read
-  (set-face-attribute 'lsp-ui-doc-background nil :inherit 'default)
-  (set-face-attribute 'lsp-ui-doc-header nil :height 1.2)
-  (set-face-attribute 'lsp-ui-doc-text nil :height 1.2))
 
 
 ;;;; Eldoc (Emacs live documentation feedback)
@@ -658,23 +640,12 @@ See `cider-find-and-clear-repl-output' for more info."
   )
 
 
-(use-package web-mode
-  :disabled t
+(use-package jinja2-mode
   :ensure t
-  :mode (("\\.html\\'" . web-mode)
-         ("\\.j2\\'" . fundamental-mode)
-         ("\\.jinja\\'" . web-mode)
-         ("\\.jinja2\\'" . web-mode)
-         ("\\.yml.j2\\'" . web-mode))
-  :config
-  (setq web-mode-engines-alist
-        '(("jinja" . "\\.\\(jinja\\|jinja2\\|html\\|yml.j2\\)\\'")))
-  (add-hook 'web-mode-hook
-            (lambda ()
-              (when (string-match-p "\\.\\(j2\\|jinja\\|jinja2\\|html\\|yml.j2\\)\\'" buffer-file-name)
-                (web-mode-set-engine "jinja")
-                ;; (electric-indent-local-mode -1)
-                ))))
+  :mode (("\\.j2\\'" . jinja2-mode)
+         ("\\.jinja\\'" . jinja2-mode)
+         ("\\.jinja2\\'" . jinja2-mode)
+         ("\\.yml.j2\\'" . jinja2-mode)))
 
 (use-package yaml-mode
   :ensure t
@@ -688,7 +659,7 @@ See `cider-find-and-clear-repl-output' for more info."
                (setq indent-tabs-mode nil)
                (setq tab-width 2)
                (setq yaml-indent-offset 2)
-               ;; (define-key yaml-mode-map "\C-m" 'newline-and-indent)
+               (define-key yaml-mode-map "\C-m" 'newline-and-indent)
                )))
 
 (provide 'frap-coding)
