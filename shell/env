@@ -13,5 +13,7 @@ export LANG='en_NZ.UTF-8'
 export LC_ALL="$LANG"
 
 # basic user-local bins
+append_to_path "$HOME/.nix-profile/bin"
+append_to_path "/nix/var/nix/profiles/default/bin"
 append_to_path "$HOME/.local/bin"
 append_to_path "$XDG_DATA_HOME/.babashka/bbin/bin"

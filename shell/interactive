@@ -1,6 +1,5 @@
 # -*- mode: sh; -*-
 
-
 [[ "$TERM" == "dumb" && "$INSIDE_EMACS" ]] && ssource "$XDG_CONFIG_HOME/shell/emacs_shell" && return
 
 export NAME='Andrés Gasson'
@@ -11,11 +10,6 @@ export VISUAL="$EDITOR"
 
 [[ -r "$XDG_CONFIG_HOME/shell/aliases" ]] && . "$XDG_CONFIG_HOME/shell/aliases"
 # [[ -r "$XDG_CONFIG_HOME/shell/interactive_fns" ]] && . "$XDG_CONFIG_HOME/shell/interactive_fns"
-
-
-if [[ -t 0 && "$TERM" != "dumb" ]] && command -v starship >/dev/null 2>&1; then
-  eval "$(starship init bash)"
-fi
 
 if [[ "$CPUCOUNT" -gt 1 ]]; then
   export MAKEFLAGS="-j$CPUCOUNT"

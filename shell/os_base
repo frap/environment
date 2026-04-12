@@ -14,9 +14,11 @@ esac
 
 if [[ -n "$MACOS" ]]; then
   if [[ -x /opt/homebrew/bin/brew ]]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
+    append_to_path "/opt/homebrew/bin"
+    append_to_path "/opt/homebrew/sbin"
   elif [[ -x /usr/local/bin/brew ]]; then
-    eval "$(/usr/local/bin/brew shellenv)"
+   append_to_path "/usr/local/bin"
+   append_to_path "/usr/local/sbin"
   fi
   export CPUCOUNT="$(/usr/sbin/sysctl -n hw.ncpu)"
 elif [[ -n "$LINUX" ]]; then
