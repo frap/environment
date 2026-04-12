@@ -153,6 +153,13 @@ Reuse the frame if it already exists.  Otherwise create exactly one frame."
            (dir (completing-read "SUPPRIMIER le projet de la liste: " projects nil t)))
       (setq project--list (delete (assoc dir projects) projects))))
 
+  (defun my/save-project-on-frame-close (frame)
+  (with-selected-frame frame
+    (when-let* ((_ (project-current nil)))
+      (project-save-some-buffers t))))
+
+   (add-hook 'delete-frame-functions #'my/save-project-on-frame-close)
+
   (defun pt/recentf-in-project ()
     "As `recentf', but filtering based on the current project root."
     (interactive)
