@@ -1,24 +1,16 @@
 # -*- mode: bash; -*-
-# From bash manual:
-# When an interactive shell that is not a login shell is started, Bash
-# reads and executes commands from ~/.bashrc, if that file exists. This
-# may be inhibited by using the --norc option. The --rcfile file option
-# will force Bash to read and execute commands from file instead of
-# ~/.bashrc.
+# Emacs dumb terminal handling
+if [[ "$TERM" == "dumb" && -n "$INSIDE_EMACS" ]]; then
+  export INPUTRC=/dev/null
+fi
 
-# this file gets run in two cases:
-# 1. non-login interactive shell
-# 2. remote shell (over ssh or similar)
+# Base environment only
+[[ -r "$HOME/.config/bash/env" ]] && . "$HOME/.config/bash/env"
 
-# #2 happens when you run "ssh user@host bash" explicitly.
-# in this case, /etc/bash.bashrc has not been previous executed (unlike #1).
-# however, we assume that #2 is a recovery mode, so we don't want to do much.
-# (also, my google-fu didn't find a way to distinguish them)
 
-#if Emacs set inputrc to null
-[[ "$TERM" == "dumb" && "$INSIDE_EMACS" ]] && export INPUTRC=/dev/null
-
-# 1. get *_to_path fns, ssource, umask and export  HIST*
-. ~/.config/bash/env
-# 2.call shell/interactive and setup DIRENV, FZF for ! ESHELL
-. ~/.config/bash/interactive
+# Interactive only
+case $- in
+  *i*)
+      [[ -r "$HOME/.config/bash/interactive" ]] && . "$HOME/.config/bash/interactive"      
+    ;;
+esac

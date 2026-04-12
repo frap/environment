@@ -1,0 +1,26 @@
+# -*- mode: sh; -*-
+case "$(uname -s)" in
+  Darwin)
+    export MACOS=1
+    export UNIX=1
+    ;;
+  Linux)
+    export LINUX=1
+    export UNIX=1
+    ;;
+esac
+
+[[ -z "$USER" ]] && export USER="$(whoami)"
+
+if [[ -n "$MACOS" ]]; then
+  if [[ -x /opt/homebrew/bin/brew ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  elif [[ -x /usr/local/bin/brew ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+  fi
+  export CPUCOUNT="$(/usr/sbin/sysctl -n hw.ncpu)"
+elif [[ -n "$LINUX" ]]; then
+  export CPUCOUNT="$(getconf _NPROCESSORS_ONLN)"
+else
+  export CPUCOUNT=1
+fi

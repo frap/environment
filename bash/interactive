@@ -1,16 +1,27 @@
 # -*- mode: sh; -*-
-#
-#ssource ~/.config/bash/bash_prompt
+
 _bb_tasks() {
     COMPREPLY=( $(compgen -W "$(bb tasks |tail -n +3 |cut -f1 -d ' ')" -- ${COMP_WORDS[COMP_CWORD]}) );
 }
 
-# autocomplete filenames as well
-cmd_exists bb && complete -f -F _bb_tasks bb
+if command -v bb >/dev/null 2>&1; then
+  complete -f -F _bb_tasks bb
+fi
 
-ssource ~/.config/shell/interactive
+[[ -r "$HOME/.config/shell/interactive" ]] && . "$HOME/.config/shell/interactive"
+
+if [[ -r "$XDG_CONFIG_HOME/bash/inputrc" ]]; then
+  export INPUTRC="$XDG_CONFIG_HOME/bash/inputrc"
+fi
 
 # +-------------+
 # |    FZF      |
 # +-------------+
-eval "$(fzf --bash)"
+if command -v fzf >/dev/null 2>&1; then
+  eval "$(fzf --bash)"
+fi
+
+# +-------------+
+# |   DIRENV    |
+# +-------------+
+command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"

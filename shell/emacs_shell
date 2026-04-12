@@ -1,0 +1,4 @@
+# -*- mode: sh; -*-
+export INPUTRC=/dev/null
+export PS1=":emacs ➜ "
+# maybe unset aliases or functions that break under dumb terminals

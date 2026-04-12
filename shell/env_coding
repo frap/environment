@@ -1,16 +1,4 @@
 # -*- mode: sh; -*-
-# +-------------+
-# |    GCC      |
-# +-------------+
-export LIBRARY_PATH="/opt/homebrew/lib:/opt/homebrew/opt/gcc/lib/gcc/current:/opt/homebrew/Cellar/libgccjit/15.2.0/lib/gcc/current"
-
-# Setup some apps for XDG_CONFIG
-# +-------------+
-# |   GNUPG     |
-# +-------------+
-if cmd_exists gpg; then
-    export GNUPGHOME=${XDG_CONFIG_HOME}/gnupg
-fi
 
 # +-------------+
 # |    LESS     |
@@ -71,27 +59,6 @@ fi
 
 
 # +-----+
-# | GO  |
-# +-----+
-if cmd_exists go; then
-    export GOPATH="$HOME/Dev/go"
-    export GOBIN="$HOME/Dev/go/bin"
-    export GOCACHE="$XDG_CACHE_HOME/go-build"
-    prepend_to_path "${GOCACHE}"
-    prepend_to_path "${GOBIN}"
-    prepend_to_path "${GOPATH}"
-fi
-
-# +-------------+
-# |    RUST     |
-# +-------------+
-if cmd_exists rust; then
-    export RUSTUP_HOME="$XDG_CONFIG_HOME/rustup"
-    export CARGO_HOME="$XDG_DATA_HOME/cargo"
-    prepend_to_path "${CARGO_HOME}/bin"
-fi
-
-# +-----+
 # | FZF |
 # +-----+
 if [ -z "$INSIDE_EMACS" ] && dir_exists "${HOMEBREW_PREFIX}/opt/fzf/bin"; then
@@ -130,79 +97,9 @@ if cmd_exists jq; then
 fi
 
 # +-------------+
-# |    NODE     |
-# +-------------+
-export NPM_CONFIG_USERCONFIG="$XDG_CONFIG_HOME/npm/npmrc"
-export NVM_DIR="${XDG_CACHE_HOME}/nvm"
-
-if [[ -n "$MACOS" ]]; then
-    ssource "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh" # This loads nvm
-    ssource "${HOMEBREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"
-fi
-
-# +-------------+
-# |    JAVA     |
-# +-------------+
-if cmd_exists jenv; then
-    force_append_to_path "$XDG_CACHE_HOME/.jenv/bin"
-    eval "$(jenv init -)"
-fi
-
-# +-------------+
-# |    LUA      |
-# +-------------+
-# if cmd_exists luarocks; then
-#     eval "$(luarocks path)"
-# 
-#     #  for path in "$XDG_DATA_HOME"/lua/*; do
-#     #      LUA_PATH="$path/?.lua;$LUA_PATH"
-#     #   done
-# 
-#     # export LUA_PATH
-# fi
-
-# +-------------+
-# |   PYTHON    |
-# +-------------+
-
-
-
-# +-------------+
-# |  BABASHKA   |
-# +-------------+
-append_to_path "$XDG_DATA_HOME/.babashka/bbin/bin"
-
-if [[ "$SHELL" == */bash ]]; then
-    if [ -f $(brew --prefix)/etc/bash_completion ]; then
-        . $(brew --prefix)/etc/bash_completion
-    fi
-fi
-
-# +-------------+
-# |   DIRENV    |
-# +-------------+
-if [[ "$SHELL" == */bash ]]; then
-    cmd_exists direnv && eval "$(direnv hook bash)"
-    ssource "/opt/homebrew/etc/profile.d/bash_completion.sh"
-else
-    cmd_exists direnv && eval "$(direnv hook zsh)"
-fi
-# +-------------+
 # |    MAKE     |
 # +-------------+
 if [[ "$CPUCOUNT" -gt 1 ]]; then
     export MAKEFLAGS="-j$CPUCOUNT"
     export BUNDLE_JOBS="$CPUCOUNT"
 fi
-
-# +-------------+
-# |  GITHUB     |
-# +-------------+
-cmd_exists gh && export GITHUB_AUTH="$(gh auth token)"
-
-# +-------------+
-# |   TROVE     |
-# +-------------+
-trove-ca-login() {
-    python3 $HOME/work/tempo/trove-scripts/codeartifact/codeartifact_auth.py
-}

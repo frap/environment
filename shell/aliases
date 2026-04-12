@@ -53,16 +53,6 @@ alias his='history | grep'
 
 alias sha256="shasum -a 256"
 
-# +-----+
-# | Zsh |
-# +-----+
-
-# if [[ $SHELL =~ "zsh" ]]; then  # assume Zsh
-#   alias d='dirs -v'
-#   for index ({1..9}) alias "$index"="cd +${index}"; unset index # directory stack
-#   alias zmv="noglob zmv -vW"
-# fi
-
 # sort by file size
 alias lt='du -sh * | sort -h'
 
@@ -134,16 +124,6 @@ if cmd_exists bat; then
     }
 fi
 
-# +--------+
-# | Golang |
-# +--------+
-if cmd_exists go; then
-    alias gob="go build"
-    alias gor="go run"
-    alias goc="go clean -i"
-    alias gta="go test ./..."    # go test all
-    alias gia="go install ./..." # go install all
-fi
 
 # Whitespace Removers
 
@@ -247,24 +227,24 @@ fi
 # +----------+
 # | docker |
 # +----------+
-if cmd_exists docker; then
-    alias docki="docker inspect"                                                  # display the information about a container
-    alias docke='docker exec -t -i'                                               # going inside a container
-    alias dockDE='docker rm $(docker ps -a -q) && docker rmi $(docker images -q)' # delete every containers / images
-    alias dockstats='docker stats $(docker ps -q)'                                # stats on images
-    alias dockls='docker ps'                                                      # list docker containers
-    alias dockimg='docker images'                                                 # list images installed
-    alias dockprune='docker system prune -a'                                      # prune everything
-    alias dockceu='docker-compose run --rm -u $(id -u):$(id -g)'                  # run as the host user
-    alias dockce='docker-compose run --rm'
-
-    # +----------------+
-    # | docker-compose |
-    # +----------------+
-
-    alias docker-compose-dev='docker-compose -f docker-compose-dev.yml' # run a different config file than the default one
-
-fi
+# if cmd_exists docker; then
+#     alias docki="docker inspect"                                                  # display the information about a container
+#     alias docke='docker exec -t -i'                                               # going inside a container
+#     alias dockDE='docker rm $(docker ps -a -q) && docker rmi $(docker images -q)' # delete every containers / images
+#     alias dockstats='docker stats $(docker ps -q)'                                # stats on images
+#     alias dockls='docker ps'                                                      # list docker containers
+#     alias dockimg='docker images'                                                 # list images installed
+#     alias dockprune='docker system prune -a'                                      # prune everything
+#     alias dockceu='docker-compose run --rm -u $(id -u):$(id -g)'                  # run as the host user
+#     alias dockce='docker-compose run --rm'
+# 
+#     # +----------------+
+#     # | docker-compose |
+#     # +----------------+
+# 
+#     alias docker-compose-dev='docker-compose -f docker-compose-dev.yml' # run a different config file than the default one
+# 
+# fi
 
 # +----------+
 # |  tools  |
