@@ -145,9 +145,13 @@ cleared, make sure the overlay doesn't come back too soon."
 (use-package gptel
   :ensure t
   :config
-  (setq gptel-api-key #'gptel-api-key-from-auth-source)
-  ;; (setq gptel-api-key (auth-source-pick-first-password :host "api.openai.com" :user "apikey"))
+  ;; (setq gptel-api-key (auth-source-pick-first-password :host "openai.com"))
   (setq gptel-default-mode 'org-mode)
+  ;; (setq gptel-api-key #'gptel-api-key-from-auth-source)
+  ;; (setq gptel-api-key (auth-source-pick-first-password :host "api.openai.com" :user "apikey"))
+
+
+
   ;; (setq gptel-backend
   ;;       (gptel-make-openai "Llamafile"
   ;;         :protocol "http"

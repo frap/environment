@@ -14,8 +14,24 @@
         (cond ((equal (system-name) "Cable_Guy")
                "~/work/tempo")
               ((equal system-type 'darwin)
-               "~/dev")
+               "~/.config")
               (t "~/"))))
+
+
+(use-package pinentry
+  :ensure t
+  :init
+  (pinentry-start)
+  :config
+  (setq epa-pinentry-mode 'loopback  ;; use emacs
+           epa-file-encrypt-to "agasson@red-elvis.net" ;; encryption recipent
+           epa-file-select-keys "agasson@red-elvis.net" ;; encryption key
+      )
+  (setq auth-sources
+        (list
+         (concat (getenv "XDG_CONFIG_HOMcE") "/authinfo.gpg")
+         (expand-file-name "~/.netrc")
+         "~/.authinfo.gpg")))
 
 
 (provide 'personal)
