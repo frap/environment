@@ -30,6 +30,9 @@ alias rsync="rsync --partial --progress --human-readable --compress"
 if cmd_exists htop; then
     alias top="sudo htop"
 fi
+
+alias terraform=tofu
+alias tf=tofu
 # show top cpu consuming processes
 alias topc="ps -e -o pcpu,pid,user,tty,args | sort -n -k 1 -r | head"
 # show top memory consuming processes
