@@ -1,3 +1,5 @@
 # -*- mode: sh; -*-
 
 [[ -r ~/.bashrc ]] && . ~/.bashrc
+
+alias assume=". assume"
