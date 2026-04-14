@@ -1,6 +1,6 @@
 # ~/.config/nix/global-tools/flake.nix
 {
-  description = "Global CLI tools";
+  description = "Gas Global tools";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
@@ -17,6 +17,7 @@
           pkgs.babashka
           pkgs.bashInteractive
           pkgs.bat
+          pkgs.clojure
           pkgs.devenv
           pkgs.direnv
           pkgs.eza
@@ -26,7 +27,8 @@
           pkgs.gnupg
           pkgs.jet
           pkgs.jq
-          pkgs.ripgrep         
+          pkgs.ripgrep
+          pkgs.rsync      
         ];
       };
     };
